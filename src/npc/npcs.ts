@@ -67,9 +67,13 @@ export interface Resident {
   talking: boolean;
   /** Currently saying a line (drives the talking gesture). */
   speaking: boolean;
+  /** Serving Raka until this clock time (seconds): faces him and reaches across. */
+  serveUntil: number;
 }
 
 export const residents: Resident[] = [];
+/** `Slot.claimedBy` value for a seat Raka is using. */
+export const PLAYER = -2;
 export let crowd: Crowd;
 const rnd = mulberry32(7331);
 const hash = (a: number, b: number) => {
@@ -84,9 +88,9 @@ export function initWorldNav() {
   buildGraph();
 }
 
-/** Create residents and their meshes. Call after the scene is built. */
-export function initResidents() {
-  crowd = new Crowd(RESIDENTS.length);
+/** Create residents and their meshes. `extras` reserves crowd slots for non-resident figures (pasar stall-keepers). Call after the scene is built. */
+export function initResidents(extras = 0) {
+  crowd = new Crowd(RESIDENTS.length + extras);
   for (const def of RESIDENTS) {
     const i = residents.length;
     const appearance = generateAppearance({ age: def.age, gender: def.gender, set: def.look }, rnd);
@@ -148,6 +152,7 @@ export function initResidents() {
       lastPoseAt: -1,
       talking: false,
       speaking: false,
+      serveUntil: 0,
     });
   }
   resync();
@@ -174,7 +179,7 @@ function findSlot(r: Resident, location: string) {
     for (const s of list[(start + k) % n].slots) {
       if (s.tag !== tag) continue;
       first ??= s;
-      if (s.shared || s.claimedBy < 0 || s.claimedBy === r.i) return { slot: s, first };
+      if (s.shared || s.claimedBy === -1 || s.claimedBy === r.i) return { slot: s, first };
     }
   if (!first) throw new Error(`No slot for ${location}`);
   return { slot: null, first };
@@ -211,7 +216,8 @@ function release(r: Resident) {
 
 /** Put everyone where their schedule says they are now. Used at start, on a new day and after time jumps. */
 export function resync() {
-  for (const p of pois) for (const s of p.slots) s.claimedBy = -1;
+  // Free every slot, except a seat Raka is sitting on (claimed as PLAYER).
+  for (const p of pois) for (const s of p.slots) if (s.claimedBy !== PLAYER) s.claimedBy = -1;
   for (const r of residents) {
     const blocks = today(r);
     r.block = blockIndexAt(blocks, S.time);
@@ -375,8 +381,8 @@ function place(r: Resident, dtReal: number, full: boolean) {
     if (r.talking) r.ry = turn(r.ry, Math.atan2(player.x - r.x, player.z - r.z), dtReal * 6);
     return;
   }
-  // Standing NPCs turn to face Raka while talking; seated ones stay put and turn their head.
-  if (r.talking && r.settle >= 1 && s.pose === 'stand') {
+  // Standing NPCs turn to face Raka while talking or serving him; seated ones stay put and turn their head.
+  if ((r.talking || clock < r.serveUntil) && r.settle >= 1 && s.pose === 'stand') {
     r.x = s.x;
     r.z = s.z;
     r.ry = turn(r.ry, Math.atan2(player.x - r.x, player.z - r.z), dtReal * 6);
@@ -568,14 +574,15 @@ function pose(r: Resident, full: boolean, dtR: number) {
   if (full) {
     if (r.speaking) pst.gesture = 0.55 + 0.45 * Math.sin(clock * 2.1 + r.i);
     else if (atSlot && act === 'chat' && !r.talking) pst.gesture = Math.max(0, Math.sin(clock * 0.45 + r.i * 1.7)) ** 3;
-    if (atSlot && act === 'fish') pst.reach = 0.9;
+    if (clock < r.serveUntil) pst.reach = 0.9;
+    else if (atSlot && act === 'fish') pst.reach = 0.9;
     else if (atSlot && act === 'work' && pst.pose === 'stand') pst.reach = 0.25 + 0.2 * Math.sin(clock * 0.8 + r.i);
     else if (atSlot && act === 'garden') pst.reach = 0.5;
     // Look at the player when he's close and in front.
     if (r.dist < 5) {
       let a = Math.atan2(player.x - r.x, player.z - r.z) - r.ry;
       a = Math.atan2(Math.sin(a), Math.cos(a));
-      if (Math.abs(a) < 1.9 || r.talking) headTarget = Math.max(-1.1, Math.min(1.1, a));
+      if (Math.abs(a) < 1.9 || r.talking || clock < r.serveUntil) headTarget = Math.max(-1.1, Math.min(1.1, a));
     }
     r.headYaw += (headTarget - r.headYaw) * Math.min(1, dtR * 5);
   } else r.headYaw = 0;
@@ -585,6 +592,12 @@ function pose(r: Resident, full: boolean, dtR: number) {
 }
 
 /* ================= conversation ================= */
+
+/** A shopkeeper hands something over: faces Raka and reaches across for a moment. */
+export function serve(r: Resident, seconds = 1.6) {
+  r.serveUntil = clock + seconds;
+  r.lastPoseAt = -1;
+}
 
 /** The resident Raka is looking at within talking range, if any. */
 export function talkTarget(yaw: number, range = 2.5): Resident | null {

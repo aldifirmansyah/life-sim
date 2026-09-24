@@ -19,6 +19,8 @@ export const player = {
   canRun: true,
   runSpeed: 6,
   walkSpeed: 3.5,
+  /** Eye height: 1.7 standing, lower when seated. */
+  eye: 1.7,
 };
 /** Held key codes. */
 export const keys = new Set<string>();
@@ -73,6 +75,6 @@ export function updatePlayer(dt: number) {
 
 export function applyCamera() {
   const b = SETTINGS.bob ? Math.sin(player.bob * 2) * 0.035 * Math.min(1, player.speed / 3.5) : 0;
-  camera.position.set(player.x, 1.7 + b, player.z);
+  camera.position.set(player.x, player.eye + b, player.z);
   camera.rotation.set(player.pitch, player.yaw, 0);
 }

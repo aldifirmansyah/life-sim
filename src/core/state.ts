@@ -13,6 +13,8 @@ export const S = {
   /** An activity panel (shop, home, garden, warung shift) is open. */
   panel: false,
   sleeping: false,
+  /** Raka is busy with an animated action (paying, sitting, eating); input and movement wait. */
+  acting: false,
   locked: false,
   lastZone: '',
 };
@@ -21,4 +23,4 @@ export const DAYS = ['Minggu', 'Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sab
 /** An overlay that owns the mouse and keyboard is open (the world keeps rendering behind it). */
 export const inMenu = () => S.paused || S.map || S.dialog || S.phone || S.panel;
 /** Raka can walk around and time runs. */
-export const inWorld = () => S.started && !inMenu() && !S.sleeping;
+export const inWorld = () => S.started && !inMenu() && !S.sleeping && !S.acting;

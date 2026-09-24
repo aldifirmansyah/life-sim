@@ -4,8 +4,9 @@
 import { $ } from '../core/util';
 import { S } from '../core/state';
 import { sleep } from '../core/time';
-import { pasar } from '../render/batch';
-import { residents, type Resident } from '../npc/npcs';
+import { residents, serve as serveResident, type Resident } from '../npc/npcs';
+import { vendorAt, serveAt, vendorSpot } from '../npc/vendors';
+import { buyToBag, buyAndConsume, findSeat } from '../game/actions';
 import { poiById, groups } from '../npc/places';
 import * as social from '../social/social';
 import { rakaHouse } from '../world/landmarks';
@@ -53,7 +54,34 @@ const VENDOR_NAME: Record<Vendor, string> = {
   bakso: 'Bakso Mas Joko',
 };
 
-function openShop(v: Vendor, note?: string, back?: () => void, keepPage = false) {
+/** Who is minding a shop right now, and how they hand things over. Nobody there, no sale. */
+function seller(
+  v: Vendor,
+  stall: number,
+): { serve: () => void; keeper: Resident | null; name: string; at?: [number, number] } | null {
+  const hand = (r: Resident | null) =>
+    r ? { serve: () => serveResident(r), keeper: r, name: r.npc.name, at: [r.x, r.z] as [number, number] } : null;
+  switch (v) {
+    case 'warung':
+      return hand(present('sri', 'warung', 'owner') ?? present('dimas', 'warung', 'helper'));
+    case 'warkop':
+      return hand(present('slamet', 'warkop', 'owner'));
+    case 'bakso':
+      return hand(present('joko', 'bakso', 'vendor'));
+    case 'pasar':
+      return vendorAt(stall)
+        ? { serve: () => serveAt(stall), keeper: null, name: 'The stall-keeper', at: vendorSpot(stall) }
+        : null;
+  }
+}
+
+function openShop(v: Vendor, note?: string, back?: () => void, keepPage = false, stall = -1) {
+  const who = seller(v, stall);
+  if (!who) {
+    closePanel();
+    toast(`${VENDOR_NAME[v]} is unattended`, 'Nobody is minding it right now. Come back when they are.');
+    return;
+  }
   const here = EAT_HERE[v] ?? [];
   const rows: Row[] = STOCK[v].map(id => {
     const it = item(id);
@@ -64,34 +92,61 @@ function openShop(v: Vendor, note?: string, back?: () => void, keepPage = false)
     const have = st.count(id);
     return {
       label: it.name,
-      note: `${rupiah(it.price)}${eatHere ? ' · have it here' : have ? ` · ${have} in bag` : ''}`,
-      disabled: closed ?? (st.canAfford(it.price) ? undefined : `${rupiah(it.price)} · not enough money`),
-      run: () => buy(v, it, eatHere, back),
+      note: `${rupiah(it.price)}${eatHere ? ' \u00b7 have it here' : have ? ` \u00b7 ${have} in bag` : ''}`,
+      disabled: closed ?? (st.canAfford(it.price) ? undefined : `${rupiah(it.price)} \u00b7 not enough money`),
+      run: () => buy(v, it, eatHere, back, stall),
     };
   });
   openPanel({
     title: VENDOR_NAME[v],
-    sub: v === 'pasar' ? 'Fresh this morning, gone by half past nine' : 'Buy something',
+    sub: `${who.name} is serving`,
     body: note,
     rows,
     back,
     keepPage,
+    onClose: () => {
+      if (who.keeper) who.keeper.talking = false;
+    },
   });
+  // The shopkeeper stays at the counter while Raka is choosing.
+  if (who.keeper) who.keeper.talking = true;
 }
 
-function buy(v: Vendor, it: Item, eatHere: boolean, back?: () => void) {
-  if (!st.spend(it.price)) return;
+function buy(v: Vendor, it: Item, eatHere: boolean, back: (() => void) | undefined, stall: number) {
+  const who = seller(v, stall);
+  if (!who || !st.spend(it.price)) return;
   S.time += 1;
-  let note: string;
+  // Hide the menu while Raka pays and takes it; the keeper stays put until he's done.
+  closePanel(false);
+  const release = () => {
+    if (who.keeper) who.keeper.talking = false;
+  };
   if (eatHere) {
-    st.consume(it.id);
-    S.time += 10;
-    note = `You have ${it.name.toLowerCase()} on the spot. ${it.eat!.energy >= 20 ? 'Much better.' : 'Nice.'}`;
+    const seat = findSeat(4.5);
+    buyAndConsume(it.id, who.serve, who.at, seat, () => {
+      release();
+      finishEating(it.id, 0, seat !== null);
+    });
   } else {
-    st.add(it.id);
-    note = `${it.name} goes in your bag. ${it.blurb}`;
+    buyToBag(it.id, who.serve, who.at, () => {
+      st.add(it.id);
+      openShop(v, `${it.name} goes in your bag. ${it.blurb}`, back, true, stall);
+    });
   }
-  openShop(v, note, back, true);
+}
+
+/** After eating or drinking: apply it, let the time pass, and say how Raka feels. */
+export function finishEating(id: string, q: number, seated: boolean) {
+  const it = item(id);
+  const e0 = st.stats.energy;
+  st.consume(id, q);
+  S.time = Math.min(S.time + (it.cat === 'meal' || it.cat === 'dish' ? 15 : 5), 26 * 60 - 1);
+  const gained = Math.round(st.stats.energy - e0);
+  const lc = it.name.charAt(0).toLowerCase() + it.name.slice(1);
+  toast(
+    `${it.cat === 'drink' ? 'Drank' : 'Ate'} the ${lc}`,
+    `${gained > 0 ? `Energy +${gained}. ` : ''}${seated ? 'Nice to sit for a bit.' : it.cat === 'drink' ? 'Refreshing.' : 'That hit the spot.'}`,
+  );
 }
 
 function warungMenu(note?: string) {
@@ -413,12 +468,13 @@ export function registerActivities() {
   // Every pasar pagi stall, while the market is up.
   for (const p of groups.get('pasar') ?? []) {
     const s = p.slots[0];
+    const stall = +p.id.slice('pasar'.length);
     interactables.push({
       x: s.x > 0 ? 2.25 : -2.25,
       z: s.z,
       reach: 2.2,
-      label: () => (pasar.visible ? 'Pasar pagi stall' : null),
-      run: () => openShop('pasar'),
+      label: () => (vendorAt(stall) ? 'Pasar pagi stall' : null),
+      run: () => openShop('pasar', undefined, undefined, false, stall),
     });
   }
   const wk = poiById.get('warkop')!.slots.find(s => s.tag === 'owner')!;

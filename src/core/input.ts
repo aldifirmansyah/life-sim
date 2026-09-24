@@ -9,6 +9,7 @@ import { toggleGraph } from '../npc/debug';
 import { dialogKey } from '../ui/dialogue';
 import { panelKey } from '../ui/panel';
 import { interact } from '../game/interact';
+import { skipAction } from '../game/actions';
 import { openPhone, closePhone } from '../ui/contacts';
 
 export function initInput() {
@@ -26,7 +27,7 @@ export function initInput() {
   });
   addEventListener('mouseup', () => (drag = null));
   addEventListener('mousemove', e => {
-    if (!S.started || inMenu()) return;
+    if (!S.started || inMenu() || S.acting) return;
     const k = 0.0022 * SETTINGS.sens;
     if (S.locked) {
       player.yaw -= e.movementX * k;
@@ -51,6 +52,12 @@ export function initInput() {
       if (e.code === 'Enter') {
         play();
       }
+      return;
+    }
+    // Paying, sitting, eating: Esc skips to the end, everything else waits.
+    if (S.acting) {
+      if (e.code === 'Escape') skipAction();
+      e.preventDefault();
       return;
     }
     if (S.dialog) return dialogKey(e);
@@ -114,7 +121,7 @@ function initTouch() {
   canvas.addEventListener(
     'touchstart',
     e => {
-      if (!S.started || inMenu()) return;
+      if (!S.started || inMenu() || S.acting) return;
       for (const t of e.changedTouches) {
         if (t.clientX < innerWidth * 0.45 && joy.id === null) {
           joy.id = t.identifier;

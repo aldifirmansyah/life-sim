@@ -21,14 +21,16 @@ import { streets, buildCables } from './world/streets';
 import { boundaries } from './world/boundaries';
 import { pasarPagi } from './world/pasar';
 import { ground } from './world/ground';
-import { initWorldNav, initResidents, updateResidents, graphStats, npcStats } from './npc/npcs';
+import { initWorldNav, initResidents, updateResidents, graphStats, npcStats, residents, crowd } from './npc/npcs';
 import { updateNpcDebug } from './npc/debug';
-import { residents } from './npc/npcs';
 import { dailyDecay } from './social/social';
 import { updateDialogue } from './ui/dialogue';
 import { updateInteraction, interact } from './game/interact';
 import { updateStats } from './game/stats';
 import { buildGarden, gardenNewDay } from './game/garden';
+import { placeVendorStools, vendorCount, initVendors, updateVendors } from './npc/vendors';
+import { RESIDENTS } from './npc/roster';
+import { initActions, updateActions } from './game/actions';
 import { registerActivities, updateActivities } from './ui/activities';
 import { bindPhone } from './ui/contacts';
 import { toast, updateHUD } from './ui/hud';
@@ -55,9 +57,13 @@ ground();
 initWorldNav();
 // Raka's planters go into the static batches too.
 buildGarden();
+// Stools for the pasar stall-keepers.
+placeVendorStools();
 ALL_BATCHES.forEach(b => b.build());
 buildCables();
-initResidents();
+initResidents(vendorCount());
+initVendors(crowd, RESIDENTS.length);
+initActions();
 registerActivities();
 graphStats();
 
@@ -81,7 +87,9 @@ function loop(now: number) {
     player.pitch = 0.04 + Math.sin(now * 0.00007) * 0.03;
   }
   // NPCs hold still while paused; on the start screen they idle in place.
-  updateResidents(!S.started || S.dialog || inWorld() ? dt : 0);
+  // NPCs keep living while Raka talks or eats; they hold still while the game is paused.
+  updateResidents(!S.started || S.dialog || S.acting || inWorld() ? dt : 0);
+  updateVendors();
   applyCamera();
   updateEnv((S.time / 60) % 24);
   if (S.started) updateHUD();
@@ -89,6 +97,7 @@ function loop(now: number) {
   updateDialogue(dt);
   updateInteraction();
   updateActivities();
+  updateActions();
   if (inWorld()) updateStats(dt);
   // Friendships Raka has neglected for a week fade a little each new day.
   if (S.day !== decayDay) {

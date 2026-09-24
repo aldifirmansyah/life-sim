@@ -23,6 +23,8 @@ export interface PanelSpec {
   back?: () => void;
   /** Keep the current page when re-rendering the same list (e.g. after buying). */
   keepPage?: boolean;
+  /** Called when the panel is finally closed (not when it hides for an animation). */
+  onClose?: () => void;
 }
 
 const PER_PAGE = 8;
@@ -36,17 +38,24 @@ export function openPanel(p: PanelSpec) {
     if (document.pointerLockElement) document.exitPointerLock();
   }
   if (!p.keepPage) page = 0;
+  // Leaving one menu for another counts as closing it (e.g. a shop's keeper goes back to work).
+  if (spec && spec !== p) spec.onClose?.();
   spec = p;
   render();
   $('panel').hidden = false;
 }
 
-export function closePanel() {
+/** Close the panel. `final: false` just hides it for an animation that reopens it afterwards. */
+export function closePanel(final = true) {
   if (!S.panel) return;
   S.panel = false;
+  const s = spec;
   spec = null;
   $('panel').hidden = true;
-  tryLock();
+  if (final) {
+    s?.onClose?.();
+    tryLock();
+  }
 }
 
 /** Update the stats line at the bottom (money, energy) from outside. */

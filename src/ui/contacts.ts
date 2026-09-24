@@ -10,6 +10,8 @@ import { drawPortrait } from './portrait';
 import { renderHearts } from './dialogue';
 import { tryLock } from './overlays';
 import * as stats from '../game/stats';
+import { consumeFromBag, findSeat } from '../game/actions';
+import { finishEating } from './activities';
 import { item, rupiah } from '../game/items';
 
 const GLOSSARY: [string, string][] = [
@@ -198,12 +200,13 @@ function renderBag(note?: string) {
       b.className = 'ghost';
       b.textContent = e.item.cat === 'drink' ? 'Drink' : 'Eat';
       b.onclick = () => {
-        stats.take(e.item.id);
-        stats.consume(e.item.id, e.q);
-        S.time += 5;
-        renderBag(
-          `You ${e.item.cat === 'drink' ? 'drink' : 'eat'} the ${e.item.name.charAt(0).toLowerCase() + e.item.name.slice(1)}. Energy ${Math.round(stats.stats.energy)}, mood ${Math.round(stats.stats.mood)}.`,
-        );
+        // Put the phone away and eat it for real: sit down first for a proper meal if there's a seat close by.
+        const id = e.item.id,
+          q = e.q;
+        stats.take(id);
+        closePhone();
+        const seat = e.item.cat === 'meal' || e.item.cat === 'dish' ? findSeat(3) : null;
+        consumeFromBag(id, seat, () => finishEating(id, q, seat !== null));
       };
       row.appendChild(b);
     }
