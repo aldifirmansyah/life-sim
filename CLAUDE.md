@@ -13,8 +13,8 @@ Kampung is a first-person life-sim that runs in the browser. It is set in **Kamp
 - **Language:** English UI and dialogue, with Indonesian terms (Pak, Bu, Mas, Mbak, warung, gang…) and a glossary.
 
 ## Build phases (spec §12)
-1. **Foundation: DONE.** Originally `prototype/index.html`; now migrated to Vite + TypeScript in `src/` (awaiting the user's side-by-side check before Phase 2).
-2. NPC core: character generator, waypoint graph and A*, schedule-driven movement for 24 residents, simulation LOD, debug overlay. Verify 60 FPS.
+1. **Foundation: DONE.** Originally `prototype/index.html`; migrated to Vite + TypeScript in `src/` (the user confirmed it matches).
+2. **NPC core: DONE, awaiting the user's check.** Character generator, waypoint graph and A*, schedule-driven movement for 24 residents, simulation LOD, debug overlay. 60 FPS still needs checking on real hardware.
 3. Conversation: interaction prompt, dialogue panel, topics, relationships, memories, Contacts page.
 4. Activities and economy.
 5. Living world: NPC–NPC chats, gatherings, gossip, invitations, ambient NPCs, phone.
@@ -23,7 +23,7 @@ Kampung is a first-person life-sim that runs in the browser. It is set in **Kamp
 
 Do one phase at a time. At the end of each phase, check it and stop for the user's go-ahead.
 
-## Current state (Phase 1, Vite + TypeScript)
+## Current state (Phase 2, NPC core)
 The game lives in `src/` and builds with Vite (`npm run dev`, `npm run build`). `three` is pinned to 0.169.0 from npm, matching the prototype's r169. `prototype/index.html` is the original single-file build (Three.js from jsDelivr, no build step). It is kept only for comparison; don't develop in it.
 
 **Module map.** `src/main.ts` wires input and UI, builds the world, and runs the loop.
@@ -31,8 +31,9 @@ The game lives in `src/` and builds with Vite (`npm run dev`, `npm run build`). 
 - `render/`: `context` (renderer, scene, camera, fog), `batch` (instancing and the `B`/`C`/`blob` helpers), `textures`, `sky`, `lighting` (`KF`, `updateEnv`), `signs`, `quality`.
 - `world/`: `layout` (all layout data, palettes, `ZONES`), `houses`, `trees`, `landmarks`, `streets`, `boundaries`, `pasar`, `ground`.
 - `ui/`: `hud`, `map`, `overlays`.
+- `npc/`: `types` (the spec §8.2 NPC model), `roster` (the 24 residents and their ties), `schedule` (authoring helpers), `appearance` (character generator), `characters` (instanced renderer and poses), `places` (POIs, slots, homes), `navgraph` (lanes, A*, paths), `npcs` (runtime), `debug`.
 
-**Determinism.** The layout comes from `mulberry32(20260924)`. The build order in `main.ts` (blocks → landmarks → block trees → streets → boundaries → pasar → ground) and the order of `R()` calls inside each builder must not change, or the kampung changes. `Math.random` is only used for cosmetic noise (textures, stars, hill rotation, sign grain).
+**Determinism.** The layout comes from `mulberry32(20260924)`. The build order in `main.ts` (blocks → landmarks → block trees → streets → boundaries → pasar → ground) and the order of `R()` calls inside each builder must not change, or the kampung changes. `Math.random` is only used for cosmetic noise (textures, stars, hill rotation, sign grain). NPC code never calls `R()`: it has its own `mulberry32(7331)` and a `hash(a, b)` for per-day jitter.
 
 **World layout.** Units are metres. +z is south (toward the entrance) and −z is north (toward the kali and sawah).
 - Main road `Jalan Sukamaju`: x ∈ [-3, 3], z ∈ [-60, 60].
@@ -58,15 +59,22 @@ Colours are per-instance. The current view draws about 22–35 calls and about 6
 
 **Input.** Pointer lock, with a drag-to-look fallback. Touch uses a left-side joystick and right-side look. Keys: M map, Esc pause, F3 or backtick for the perf overlay, H hide hints.
 
+**NPCs.** 24 residents in 15 households (`npc/roster.ts`), following the spec §8.1 roster, with two feuds in `TIES`: Udin vs Hartono (motorbike noise) and Wati vs Endang (an unpaid loan). Each resident is a spec §8.2 `NPC`, plus a runtime `Resident` in `npc/npcs.ts`.
+- **Places.** A POI has an entry chain (its first point lies on a lane) and slots with a tag, pose (`stand`/`sit`/`squat`/`hidden`), seat height, facing, `via` points and an approach point. Slots are claimed one NPC at a time. `hidden` slots (doors, the two `away` points outside the gapura) are shared. When every slot is taken, the NPC stands a little way back. Schedule locations are `<group>.<tag>`, e.g. `warung.bench`, `home.teras` or `away`. `home` resolves to the household's house: the free row house whose door is nearest `HOUSEHOLD_SITES`. Homes whose teras has no bench get two plastic stools, added in `initWorldNav()` before the batches are built.
+- **Graph.** Lane centrelines (jalan, gangs, kali path, the road outside the gapura), split at crossings and where POI entries join. It has about 66 nodes, because only NPC homes and landmarks attach. A* runs over lanes only, and a path is slot → via → entry → lanes → entry → via → approach. NPCs don't collide with static colliders; the paths are laid out to be clear. A headless check of every lane, entry and approach segment found nothing blocked except the gate collider (NPCs walk out through it) and a morning pasar stall that touches the mouth of Gang Anggrek.
+- **Schedules.** `week({weekday, fri, sat, sun, jumatan, ronda})` builds 7 days of blocks covering 06:00–26:00. Jumatan and ronda nights are overlays. An NPC leaves when `now ≥ next.start − travel − jitter`, and travel is estimated from the actual path. Movement is driven by game time (1.45 m/s at the base clock, so crossing the kampung takes about 90 game-minutes). After a new day or a time jump of more than 30 game-minutes, `resync()` places everyone from their schedule; a trip that should already be underway starts partway along its path.
+- **LOD.** Near (< 40 m): every frame, with sidestepping (NPCs and player), keep-left lane offsets, head turns toward the player and gestures. Mid (40–80 m): 10 Hz. Far (> 80 m): 1 Hz, hidden past `min(120, fog.far)`. NPCs indoors or away aren't drawn. The schedule tick runs at 1 Hz, or every game-minute while fast-forwarding. Nearby NPCs are circles the player can't walk through (`collision.circles`).
+- **Rendering.** `Crowd` draws all residents with 6 InstancedMeshes (boxes, torso, icosahedra, hair cap, frustum, cylinder). That is 6 draw calls, plus 6 in the shadow pass, whatever the NPC count. Parts are posed procedurally (thigh and shin, arms, head group), and unused parts sit at a zero matrix.
+- **Debug.** F3 shows update and render CPU ms, NPC counts per tier and NPC sim ms, plus name tags with each NPC's activity. G (with F3 on) draws the waypoint graph and live paths. With F3 on, the map (M) shows every resident. In dev builds `window.__kampung` exposes state for headless scripts.
+
 **Known gaps and issues**
 - The `infill` step, meant to add back-row houses inside blocks, places nothing: interiors are too narrow once the row houses are in. Trees fill those spaces instead.
 - Buildings can't be entered yet. The spec calls for separate interior scenes loaded with a fade.
-- There are no NPCs, no audio, no save of player position or time, and no rain.
+- No NPC conversation yet (Phase 3), no ambient NPCs, no audio, no save of player position or time, and no rain.
+- NPC–NPC chats and gatherings are Phase 5. Residents only share places by schedule. Kerja bakti, arisan and pengajian aren't scheduled yet (Phase 6).
+- Walking takes real game time, so short blocks after a long walk can arrive late or be skipped. The schedules are written with that in mind; keep it in mind when adding blocks.
 - The prototype's claude.ai artifact hot-reload hook (`window.claude.hot`) was dropped in the migration; it did nothing outside claude.ai.
 - It has only been tested in headless Chromium with SwiftShader (about 30 FPS in software). It still needs a check on real hardware.
-
-## Vite + TypeScript migration: DONE, pending the user's check
-The prototype was split into the modules above with `three` from npm, the same seeded RNG, and a spatial hash for colliders. Behaviour and visuals are meant to be identical to `prototype/index.html`. Wait for the user to confirm that before starting Phase 2.
 
 ## Working conventions
 - Run `npm run build` (typecheck + build) before committing. Format with `npm run format`.

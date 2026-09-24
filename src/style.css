@@ -531,3 +531,35 @@ input[type='checkbox'] {
     transition: none;
   }
 }
+#npctags {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  pointer-events: none;
+}
+.npctag {
+  position: absolute;
+  left: 0;
+  top: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 3px 7px 4px;
+  background: rgba(0, 0, 0, 0.62);
+  border-radius: 6px;
+  white-space: nowrap;
+  will-change: transform;
+}
+.npctag b {
+  font: 700 11px/1.2 var(--ui);
+  color: #fff;
+}
+.npctag span {
+  font:
+    500 10px/1.2 ui-monospace,
+    SFMono-Regular,
+    Menlo,
+    Consolas,
+    monospace;
+  color: #bff5d6;
+}

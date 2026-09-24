@@ -1,7 +1,7 @@
 /* First-person player: WASD / joystick movement with smoothing, circle-vs-box
    collision, and the camera (eye height 1.7 m, optional head bob). */
 import { SETTINGS } from './settings';
-import { collide } from './collision';
+import { collide, collideCircles } from './collision';
 import { camera } from '../render/context';
 
 export const player = { x: 0, z: 55.5, vx: 0, vz: 0, yaw: 0, pitch: 0, bob: 0, speed: 0 };
@@ -47,6 +47,7 @@ export function updatePlayer(dt: number) {
   for (let i = 0; i < steps; i++) {
     player.x += (player.vx * dt) / steps;
     player.z += (player.vz * dt) / steps;
+    collideCircles(player);
     collide(player);
   }
   player.speed = Math.hypot(player.vx, player.vz);

@@ -5,6 +5,7 @@ import { SETTINGS, saveSettings } from './settings';
 import { player, keys, joy, look } from './player';
 import { canvas } from '../render/context';
 import { show, tryLock, play, pause, openMap, closeMap } from '../ui/overlays';
+import { toggleGraph } from '../npc/debug';
 
 export function initInput() {
   document.addEventListener('pointerlockchange', () => {
@@ -59,6 +60,10 @@ export function initInput() {
       } else if (!S.paused && !S.locked) {
         pause();
       }
+      return;
+    }
+    if (e.code === 'KeyG' && SETTINGS.debug) {
+      toggleGraph();
       return;
     }
     if (e.code === 'KeyH') {

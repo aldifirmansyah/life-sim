@@ -45,6 +45,10 @@ export function bike(x: number, z: number, ry: number, c: string) {
   put(cyl, -0.62, 0.3, 0, 0.29, 0.1, 0.29, '#1a1a1a', Math.PI / 2);
 }
 
+/** Row houses in build order, with what NPCs need: local frame, door offset, teras depth and bench. */
+export type House = ReturnType<typeof buildHouse>;
+export const houses: House[] = [];
+
 /** Fixed choices for a specific house; anything left out is rolled from R. */
 export interface HouseSpec {
   two?: boolean;
@@ -197,8 +201,10 @@ export function buildHouse({ cx, cz, th, w, d, sb, sp = {} }: HouseArgs) {
     }
   }
   // furniture
+  let bench: number | null = null;
   if (R() < 0.32 || sp.bench) {
     const bx = dx < 0 ? w / 2 - 1.1 : -w / 2 + 1.1;
+    bench = bx;
     put(solid, bx, 0.23, fz + 0.42, 1.4, 0.46, 0.42, sp.bench || '#8a6443');
     colL(bx - 0.7, bx + 0.7, fz + 0.2, fz + 0.64);
   }
@@ -224,7 +230,7 @@ export function buildHouse({ cx, cz, th, w, d, sb, sp = {} }: HouseArgs) {
   }
   // collider
   colL(-w / 2, w / 2, -d / 2, d / 2);
-  return { F, H, fz };
+  return { F, H, fz, dx, sb, th, w, d, bench };
 }
 
 /** Back-row house inside a block. (Currently never fits; see CLAUDE.md known gaps.) */
@@ -299,7 +305,7 @@ function genRow(b: Block, side: Side, s0: number, s1: number, maxD: number) {
       cur += 1.4;
       continue;
     }
-    buildHouse({ cx, cz, th, w, d, sb });
+    houses.push(buildHouse({ cx, cz, th, w, d, sb }));
     cur += w + (R() < 0.35 ? rand(0.5, 1.3) : 0);
   }
 }

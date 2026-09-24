@@ -1,6 +1,8 @@
 /* Top-down map of the kampung (M). */
 import { $ } from '../core/util';
 import { player } from '../core/player';
+import { SETTINGS } from '../core/settings';
+import { residents } from '../npc/npcs';
 import { GZ, GX, GH, GZN, GXN, XB, ZB, RESERVED, LANDMARKS, houseRects } from '../world/layout';
 
 export function drawMap() {
@@ -76,6 +78,25 @@ export function drawMap() {
   label('Kali', -30, -57.9, 11, 0, '#1f4a55');
   label('Sawah', 0, -68, 11, 0, '#2f5a1f');
   for (const [n, rc] of LANDMARKS) label(n, (rc[0] + rc[1]) / 2, (rc[2] + rc[3]) / 2, 12);
+  // Debug overlay on: every resident, filled when outside and hollow when indoors or away.
+  if (SETTINGS.debug)
+    for (const r of residents) {
+      const [x, z] = P(r.x, r.z);
+      g.beginPath();
+      g.arc(x, z, 4.5 * dpr, 0, Math.PI * 2);
+      g.lineWidth = 2 * dpr;
+      g.strokeStyle = '#1e8577';
+      g.fillStyle = '#2fb3a1';
+      if (r.hidden) g.stroke();
+      else {
+        g.fill();
+        g.stroke();
+      }
+      g.font = `700 ${9 * dpr}px Figtree, sans-serif`;
+      g.fillStyle = '#10302b';
+      g.textAlign = 'left';
+      g.fillText(r.npc.name.replace(/^(Pak|Bu|Mas|Mbak|Bang|Ustadz) /, ''), x + 6 * dpr, z);
+    }
   const [px, pz] = P(player.x, player.z);
   g.save();
   g.translate(px, pz);

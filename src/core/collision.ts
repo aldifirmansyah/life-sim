@@ -116,3 +116,20 @@ export function collide(p: { x: number; z: number }, r = 0.32) {
       }
     }
 }
+
+/** Moving circles (NPC bodies near the player), refilled every frame by the NPC system. */
+export const circles: { x: number; z: number; r: number }[] = [];
+
+/** Push a circle of radius r out of every moving circle. */
+export function collideCircles(p: { x: number; z: number }, r = 0.32) {
+  for (const c of circles) {
+    const dx = p.x - c.x,
+      dz = p.z - c.z,
+      d = Math.hypot(dx, dz),
+      min = r + c.r;
+    if (d < min && d > 1e-6) {
+      p.x += (dx / d) * (min - d);
+      p.z += (dz / d) * (min - d);
+    }
+  }
+}
