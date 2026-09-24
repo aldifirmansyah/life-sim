@@ -1,20 +1,22 @@
 /* Keyboard, mouse (pointer lock with drag-to-look fallback) and touch input. */
 import { $, clamp, TOUCH } from './util';
-import { S } from './state';
+import { S, inMenu, inWorld } from './state';
 import { SETTINGS, saveSettings } from './settings';
 import { player, keys, joy, look } from './player';
 import { canvas } from '../render/context';
 import { show, tryLock, play, pause, openMap, closeMap } from '../ui/overlays';
 import { toggleGraph } from '../npc/debug';
+import { dialogKey, tryTalk } from '../ui/dialogue';
+import { openPhone, closePhone } from '../ui/contacts';
 
 export function initInput() {
   document.addEventListener('pointerlockchange', () => {
     const was = S.locked;
     S.locked = document.pointerLockElement === canvas;
-    if (!S.locked && was && S.started && !S.paused && !S.map) pause();
+    if (!S.locked && was && S.started && !inMenu()) pause();
   });
   canvas.addEventListener('click', () => {
-    if (S.started && !S.paused && !S.map && !S.locked) tryLock();
+    if (S.started && !inMenu() && !S.locked) tryLock();
   });
   let drag: { x: number; y: number } | null = null;
   canvas.addEventListener('mousedown', e => {
@@ -22,7 +24,7 @@ export function initInput() {
   });
   addEventListener('mouseup', () => (drag = null));
   addEventListener('mousemove', e => {
-    if (!S.started || S.paused || S.map) return;
+    if (!S.started || inMenu()) return;
     const k = 0.0022 * SETTINGS.sens;
     if (S.locked) {
       player.yaw -= e.movementX * k;
@@ -47,6 +49,23 @@ export function initInput() {
       if (e.code === 'Enter') {
         play();
       }
+      return;
+    }
+    if (S.dialog) return dialogKey(e);
+    if (S.phone) {
+      if (e.code === 'Tab' || e.code === 'Escape') {
+        e.preventDefault();
+        closePhone();
+      }
+      return;
+    }
+    if (e.code === 'Tab') {
+      e.preventDefault();
+      if (!S.paused && !S.map) openPhone();
+      return;
+    }
+    if (e.code === 'KeyE' && inWorld()) {
+      tryTalk();
       return;
     }
     if (e.code === 'KeyM') {
@@ -92,7 +111,7 @@ function initTouch() {
   canvas.addEventListener(
     'touchstart',
     e => {
-      if (!S.started || S.paused || S.map) return;
+      if (!S.started || inMenu()) return;
       for (const t of e.changedTouches) {
         if (t.clientX < innerWidth * 0.45 && joy.id === null) {
           joy.id = t.identifier;

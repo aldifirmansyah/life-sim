@@ -24,10 +24,13 @@
           <div class="dayline"><i id="daymark"></i></div>
         </div>
         <div id="cross"></div>
+        <div id="prompt" hidden><kbd>E</kbd><span></span></div>
         <div id="toasts" aria-live="polite"></div>
         <div id="hint">
           <span><kbd>W</kbd><kbd>A</kbd><kbd>S</kbd><kbd>D</kbd> walk</span>
           <span><kbd>Shift</kbd> run</span>
+          <span><kbd>E</kbd> talk</span>
+          <span><kbd>Tab</kbd> contacts</span>
           <span><kbd>M</kbd> map</span>
           <span><kbd>T</kbd> hold to fast-forward</span>
           <span><kbd>F3</kbd> performance</span>
@@ -37,7 +40,8 @@
         <pre id="debug" hidden></pre>
         <div id="joy" hidden><div id="knob"></div></div>
         <div class="touchbtns" id="touchbtns" hidden>
-          <button id="tmap" type="button">Map</button><button id="tpause" type="button">Pause</button>
+          <button id="ttalk" type="button" hidden>Talk</button><button id="tphone" type="button">Contacts</button
+          ><button id="tmap" type="button">Map</button><button id="tpause" type="button">Pause</button>
         </div>
       </div>
 
@@ -65,6 +69,14 @@
             <div>
               <dt><kbd>Mouse</kbd></dt>
               <dd>Look around</dd>
+            </div>
+            <div>
+              <dt><kbd>E</kbd></dt>
+              <dd>Talk to a neighbour</dd>
+            </div>
+            <div>
+              <dt><kbd>Tab</kbd></dt>
+              <dd>Contacts and glossary</dd>
             </div>
             <div>
               <dt><kbd>M</kbd></dt>
@@ -121,6 +133,44 @@
             <button id="closemap" class="ghost" type="button">Close <kbd>M</kbd></button>
           </header>
           <canvas id="mapc" width="760" height="809"></canvas>
+        </div>
+      </section>
+
+      <section id="dialog" class="dialog" hidden aria-live="polite">
+        <div class="dlg-card">
+          <header>
+            <canvas id="dlg-portrait" class="portrait" aria-hidden="true"></canvas>
+            <div class="dlg-who">
+              <h3 id="dlg-name"></h3>
+              <p id="dlg-sub"></p>
+            </div>
+            <div class="dlg-rel">
+              <span id="dlg-stage" class="stage"></span>
+              <div id="dlg-hearts" class="hearts"></div>
+              <div id="dlg-floats"></div>
+            </div>
+          </header>
+          <p id="dlg-text"></p>
+          <ol id="dlg-choices"></ol>
+        </div>
+      </section>
+
+      <section id="phone" class="overlay map" hidden>
+        <div class="mappanel phonepanel">
+          <header>
+            <div>
+              <p class="eyebrow">Telepon</p>
+              <h2 id="phone-title">Contacts</h2>
+            </div>
+            <div class="seg" role="radiogroup" aria-label="Phone section" id="phonetabs">
+              <button type="button" role="radio" data-tab="contacts">Contacts</button
+              ><button type="button" role="radio" data-tab="glossary">Glossary</button>
+            </div>
+            <button id="closephone" class="ghost" type="button">Close <kbd>Tab</kbd></button>
+          </header>
+          <p id="phone-count" class="build"></p>
+          <div id="contacts" class="contacts"></div>
+          <dl id="glossary" class="glossary" hidden></dl>
         </div>
       </section>
 

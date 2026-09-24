@@ -563,3 +563,348 @@ input[type='checkbox'] {
     monospace;
   color: #bff5d6;
 }
+
+/* interaction prompt */
+#prompt {
+  position: absolute;
+  left: 50%;
+  top: calc(50% + 26px);
+  transform: translateX(-50%);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 7px 12px 8px;
+  background: var(--glass-2);
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  font: 700 14px/1.2 var(--ui);
+  white-space: nowrap;
+}
+#prompt kbd {
+  background: var(--kunyit);
+  color: #2a1c05;
+  border-color: transparent;
+}
+
+/* dialogue panel */
+.dialog {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  display: flex;
+  justify-content: center;
+  padding: 0 16px calc(18px + env(safe-area-inset-bottom, 0px));
+  pointer-events: none;
+}
+.dlg-card {
+  pointer-events: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  width: min(760px, 100%);
+  padding: 16px 18px 14px;
+  box-sizing: border-box;
+  background: var(--glass-2);
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  backdrop-filter: blur(8px);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.35);
+  animation: tin 0.25s ease-out both;
+}
+.dlg-card header {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+.portrait {
+  flex: none;
+  width: 56px;
+  height: 56px;
+  border-radius: 12px;
+  background: #3a3129;
+}
+.dlg-who {
+  flex: 1;
+  min-width: 0;
+}
+.dlg-who h3 {
+  margin: 0;
+  font: 400 26px/1.05 var(--display);
+  color: var(--kunyit);
+  text-shadow: 2px 2px 0 rgba(216, 57, 42, 0.55);
+}
+.dlg-who p {
+  margin: 3px 0 0;
+  font: 600 12px/1.3 var(--ui);
+  color: var(--ink-dim);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.dlg-rel {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 5px;
+}
+.stage {
+  padding: 2px 8px 3px;
+  border-radius: 999px;
+  background: rgba(47, 179, 161, 0.2);
+  color: #8fe3d6;
+  font: 700 11px/1.3 var(--ui);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+.stage.bad {
+  background: rgba(216, 57, 42, 0.22);
+  color: #ff9d90;
+}
+.hearts {
+  display: flex;
+  gap: 3px;
+}
+.hearts i {
+  position: relative;
+  width: 16px;
+  height: 15px;
+  --fill: 0%;
+}
+.hearts i::before,
+.hearts i::after {
+  content: '\2665';
+  position: absolute;
+  inset: 0;
+  font: normal 16px/15px var(--ui);
+  text-align: center;
+}
+.hearts i::before {
+  color: rgba(255, 236, 205, 0.18);
+}
+.hearts i::after {
+  color: #ff6b5b;
+  clip-path: inset(0 calc(100% - var(--fill)) 0 0);
+}
+#dlg-floats {
+  position: absolute;
+  right: 0;
+  top: 100%;
+  width: 0;
+  height: 0;
+}
+.dlg-float {
+  position: absolute;
+  right: 0;
+  top: 0;
+  font: 800 14px/1 var(--ui);
+  color: #ff8a7a;
+  white-space: nowrap;
+  animation: float 1.4s ease-out forwards;
+}
+.dlg-float.bad {
+  color: #9fb4c7;
+}
+@keyframes float {
+  from {
+    opacity: 0;
+    transform: translateY(0);
+  }
+  15% {
+    opacity: 1;
+  }
+  to {
+    opacity: 0;
+    transform: translateY(-34px);
+  }
+}
+#dlg-text {
+  min-height: 3em;
+  margin: 0;
+  font: 500 17px/1.5 var(--ui);
+  color: var(--ink);
+  text-wrap: pretty;
+}
+#dlg-choices {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 6px 10px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+#dlg-choices:empty {
+  display: none;
+}
+#dlg-choices button {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  width: 100%;
+  padding: 8px 10px;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  background: rgba(255, 240, 215, 0.05);
+  text-align: left;
+  font-weight: 600;
+}
+#dlg-choices button:hover {
+  background: rgba(255, 240, 215, 0.12);
+}
+#dlg-choices button span {
+  flex: 1;
+  min-width: 0;
+}
+#dlg-choices button small {
+  flex: none;
+  font: 600 11px/1.2 var(--ui);
+  color: var(--ink-faint);
+}
+#dlg-choices kbd {
+  flex: none;
+}
+
+/* phone: contacts and glossary */
+.phonepanel {
+  width: min(880px, 100%);
+  max-height: calc(100vh - 48px);
+}
+.phonepanel header {
+  flex-wrap: wrap;
+}
+.phonepanel .build {
+  margin: 0;
+}
+.contacts {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(360px, 1fr));
+  gap: 10px;
+  overflow: auto;
+  min-height: 0;
+}
+.contact {
+  display: flex;
+  gap: 12px;
+  padding: 12px;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: rgba(255, 240, 215, 0.04);
+}
+.contact .portrait {
+  width: 72px;
+  height: 72px;
+}
+.contact.unmet {
+  opacity: 0.75;
+}
+.cbody {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.cbody header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+.cbody h3 {
+  margin: 0;
+  font: 400 20px/1.1 var(--display);
+  color: var(--kunyit);
+}
+.cbody .job {
+  margin: 0;
+  font: 500 12px/1.4 var(--ui);
+  color: var(--ink-dim);
+}
+.cbody .job b {
+  color: var(--ink);
+}
+.cbody dl {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 4px 10px;
+  margin: 2px 0 0;
+  font-size: 12px;
+}
+.cbody dt {
+  font-weight: 700;
+  color: var(--ink-faint);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  font-size: 10px;
+  padding-top: 3px;
+}
+.cbody dd {
+  margin: 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+}
+.cbody ul {
+  margin: 0;
+  padding-left: 14px;
+  color: var(--ink-dim);
+}
+.chip {
+  padding: 1px 7px 2px;
+  border-radius: 999px;
+  font: 600 11px/1.5 var(--ui);
+  background: rgba(255, 240, 215, 0.08);
+}
+.chip.like {
+  background: rgba(47, 179, 161, 0.22);
+  color: #9fe8dc;
+}
+.chip.dislike {
+  background: rgba(216, 57, 42, 0.22);
+  color: #ffb0a6;
+}
+.chip.unknown {
+  color: var(--ink-faint);
+}
+.glossary {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  gap: 8px 18px;
+  margin: 0;
+  overflow: auto;
+  min-height: 0;
+}
+.glossary div {
+  padding: 6px 0;
+  border-bottom: 1px solid var(--line);
+}
+.glossary dt {
+  font: 700 14px/1.3 var(--ui);
+  color: var(--kunyit);
+}
+.glossary dd {
+  margin: 2px 0 0;
+  font-size: 13px;
+  color: var(--ink-dim);
+}
+@media (max-width: 640px) {
+  #dlg-choices {
+    grid-template-columns: 1fr;
+  }
+  .dlg-who h3 {
+    font-size: 21px;
+  }
+  #dlg-text {
+    font-size: 15px;
+  }
+  .contacts {
+    grid-template-columns: 1fr;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .dlg-card,
+  .dlg-float {
+    animation: none;
+  }
+}

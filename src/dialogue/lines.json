@@ -1,0 +1,578 @@
+{
+  "_about": "Dialogue templates. Each key holds variants: a string, or {t, traits, mood, emote}. Variants tagged with traits are preferred for NPCs who have one of them and never used for NPCs who have none; mood is 'good' (mood >= 65) or 'bad' (mood < 35). Variables: {raka} how this NPC addresses Raka, {name} NPC's name, {first} name without title, {greet} Pagi/Siang/Sore/Malam, {topic}, {other}, {place}, {heading}, {detail}, {job}.",
+
+  "intro.generic": [
+    "{greet}. You must be {raka}, Mbah Minah's grandson. I'm {name}.",
+    "Oh! The new face on Gang Mawar. {name}. Welcome back to Sukamaju.",
+    "So you're the one who moved into Mbah Minah's house. I'm {name}, pleased to meet you.",
+    "{greet}, {raka}. Everyone's been talking about you. I'm {name}.",
+    "Ah, Mbah Minah's cucu! I'm {name}. The kampung's been waiting to meet you."
+  ],
+
+  "npc.bambang.intro": [
+    "Raka! Finally. Pak Bambang, the RT here. Your grandmother kept this whole gang in line, you know. Don't forget to bring your KTP to my house so I can register you as a resident."
+  ],
+  "npc.bambang.story": [
+    "I spent thirty years counting other people's money at the bank. Now I count potholes and sign letters. It's better work, honestly.",
+    "Your grandmother talked me into standing for RT. She said, 'Bambang, you complain the most, so you should fix things.' Hard to argue with Mbah Minah."
+  ],
+  "npc.ratna.intro": [
+    "Oh, you're Raka! I'm Bu Ratna, Pak RT's wife. Have you eaten? You look thin. I'll bring you some kue lapis later."
+  ],
+  "npc.ratna.story": [
+    "I run the arisan for the ibu-ibu. Twelve women, one pot of money, and a great deal of opinion.",
+    "My kue lapis recipe came from my mother. Nine layers, and each one steamed on its own. People think it's easy. It isn't."
+  ],
+  "npc.sri.intro": [
+    "So this is Mbah Minah's cucu! I'm Bu Sri, this is my warung. If you need rice, gas, pulsa or news, you come here first."
+  ],
+  "npc.sri.story": [
+    "My husband opened this warung twenty years ago. He passed when Dimas was small, and I've kept it open every day since. Even Lebaran, for an hour.",
+    "Your grandmother bought her tea here every single morning. Teh tubruk, two spoons of sugar. I still reach for the jar at seven."
+  ],
+  "npc.dimas.intro": ["Oh, uh, hi. Dimas. My mum runs the warung. You're... Kak Raka, right? The one from the city?"],
+  "npc.dimas.story": [
+    "I play futsal at the lapangan every afternoon. We never win against the RW 05 team, but one day.",
+    "Mum wants me to take over the warung. I kind of want to be a mechanic like Bang Udin. Don't tell her."
+  ],
+  "npc.darto.intro": [
+    "Raka? Raka! The boy who broke my window with a kite! Hah. Look at you now. Pak Darto, if you've forgotten."
+  ],
+  "npc.darto.story": [
+    "I built half the doors on this gang with these hands. Jati wood, no nails where I could help it. Most of them are still standing.",
+    "Your grandmother and I used to argue about everything. Politics, football, the price of chilli. I miss the arguments more than I'd admit."
+  ],
+  "npc.sumi.intro": [
+    "Masya Allah, Raka, you've grown! I'm Bu Darto. You used to hide under our table when Minah called you for your bath."
+  ],
+  "npc.sumi.story": [
+    "Minah and I walked to the pasar together every morning for forty years. Now I go alone and still save her a place in the queue.",
+    "We had no children of our own, so every child on this gang was a little bit ours. You included."
+  ],
+  "npc.yusuf.intro": [
+    "Eh, Mas Raka! Yusuf. I drive ojek from the pangkalan by the gate. You need a ride anywhere, you call me, special price for neighbours."
+  ],
+  "npc.yusuf.story": [
+    "Before the ojek I worked in a factory in Cikarang. Twelve-hour shifts. Now I'm my own boss, even if the boss pays badly.",
+    "My wife Lestari cooks for half the offices in town. Honestly, the catering pays more than my motor does."
+  ],
+  "npc.lestari.intro": [
+    "Hello, Mas Raka. Lestari, Mas Yusuf's wife. I do home catering, nasi box, snack boxes. If you ever need an order for work, I'll give you the neighbour price."
+  ],
+  "npc.lestari.story": [
+    "I started with ten boxes of nasi kuning for a wedding. Last month I did three hundred for a company event. My kitchen is still the same size.",
+    "I want to sell online, with photos and a proper menu. I just don't know how to make it look nice. You're a designer, aren't you?"
+  ],
+  "npc.bima.intro": ["Kak! Are you the new person? I'm Bima. I can do twenty keepy-uppies. Wanna see?"],
+  "npc.bima.story": [
+    "I'm gonna play for Persib when I grow up. Or be an astronaut. Or both.",
+    "There's a big fish in the kali. I've almost caught it three times. Bapak says it's a sandal but it moved."
+  ],
+  "npc.putri.intro": ["...Hi. I'm Putri. My mama makes nasi box."],
+  "npc.putri.story": [
+    "I have a cat. She's orange. She's not really mine, she just sleeps on our teras.",
+    "When I'm big I'm going to have a warung like Bu Sri but only for sweets."
+  ],
+  "npc.slamet.intro": [
+    "Mas Raka! Slamet, Warkop Berkah's mine. First kopi is on the house for new neighbours. Second one you pay, hehe."
+  ],
+  "npc.slamet.story": [
+    "I opened the warkop so the men would have somewhere to argue that isn't their wives' kitchen. Public service, really.",
+    "The TV was a present from the whole gang, for the 2010 World Cup. It's older than some of my customers."
+  ],
+  "npc.hartono.intro": [
+    "Hm. Raka, isn't it. Hartono. I was at the kelurahan office for thirty-two years, so if your papers are wrong, I will know."
+  ],
+  "npc.hartono.story": [
+    "I kept the kampung's records by hand before the computers came. Births, deaths, weddings. I could tell you who lived in your house in 1978.",
+    "People think I'm a grumpy old man because I like quiet. I am a grumpy old man. But the quiet is a separate matter."
+  ],
+  "npc.joko.intro": [
+    "Mas Raka! Joko, Bakso Mas Joko. You can hear my cart before you see it. Come by the pos ronda in the evening, first bowl half price."
+  ],
+  "npc.joko.story": [
+    "My bapak pushed a bakso cart for thirty years. Same bell, same recipe. I just added more chilli.",
+    "The secret to bakso is the broth, not the balls. Everyone thinks it's the balls. It's the broth."
+  ],
+  "npc.udin.intro": [
+    "Yo. Udin. I fix motors. If yours makes a noise it shouldn't, bring it to me. If it makes no noise, also bring it to me."
+  ],
+  "npc.udin.story": [
+    "I learned engines at a bengkel in Bekasi when I was fifteen. Never went back to school. Never needed to.",
+    "Some people here complain I'm loud. A motor has to be tested. You can't test a motor quietly."
+  ],
+  "npc.rahmat.intro": [
+    "Oh, excuse me, Mas. Rahmat. I work nights, security at a mall. So if I look half asleep, that's why."
+  ],
+  "npc.rahmat.story": [
+    "Night shift is peaceful. Just me, the cameras and a flask of coffee. People forget the city has a quiet side.",
+    "I send most of my pay home to Garut, to my mother. One day I'll build her a proper kitchen."
+  ],
+  "npc.yati.intro": [
+    "Aduh, so you're Raka! I'm Bu Yati, I do sewing. If you need your trousers taken in, and you do, come see me."
+  ],
+  "npc.yati.story": [
+    "I've sewn the wedding kebaya for half the brides in this RW. I remember every measurement. Every single one.",
+    "My Fajar spends all day on his phone making videos. I said, make a video of your mother's sewing. He said nobody wants that. Rude."
+  ],
+  "npc.endang.intro": [
+    "You're the grandson! Endang. I rent rooms to students, Mas Rizky and Mbak Nadia. So if you hear music at night, it's not me."
+  ],
+  "npc.endang.story": [
+    "I started renting rooms after my husband left. Students are better tenants than husbands. They pay on time, mostly.",
+    "I know it looks like I know everyone's business. I only know the business people tell me. Which is everyone's."
+  ],
+  "npc.wati.intro": [
+    "Assalamualaikum. I'm Bu Wati. I sell jamu. You look tired, Mas. Kunyit asam tomorrow, I'll save you a bottle."
+  ],
+  "npc.wati.story": [
+    "My grandmother taught me every root and leaf. Kencur, temulawak, sirih. The pharmacy sells the same thing in a plastic box for ten times the price.",
+    "I walk to three kampungs every morning with the basket on my back. Twenty years. My knees have opinions about it now."
+  ],
+  "npc.rizky.intro": [
+    "Oh, hey, Mas. Rizky. I rent a room at Bu Endang's. Informatics, fifth semester. If your wifi breaks, I'm the guy."
+  ],
+  "npc.rizky.story": [
+    "I'm building an app for the RT. Announcements, ronda schedules, arisan reminders. Pak RT says he prefers the loudspeaker.",
+    "I'm from Padang originally. I miss my mum's rendang. Nobody here makes it right. Don't tell Bu Sri."
+  ],
+  "npc.nadia.intro": ["Hi! Nadia. Design student, so I've heard you're a real designer. Freelance? That's the dream."],
+  "npc.nadia.story": [
+    "I sketch the kampung on weekends. The gang rooftops from the bridge are my favourite. All those terracotta angles.",
+    "My parents want me to be a civil servant. I want to design book covers. We've agreed to stop talking about it."
+  ],
+  "npc.hasan.intro": [
+    "Assalamualaikum, Mas Raka. I'm Hasan, I look after the musholla. Your grandmother paid for our carpets, did you know? The door is always open."
+  ],
+  "npc.hasan.story": [
+    "I came here as a young teacher twenty years ago for one year. The kampung didn't let me leave.",
+    "People bring me their problems more than their prayers. I think that's all right. Sometimes they're the same thing."
+  ],
+  "npc.karyo.intro": [
+    "Mas Raka! Karyo, tukang. I've seen your grandmother's roof from the gang. That needs work before the rainy season. When you're ready, call me."
+  ],
+  "npc.karyo.story": [
+    "I can fix anything with a roof, a pipe or a wire. My own house, though, the tap has been dripping for two years.",
+    "Mbah Minah hired me for my first real job, a new kitchen door. She paid me double and said, 'Now do the next one properly.'"
+  ],
+  "npc.ayu.intro": [
+    "Hi, Mas Raka, I'm Ayu. I work from home, customer service, headset on all day. Sorry if I look distracted, I usually am."
+  ],
+  "npc.ayu.story": [
+    "My husband works on a ship, so it's just me and the baby most months. The neighbours have been wonderful.",
+    "Eight hours of angry customers on the phone, then I sit on the lapangan bench and listen to the kids. Best therapy there is."
+  ],
+  "npc.fajar.intro": [
+    "Bro! Kak Raka? Fajar. I do content. Kampung life, street food, that kind of thing. Can I film you later? You'd be great for engagement."
+  ],
+  "npc.fajar.story": [
+    "My video of Mas Joko's bakso got eleven thousand views. Eleven thousand! He still doesn't know what views are.",
+    "Mum wants me to go to university. I want to go viral first. Then university. Maybe."
+  ],
+
+  "greet.stranger": [
+    "{greet}. {raka}, right? Mbah Minah's grandson.",
+    "Oh, {greet}. You're the new neighbour.",
+    "{greet}, {raka}. Settling in all right?",
+    "Ah, it's you. {greet}.",
+    "{greet}. How are you finding the kampung?",
+    { "t": "Hm. {greet}.", "traits": ["grumpy"] },
+    { "t": "Oh! {greet}, {raka}! Nice to see you out and about!", "traits": ["cheerful"], "emote": "happy" },
+    { "t": "Oh, um... {greet}.", "traits": ["shy"], "emote": "shy" },
+    { "t": "{greet}! So, what brings you round here? Tell me everything.", "traits": ["curious", "gossip"] }
+  ],
+  "greet.acquaintance": [
+    "{greet}, {raka}! How's the house coming along?",
+    "Ah, {raka}. {greet}. Keeping busy?",
+    "{greet}! Nice to see a familiar face.",
+    "Oh, {raka}. Mampir? Stop for a bit.",
+    "{greet}, {raka}. Have you eaten yet?",
+    { "t": "{greet}. You again. Well, sit, sit.", "traits": ["grumpy"] },
+    {
+      "t": "{raka}! {greet}! Come, come, I've got something to tell you.",
+      "traits": ["cheerful", "gossip"],
+      "emote": "happy"
+    },
+    { "t": "Oh, h-hi, {raka}.", "traits": ["shy"], "emote": "shy" },
+    { "t": "{greet}. Not the best day, to be honest.", "mood": "bad", "emote": "sad" }
+  ],
+  "greet.friend": [
+    "{raka}! There you are. {greet}!",
+    "Eh, {raka}! I was just thinking about you.",
+    "{greet}, {raka}. Sit down, you look like you need a rest.",
+    "Ah, my favourite neighbour. {greet}!",
+    "{raka}! Just the person I wanted to see.",
+    {
+      "t": "Hmph. {greet}, {raka}. You're the only one on this gang who makes sense.",
+      "traits": ["grumpy"],
+      "emote": "happy"
+    },
+    { "t": "{raka}!! {greet}! Ah, you've made my day.", "traits": ["cheerful"], "emote": "happy" },
+    { "t": "Oh, {raka}. {greet}. I'm glad it's you.", "traits": ["shy", "caring"], "emote": "happy" },
+    { "t": "{greet}, {raka}. It's been a long day, but it's better now.", "mood": "bad" }
+  ],
+  "greet.cold": [
+    "Oh. It's you.",
+    "{greet}. What do you want, {raka}?",
+    "Hm. {raka}.",
+    "I'm busy, {raka}.",
+    "{greet}. Make it quick.",
+    { "t": "...Hmph.", "traits": ["grumpy"], "emote": "annoyed" },
+    { "t": "Oh... hi.", "traits": ["shy"], "emote": "sad" }
+  ],
+  "greet.again": [
+    "Oh, {raka}, again! Did you forget something?",
+    "Back already?",
+    "Twice in one day, {raka}. People will talk.",
+    "Yes, {raka}?",
+    "Ah, you're back.",
+    { "t": "What now?", "traits": ["grumpy"] },
+    { "t": "Hehe, you again! I don't mind.", "traits": ["cheerful"], "emote": "happy" }
+  ],
+  "greet.busy": [
+    "Oh, {raka}! I'm on my way to {heading}, but I've got a minute.",
+    "{greet}, {raka}. Walk with me? I'm heading to {heading}.",
+    "Ah, {raka}. Quickly, I'm off to {heading}.",
+    "{greet}! Can't stop long, {heading} is waiting.",
+    "Oh, hello! I was just going to {heading}.",
+    { "t": "I'm busy, {raka}. Going to {heading}. What is it?", "traits": ["grumpy"] }
+  ],
+  "greet.memory.topic_like": [
+    "{raka}! I keep thinking about our chat about {topic}.",
+    "Oh, {raka}, you know, after we talked about {topic} I couldn't stop thinking about it.",
+    "{greet}! Ready for more {topic} talk?",
+    "Ah, my {topic} friend! {greet}.",
+    "{greet}, {raka}. Still thinking about {topic}?"
+  ],
+  "greet.memory.tease_bad": [
+    "Oh. {raka}. I haven't forgotten what you said, you know.",
+    "{greet}. I hope you're in a kinder mood today.",
+    "Hm. Here to make fun of me again?",
+    "{raka}. That remark of yours the other day wasn't very nice.",
+    "{greet}. Let's keep it polite today, shall we?"
+  ],
+  "greet.memory.joke_good": [
+    "{raka}! I told your joke to everyone at {place}. Hehe.",
+    "Oh, it's the comedian! {greet}.",
+    "{greet}! Got any more jokes like the last one?",
+    "Hah, {raka}! I'm still laughing about that joke.",
+    "{greet}, {raka}. You made my week with that joke."
+  ],
+  "greet.memory.compliment": [
+    "{greet}, {raka}. You were so kind the other day.",
+    "Oh, {raka}! You always say such nice things.",
+    "{greet}! Here comes the sweet talker.",
+    "Ah, {raka}. Thank you again for what you said.",
+    "{greet}, {raka}. You've got a good heart, like your grandmother."
+  ],
+  "greet.memory.first": [
+    "{greet}, {raka}! Still settling in?",
+    "Ah, the new neighbour again. How's the house?",
+    "{greet}! Found your way around yet?",
+    "{raka}! Good to see you again so soon.",
+    "{greet}. Remember me? We met the other day."
+  ],
+
+  "address.proper.elder": [
+    "{greet} to you too, Nak. Such good manners. Minah raised you well.",
+    "Ah, you remember how to greet your elders. Good, good.",
+    "{greet} to you too, Nak. Polite young man.",
+    "Hm! Proper manners. We don't see enough of that anymore.",
+    "Ah, pleasant. Most young people just nod at me these days.",
+    { "t": "Hm. At least someone still knows how to greet properly.", "traits": ["grumpy"], "emote": "happy" }
+  ],
+  "address.proper.peer": [
+    "{greet}, {raka}!",
+    "Hehe, {greet} to you too.",
+    "{greet}! You don't have to be so formal, you know.",
+    "{greet}, {raka}. Nice to see you.",
+    "Ah, {greet}!"
+  ],
+  "address.proper.young": [
+    "Hehe, {greet}, Kak!",
+    "{greet}! You called me Dek, like my uncle does.",
+    "{greet}, Kak Raka!",
+    "Hi, Kak!",
+    "{greet}!"
+  ],
+  "address.casual.rude": [
+    "{first}? Just {first}? Hm. In my day we said Pak, or Bu.",
+    "I'm old enough to be your parent, {raka}. A little respect.",
+    "Hm. Mbah Minah would have pinched your ear for that.",
+    "That's not how you greet your elders, Nak.",
+    "Just '{first}', is it? You've been in the city too long.",
+    { "t": "Hmph! Manners, boy. Manners.", "traits": ["grumpy"], "emote": "annoyed" }
+  ],
+  "address.casual.meh": [
+    "Oh, er, hi. It's {name}, actually. Hehe.",
+    "Hi... We're not that close yet, are we?",
+    "Just {first}, huh. City habits.",
+    "Hey. Bit casual, but all right.",
+    "Oh. Hi."
+  ],
+  "address.casual.ok": ["Hey! Hi!", "Hehe, hi!", "Oh, hey, Kak.", "Hi! What's up?", "Yo!"],
+
+  "topic.like.football": [
+    "Football! Don't get me started on Persib this season. Actually, do. Get me started.",
+    "Did you watch the match last night? That second goal! I nearly knocked Pak Slamet's TV over.",
+    "Football's the only thing that gets the whole warkop quiet. Then very loud.",
+    "The lapangan futsal league starts next month. RW 05 better be scared.",
+    "My whole week depends on the weekend's result. Is that healthy? No. Do I care? Also no."
+  ],
+  "topic.like.food": [
+    "Food! Now you're talking. Have you tried Bu Sri's nasi uduk? No? What have you been eating?",
+    "The best thing in this kampung is Mas Joko's bakso after the rain. Trust me.",
+    "I could talk about sambal all day. There's a correct amount of terasi and most people get it wrong.",
+    "Food is how this kampung says it loves you. If someone brings you a plate, you bring it back full.",
+    "Ah, food. I was just thinking about gorengan. I'm always thinking about gorengan."
+  ],
+  "topic.like.family": [
+    "Family's everything. You're lucky, your grandmother's house kept you close to all of us.",
+    "My family drives me mad, but I'd do anything for them. You know how it is.",
+    "Every Lebaran the whole family squeezes into one small house. Loudest, happiest day of the year.",
+    "I love talking about family. Remind me to show you the photos. All three hundred of them.",
+    "Family is the ones who bring you soup when you're sick, blood or not."
+  ],
+  "topic.like.work": [
+    "Ah, you want to hear about my work? Nobody ever asks! Sit down.",
+    "Work's been busy, but the good kind of busy. I like being useful.",
+    "People think my job is simple. It's not. Let me explain the whole thing.",
+    "I'm proud of what I do. It's not glamorous, but the kampung needs it.",
+    "Honestly, I love my work. On most days. Some days less."
+  ],
+  "topic.like.kampung news": [
+    "Did you hear? Pak RT wants to repaint the gapura before 17 Agustus. Red and white, of course.",
+    "Kampung news! The drain on Gang Melati is finally getting fixed. Only took three years of meetings.",
+    "There's talk of a new minimarket on the main road. Bu Sri is not happy about it.",
+    "The RT meeting was so long last week, Pak Hartono fell asleep. Twice.",
+    "Kerja bakti this Sunday, you know. Everyone's going. You're going. Aren't you?"
+  ],
+  "topic.like.weather": [
+    "The weather! It's been so hot. The rain always comes the moment you hang your washing.",
+    "You can smell the rain before it comes here. Wet dust. Best smell in the world.",
+    "Rainy season's coming. The kali will rise, the frogs will sing, and every roof will leak.",
+    "When it rains in the afternoon everyone ends up under the warung roof. Best conversations happen then.",
+    "I check the sky every morning like my father did. More accurate than the phone."
+  ],
+  "topic.like.motorbikes": [
+    "Motors! Now that's a topic. A good bebek engine will outlive us all.",
+    "My first motor was a Honda Astrea older than me. Pushed it more than I rode it. Loved it.",
+    "Everyone here has an opinion on motors. Most of them are wrong, but they're passionate about it.",
+    "You can tell a lot about a man by how he treats his motor.",
+    "The sound of a well-tuned motor in the morning. That's music."
+  ],
+  "topic.like.old days": [
+    "The old days! When I was young this whole gang was rice fields. Frogs everywhere.",
+    "Before the jalan was paved, we'd come home muddy to the knees. Our mothers were furious.",
+    "Your grandmother used to organise the whole 17 Agustus by herself. Sack races, panjat pinang, everything.",
+    "The old days weren't all good, but they were quieter. We knew every face.",
+    "I remember when the first television came to this kampung. The whole RT crowded into one living room."
+  ],
+  "topic.like.religion": [
+    "The musholla's been full for Maghrib lately. It's good to see the young ones coming.",
+    "Ramadan's not far off. I'm already planning the bukber menu for the musholla.",
+    "Pengajian on Thursday nights, you should come. Ustadz Hasan explains things so gently.",
+    "I find a lot of peace in the adzan. It gives the day its shape.",
+    "Every Ramadan the whole kampung wakes up for sahur together. The kids bang on pots at three in the morning."
+  ],
+  "topic.like.music": [
+    "Music! I love dangdut, and I'm not ashamed of it. Rhoma Irama is a poet.",
+    "Someone plays guitar at the pos ronda some nights. Out of tune, but lovely.",
+    "I've got a playlist for everything. Cooking, cleaning, being sad. Mostly being sad.",
+    "Do you play anything? We need more musicians for the 17 Agustus stage.",
+    "Music makes the work go faster. Everyone knows that."
+  ],
+  "topic.like.market prices": [
+    "Don't talk to me about the price of chilli! It doubled in a week. A week!",
+    "Eggs are up again. At this rate I'll have to keep chickens.",
+    "The trick at the pasar is to go late, when they want to go home. Half price, and they're happy to see you.",
+    "I track every price in my head. Rice, oil, onions. Ask me anything.",
+    "Prices go up like a kite and come down like a feather. That's what my mother used to say."
+  ],
+  "topic.like.gossip": [
+    "Well, since you ask... someone on Gang Kenanga has a new motor, and nobody knows where the money came from.",
+    "Did you see who was walking home late from the warkop last night? No? Well, I did.",
+    "I don't gossip. I just share information. Loudly. With everyone.",
+    "Ooh, there's so much going on. Where do I even start?",
+    "Everyone says Bu Endang knows everything. She learned it all from me."
+  ],
+
+  "topic.neutral": [
+    "{topic}? Hm, sure. It's all right.",
+    "Oh, {topic}. I don't know much about it, but go on.",
+    "{topic}... yes, I suppose.",
+    "Hm, {topic}. Not really my thing, but it's nice to chat.",
+    "Ah, {topic}. People seem to like that.",
+    { "t": "{topic}. Fine. What about it?", "traits": ["grumpy"] },
+    { "t": "Oh, {topic}! Hehe, I don't know much, but tell me more!", "traits": ["cheerful", "curious"] },
+    { "t": "Um... {topic}? I guess that's okay.", "traits": ["shy"] }
+  ],
+  "topic.dislike": [
+    "Ugh, {topic}. Can we talk about something else?",
+    "Honestly, {topic} bores me to tears.",
+    "Please, not {topic}. I get enough of that at home.",
+    "{topic}? No, no. Next topic.",
+    "Hm. I'd rather not talk about {topic}.",
+    { "t": "{topic}. Of all the things. No.", "traits": ["grumpy"], "emote": "annoyed" },
+    { "t": "Oh... {topic}. Hehe. Maybe something else?", "traits": ["shy", "cheerful"], "emote": "shy" }
+  ],
+  "topic.repeat": [
+    "We already talked about {topic}, {raka}.",
+    "{topic} again? You really like that, huh.",
+    "Didn't we just cover {topic}?",
+    "You're stuck on {topic} today.",
+    "Again? Let's talk about something new.",
+    { "t": "Are you listening at all? We did {topic}.", "traits": ["grumpy"], "emote": "annoyed" }
+  ],
+
+  "ask.like": [
+    "Me? Honestly, I could talk about {topic} for hours.",
+    "What do I like? {topic}. No question.",
+    "Hehe, if you want to make me happy, bring up {topic}.",
+    "I really love {topic}. Ask anyone.",
+    "You want to know me? Start with {topic}."
+  ],
+  "ask.dislike": [
+    "I'll tell you what I can't stand. {topic}. Please don't ever.",
+    "Just don't get me started on {topic}. Not in a good way.",
+    "Honestly? {topic} drives me up the wall.",
+    "Whatever you do, don't talk to me about {topic}.",
+    "{topic}. Ugh. Anything but that."
+  ],
+  "ask.birthday": [
+    "My birthday? {detail}. Not that anyone remembers.",
+    "It's {detail}. My family makes nasi kuning every year.",
+    "{detail}. Why, are you planning something? Hehe.",
+    "{detail}. I'm getting old, {raka}.",
+    "Oh, {detail}. Don't make a fuss."
+  ],
+  "ask.story": ["{detail}"],
+  "ask.done": [
+    "You know me well enough by now, {raka}. Ask me something else another day.",
+    "Hehe, that's enough about me for today.",
+    "There's not much more to tell. Let's talk about you some time.",
+    "You've heard all my stories for today.",
+    "Later, later. I'm not that interesting.",
+    { "t": "Enough questions. What am I, a census?", "traits": ["grumpy"] }
+  ],
+
+  "compliment.good": [
+    "Aduh, {raka}, you're too kind! Hehe.",
+    "Oh, stop it. Actually, don't stop.",
+    "That's so nice of you to say.",
+    "You've made my day, {raka}.",
+    "Hehe, your grandmother was a sweet talker too.",
+    { "t": "Hm. Well. Thank you.", "traits": ["grumpy"], "emote": "happy" },
+    { "t": "Wah, really? Thank you, thank you!", "traits": ["cheerful"], "emote": "happy" }
+  ],
+  "compliment.shy": [
+    "Oh! Um. Thank you. Hehe.",
+    "I... thanks, {raka}.",
+    "You don't have to say that... but thank you.",
+    "*looks at the ground* ...Thanks.",
+    "Oh, I don't know about that. But thank you."
+  ],
+  "compliment.flat": [
+    "Hm. Okay.",
+    "Uh, thanks, I guess.",
+    "If you say so.",
+    "Right. Was there something else?",
+    "Hm. Flattery gets you nowhere, {raka}.",
+    { "t": "Save the sweet talk for someone who needs it.", "traits": ["grumpy"], "emote": "annoyed" }
+  ],
+  "compliment.repeat": [
+    "You already said that, {raka}. Hehe.",
+    "Twice in one day? Now I'm suspicious.",
+    "Are you after something?",
+    "Okay, okay, I get it.",
+    "You're laying it on a bit thick."
+  ],
+
+  "joke.good": [
+    "Hahaha! Oh, that's a good one. I'm stealing that.",
+    "Hah! Where did you hear that?",
+    "Hehehe. Terrible. I love it.",
+    "Hahaha, stop, my stomach!",
+    "Hah! You're funnier than you look, {raka}.",
+    { "t": "...Hm. Heh. All right, that was funny.", "traits": ["grumpy"], "emote": "happy" }
+  ],
+  "joke.flat": [
+    "Heh. Okay.",
+    "I think I've heard that one before.",
+    "Hmm. I don't get it.",
+    "That's... a joke, yes.",
+    "Hehe. Sure."
+  ],
+  "joke.bad": [
+    "That's not funny, {raka}.",
+    "Hm. I don't laugh at that sort of thing.",
+    "Is that what passes for a joke in the city?",
+    "Please don't say that in front of the children.",
+    "...No.",
+    { "t": "Hmph. Grow up.", "traits": ["grumpy"], "emote": "annoyed" }
+  ],
+  "tease.good": [
+    "Hah! Look who's talking! You can't even ride a motor.",
+    "Oi! Watch it, city boy. Hehe.",
+    "Hahaha, cheeky! Just like when you were small.",
+    "Ooh, you'll pay for that one. Hehe.",
+    "Hah! Fair. Fair enough.",
+    { "t": "Hmph. Cheeky. ...Heh.", "traits": ["grumpy"], "emote": "happy" }
+  ],
+  "tease.bad": [
+    "Excuse me? We're not that close, {raka}.",
+    "That was rude.",
+    "Hm. I don't appreciate that.",
+    "Is that how they talk in the city?",
+    "Wow. Okay.",
+    { "t": "Watch your mouth.", "traits": ["grumpy"], "emote": "annoyed" },
+    { "t": "Oh... that's... not very nice.", "traits": ["shy", "caring"], "emote": "sad" }
+  ],
+
+  "gossip.good": [
+    "{other}? Oh, a good person. Always the first to help.",
+    "I like {other}. You can trust that one.",
+    "{other} is one of the good ones. Heart of gold.",
+    "Between you and me, {other} is my favourite person on this gang.",
+    "{other}? We go way back. Solid as a teak door."
+  ],
+  "gossip.bad": [
+    "{other}? Don't get me started. Let's just say we don't see eye to eye.",
+    "Between us, {raka}, I'd keep my distance from {other}.",
+    "{other}. Hmph. Some people should pay back what they owe.",
+    "I'm not saying anything about {other}. But if I were, it wouldn't be nice.",
+    "{other} and I have... history. Leave it at that."
+  ],
+  "gossip.neutral": [
+    "{other}? Seems fine. Keeps to themselves.",
+    "I don't really know {other} well.",
+    "{other}? Nothing much to say. Nice enough.",
+    "Oh, {other}'s all right. Why do you ask?",
+    "{other}? We say hello. That's about it."
+  ],
+  "gossip.refuse": [
+    "I don't talk about people behind their backs, {raka}.",
+    "Ask them yourself. That's my advice.",
+    "Gossip is a sin, you know. Well, nearly.",
+    "No, no. I stay out of other people's business.",
+    "If you want gossip, go to the warung. Not me."
+  ],
+  "gossip.shy": [
+    "Oh, I don't really... I don't know people that well yet.",
+    "Um, maybe when we know each other better.",
+    "I'd rather not say, {raka}. Sorry.",
+    "I don't know you well enough for that, hehe.",
+    "Hm, ask me another time."
+  ],
+
+  "bye.warm": [
+    "Mampir lagi, ya, {raka}! Come by again.",
+    "Hati-hati, {raka}! See you soon.",
+    "Don't be a stranger!",
+    "Say hello to your grandmother's house for me. Hehe.",
+    "Okay, see you later, {raka}!",
+    { "t": "Go on then. ...Come back tomorrow.", "traits": ["grumpy"] }
+  ],
+  "bye.neutral": ["All right. See you around.", "Okay, {raka}.", "Mari, {raka}.", "See you.", "Take care."],
+  "bye.cold": ["Hm. Bye.", "Finally.", "Yes, yes. Go.", "...", "Right."]
+}

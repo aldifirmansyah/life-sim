@@ -12,7 +12,8 @@ import { player } from '../core/player';
 import { hit, circles } from '../core/collision';
 import { mulberry32 } from '../core/util';
 import { fog } from '../render/context';
-import type { NPC, Stage } from './types';
+import type { NPC } from './types';
+import { stageFor } from '../social/social';
 import { RESIDENTS, TIES, type ResidentDef } from './roster';
 import { generateAppearance } from './appearance';
 import { buildPlaces, groups, homes, pois, type P2, type Slot } from './places';
@@ -62,6 +63,10 @@ export interface Resident {
   wander: { x: number; z: number; pause: number } | null;
   poseT: number;
   lastPoseAt: number;
+  /** In conversation with Raka: holds still and faces him. */
+  talking: boolean;
+  /** Currently saying a line (drives the talking gesture). */
+  speaking: boolean;
 }
 
 export const residents: Resident[] = [];
@@ -72,9 +77,6 @@ const hash = (a: number, b: number) => {
   h ^= h >>> 15;
   return (h >>> 0) / 4294967296;
 };
-
-const stageFor = (f: number): Stage =>
-  f >= 80 ? 'best friend' : f >= 60 ? 'close friend' : f >= 35 ? 'friend' : f >= 10 ? 'acquaintance' : 'stranger';
 
 /** Build places and the waypoint graph. Call after the world, before batches are built (homes may add stools). */
 export function initWorldNav() {
@@ -102,6 +104,7 @@ export function initResidents() {
       age: def.age,
       gender: def.gender,
       occupation: def.occupation,
+      birthday: def.birthday,
       household: def.household,
       home: homes.get(def.household)!.id,
       traits: def.traits,
@@ -143,6 +146,8 @@ export function initResidents() {
       wander: null,
       poseT: 0,
       lastPoseAt: -1,
+      talking: false,
+      speaking: false,
     });
   }
   resync();
@@ -254,6 +259,7 @@ function tick() {
     time. With catchUp (after a resync), a trip that should already be underway starts partway
     along its path, and one that should be over puts the NPC straight at its destination. */
 function advanceSchedule(r: Resident, t: number, catchUp: boolean) {
+  if (r.talking) return;
   const blocks = today(r);
   for (let guard = 0; guard < blocks.length && r.state === 'at'; guard++) {
     const next = r.block + 1;
@@ -323,7 +329,7 @@ const _pt = { x: 0, z: 0, dx: 0, dz: 1 };
 function simulate(r: Resident, t: number) {
   const dm = Math.max(0, t - r.simT);
   r.simT = t;
-  if (r.state !== 'walk' || !r.path) return 0;
+  if (r.talking || r.state !== 'walk' || !r.path) return 0;
   const ds = dm * r.speed;
   r.s += ds;
   if (r.s >= r.path.length) {
@@ -360,12 +366,22 @@ function place(r: Resident, dtReal: number, full: boolean) {
     const off = laneOffset(r, seg);
     r.x = _pt.x - _pt.dz * off;
     r.z = _pt.z + _pt.dx * off;
-    const target = Math.atan2(_pt.dx, _pt.dz);
+    const target = r.talking ? Math.atan2(player.x - r.x, player.z - r.z) : Math.atan2(_pt.dx, _pt.dz);
     r.ry = full ? turn(r.ry, target, dtReal * 8) : target;
     return;
   }
   const s = r.slot;
-  if (r.wander) return;
+  if (r.wander) {
+    if (r.talking) r.ry = turn(r.ry, Math.atan2(player.x - r.x, player.z - r.z), dtReal * 6);
+    return;
+  }
+  // Standing NPCs turn to face Raka while talking; seated ones stay put and turn their head.
+  if (r.talking && r.settle >= 1 && s.pose === 'stand') {
+    r.x = s.x;
+    r.z = s.z;
+    r.ry = turn(r.ry, Math.atan2(player.x - r.x, player.z - r.z), dtReal * 6);
+    return;
+  }
   if (r.settle < 1) {
     r.settle = full ? Math.min(1, r.settle + dtReal / 0.6) : 1;
     const k = r.settle * r.settle * (3 - 2 * r.settle);
@@ -388,6 +404,7 @@ const turn = (a: number, b: number, k: number) => {
 /** Kids on the lapangan wander between random spots (near and mid tiers only). */
 function wander(r: Resident, dtReal: number, dm: number) {
   const w = r.slot.wander;
+  if (r.talking && r.wander) return 0;
   if (!w || r.state !== 'at' || r.settle < 1 || r.slot.pose !== 'stand') {
     r.wander = null;
     return 0;
@@ -511,7 +528,7 @@ export function updateResidents(dtReal: number) {
     if (r.state === 'at' && r.tier !== 'far') ds += wander(r, dtR, dm);
     place(r, dtR, full);
     r.hidden = r.state === 'at' && r.settle >= 1 && r.slot.pose === 'hidden';
-    if (full && !r.hidden) avoid(r, nearList, dtR);
+    if (full && !r.hidden && !r.talking) avoid(r, nearList, dtR);
     else r.avoidX = r.avoidZ = 0;
     const visible = !r.hidden && r.dist < renderDist;
     const moving = wasWalking || ds > 0;
@@ -549,7 +566,8 @@ function pose(r: Resident, full: boolean, dtR: number) {
   pst.reach = 0;
   let headTarget = 0;
   if (full) {
-    if (atSlot && act === 'chat') pst.gesture = Math.max(0, Math.sin(clock * 0.45 + r.i * 1.7)) ** 3;
+    if (r.speaking) pst.gesture = 0.55 + 0.45 * Math.sin(clock * 2.1 + r.i);
+    else if (atSlot && act === 'chat' && !r.talking) pst.gesture = Math.max(0, Math.sin(clock * 0.45 + r.i * 1.7)) ** 3;
     if (atSlot && act === 'fish') pst.reach = 0.9;
     else if (atSlot && act === 'work' && pst.pose === 'stand') pst.reach = 0.25 + 0.2 * Math.sin(clock * 0.8 + r.i);
     else if (atSlot && act === 'garden') pst.reach = 0.5;
@@ -557,13 +575,56 @@ function pose(r: Resident, full: boolean, dtR: number) {
     if (r.dist < 5) {
       let a = Math.atan2(player.x - r.x, player.z - r.z) - r.ry;
       a = Math.atan2(Math.sin(a), Math.cos(a));
-      if (Math.abs(a) < 1.9) headTarget = Math.max(-1.1, Math.min(1.1, a));
+      if (Math.abs(a) < 1.9 || r.talking) headTarget = Math.max(-1.1, Math.min(1.1, a));
     }
     r.headYaw += (headTarget - r.headYaw) * Math.min(1, dtR * 5);
   } else r.headYaw = 0;
   pst.headYaw = r.headYaw;
   crowd.pose(r.i, pst);
   r.poseT = clock;
+}
+
+/* ================= conversation ================= */
+
+/** The resident Raka is looking at within talking range, if any. */
+export function talkTarget(yaw: number, range = 2.5): Resident | null {
+  // Camera forward on the ground plane.
+  const fx = -Math.sin(yaw),
+    fz = -Math.cos(yaw);
+  let best: Resident | null = null,
+    bestA = Infinity;
+  for (const r of residents) {
+    if (r.hidden || r.tier !== 'near' || r.dist > range) continue;
+    const dx = r.x - player.x,
+      dz = r.z - player.z,
+      d = Math.hypot(dx, dz) || 1e-3;
+    const a = Math.acos(Math.max(-1, Math.min(1, (dx * fx + dz * fz) / d)));
+    // Wider cone up close, where a person fills more of the view.
+    if (a < (d < 1.2 ? 0.7 : 0.4) && a < bestA) {
+      best = r;
+      bestA = a;
+    }
+  }
+  return best;
+}
+
+/** Where a resident is heading (for "I'm on my way to..."), or null when not walking. */
+export function heading(r: Resident) {
+  if (r.state !== 'walk') return null;
+  const act = today(r)[r.block]?.activity;
+  if (r.slot.poi === homes.get(r.def.household)) return 'home';
+  if (r.slot.tag === 'away') return act === 'study' ? (r.def.age < 18 ? 'school' : 'campus') : 'work';
+  if (r.slot.poi.id.startsWith('pasar')) return 'the pasar';
+  return r.slot.poi.name;
+}
+
+/** Name of where a resident is now. */
+export function placeName(r: Resident) {
+  return r.slot.poi === homes.get(r.def.household)
+    ? 'my place'
+    : r.slot.poi.id.startsWith('pasar')
+      ? 'the pasar'
+      : r.slot.poi.name;
 }
 
 /* ================= debug helpers ================= */

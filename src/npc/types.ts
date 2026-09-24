@@ -58,6 +58,8 @@ export interface Memory {
   kind: string;
   text: string;
   weight: number;
+  /** What it was about: a topic, or another resident's id. */
+  about?: string;
 }
 
 export type HairStyle = 'short' | 'long' | 'bun' | 'hijab' | 'peci' | 'cap' | 'bald';
@@ -88,6 +90,8 @@ export interface NPC {
   age: number;
   gender: 'm' | 'f';
   occupation: string;
+  /** e.g. "14 Maret". Shown in Contacts once Raka has asked. */
+  birthday: string;
   /** Household id; members share a home. */
   household: string;
   home: LocationId;

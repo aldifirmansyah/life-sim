@@ -6,8 +6,17 @@ export const S = {
   started: false,
   paused: true,
   map: false,
+  /** Talking to a resident. */
+  dialog: false,
+  /** The phone (Contacts, Glossary) is open. */
+  phone: false,
   sleeping: false,
   locked: false,
   lastZone: '',
 };
 export const DAYS = ['Minggu', 'Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu'];
+
+/** An overlay that owns the mouse and keyboard is open (the world keeps rendering behind it). */
+export const inMenu = () => S.paused || S.map || S.dialog || S.phone;
+/** Raka can walk around and time runs. */
+export const inWorld = () => S.started && !inMenu() && !S.sleeping;

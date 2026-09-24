@@ -29,9 +29,16 @@ cd prototype && python3 -m http.server 5174
 # then open http://localhost:5174
 ```
 
+## Keys
+
+- `WASD` walk, `Shift` run, mouse to look.
+- `E` talk to the neighbour you're looking at. In a conversation, `1`–`6` (or click) choose, `Esc` goes back.
+- `Tab` phone: Contacts (everyone you've met, what you know about them) and a Glossary.
+- `M` map, `Esc` pause and settings, `H` hide the key hints.
+
 ## Debug keys
 
-- `F3` (or backtick): performance overlay with CPU ms, draw calls and NPC counts per LOD tier, plus name tags over nearby residents. With it on, the map (`M`) shows every resident.
+- `F3`, or backtick (`` ` ``) on a Mac, where F3 is a system key: performance overlay with CPU ms, draw calls and NPC counts per LOD tier, plus name tags over nearby residents. With it on, the map (`M`) shows every resident.
 - `G` (with F3 on): waypoint graph and the paths of walking residents.
 - `T` hold: fast-forward time (60×). `[` / `]`: jump an hour back or forward.
 
@@ -44,6 +51,8 @@ src/
   core/              util (seeded RNG), settings, state, time, player, collision (spatial hash), input
   render/            context (renderer/scene/camera), batch (instancing), textures, sky, lighting, signs, quality
   world/             layout data, houses, trees, landmarks, streets, boundaries, pasar pagi, ground
-  ui/                hud (clock, location, toasts), map, overlays (start, pause, settings)
+  ui/                hud (clock, location, toasts), map, overlays (start, pause, settings), dialogue, contacts, portrait
+  dialogue/          DialogueProvider interface, TemplateDialogueProvider, lines.json
+  social/            friendship rules, etiquette, memories, discoveries
   npc/               residents: data model, roster, schedules, character generator + renderer, places, waypoint graph, runtime, debug view
 ```

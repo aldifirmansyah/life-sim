@@ -14,8 +14,8 @@ Kampung is a first-person life-sim that runs in the browser. It is set in **Kamp
 
 ## Build phases (spec §12)
 1. **Foundation: DONE.** Originally `prototype/index.html`; migrated to Vite + TypeScript in `src/` (the user confirmed it matches).
-2. **NPC core: DONE, awaiting the user's check.** Character generator, waypoint graph and A*, schedule-driven movement for 24 residents, simulation LOD, debug overlay. 60 FPS still needs checking on real hardware.
-3. Conversation: interaction prompt, dialogue panel, topics, relationships, memories, Contacts page.
+2. **NPC core: DONE.** Character generator, waypoint graph and A*, schedule-driven movement for 24 residents, simulation LOD, debug overlay. The user has run it on a Mac.
+3. **Conversation: DONE, awaiting the user's check.** Interaction prompt, dialogue panel, topics, relationships, memories, Contacts page.
 4. Activities and economy.
 5. Living world: NPC–NPC chats, gatherings, gossip, invitations, ambient NPCs, phone.
 6. Depth: story arcs, events (17 Agustus), milestones, reputation, house restoration.
@@ -23,7 +23,7 @@ Kampung is a first-person life-sim that runs in the browser. It is set in **Kamp
 
 Do one phase at a time. At the end of each phase, check it and stop for the user's go-ahead.
 
-## Current state (Phase 2, NPC core)
+## Current state (Phase 3, Conversation)
 The game lives in `src/` and builds with Vite (`npm run dev`, `npm run build`). `three` is pinned to 0.169.0 from npm, matching the prototype's r169. `prototype/index.html` is the original single-file build (Three.js from jsDelivr, no build step). It is kept only for comparison; don't develop in it.
 
 **Module map.** `src/main.ts` wires input and UI, builds the world, and runs the loop.
@@ -31,6 +31,9 @@ The game lives in `src/` and builds with Vite (`npm run dev`, `npm run build`). 
 - `render/`: `context` (renderer, scene, camera, fog), `batch` (instancing and the `B`/`C`/`blob` helpers), `textures`, `sky`, `lighting` (`KF`, `updateEnv`), `signs`, `quality`.
 - `world/`: `layout` (all layout data, palettes, `ZONES`), `houses`, `trees`, `landmarks`, `streets`, `boundaries`, `pasar`, `ground`.
 - `ui/`: `hud`, `map`, `overlays`.
+- `dialogue/`: `types` (`DialogueProvider`, `DialogueContext`), `lines.json` (all template text), `template` (`TemplateDialogueProvider`).
+- `social/`: `social` (friendship rules, etiquette, cooldowns, memories, what Raka has discovered).
+- `ui/` also has `dialogue` (the [E] prompt and the dialogue panel), `contacts` (the phone: Contacts and Glossary) and `portrait`.
 - `npc/`: `types` (the spec §8.2 NPC model), `roster` (the 24 residents and their ties), `schedule` (authoring helpers), `appearance` (character generator), `characters` (instanced renderer and poses), `places` (POIs, slots, homes), `navgraph` (lanes, A*, paths), `npcs` (runtime), `debug`.
 
 **Determinism.** The layout comes from `mulberry32(20260924)`. The build order in `main.ts` (blocks → landmarks → block trees → streets → boundaries → pasar → ground) and the order of `R()` calls inside each builder must not change, or the kampung changes. `Math.random` is only used for cosmetic noise (textures, stars, hill rotation, sign grain). NPC code never calls `R()`: it has its own `mulberry32(7331)` and a `hash(a, b)` for per-day jitter.
@@ -57,7 +60,7 @@ Colours are per-instance. The current view draws about 22–35 calls and about 6
 
 **Settings.** Quality Low/Med/High controls pixel ratio, shadow map size and fog distance. Sensitivity, head bob and the debug overlay are also settings. They are saved in `localStorage` wrapped in try/catch.
 
-**Input.** Pointer lock, with a drag-to-look fallback. Touch uses a left-side joystick and right-side look. Keys: M map, Esc pause, F3 or backtick for the perf overlay, H hide hints.
+**Input.** Pointer lock, with a drag-to-look fallback. Touch uses a left-side joystick and right-side look. Keys: E talk, Tab phone, M map, Esc pause, F3 or backtick for the perf overlay (on a Mac F3 is taken by the system, so use backtick), H hide hints. `S.dialog` and `S.phone` are menu states like `S.map`; `inWorld()` and `inMenu()` in `core/state.ts` cover them all.
 
 **NPCs.** 24 residents in 15 households (`npc/roster.ts`), following the spec §8.1 roster, with two feuds in `TIES`: Udin vs Hartono (motorbike noise) and Wati vs Endang (an unpaid loan). Each resident is a spec §8.2 `NPC`, plus a runtime `Resident` in `npc/npcs.ts`.
 - **Places.** A POI has an entry chain (its first point lies on a lane) and slots with a tag, pose (`stand`/`sit`/`squat`/`hidden`), seat height, facing, `via` points and an approach point. Slots are claimed one NPC at a time. `hidden` slots (doors, the two `away` points outside the gapura) are shared. When every slot is taken, the NPC stands a little way back. Schedule locations are `<group>.<tag>`, e.g. `warung.bench`, `home.teras` or `away`. `home` resolves to the household's house: the free row house whose door is nearest `HOUSEHOLD_SITES`. Homes whose teras has no bench get two plastic stools, added in `initWorldNav()` before the batches are built.
@@ -67,10 +70,19 @@ Colours are per-instance. The current view draws about 22–35 calls and about 6
 - **Rendering.** `Crowd` draws all residents with 6 InstancedMeshes (boxes, torso, icosahedra, hair cap, frustum, cylinder). That is 6 draw calls, plus 6 in the shadow pass, whatever the NPC count. Parts are posed procedurally (thigh and shin, arms, head group), and unused parts sit at a zero matrix.
 - **Debug.** F3 shows update and render CPU ms, NPC counts per tier and NPC sim ms, plus name tags with each NPC's activity. G (with F3 on) draws the waypoint graph and live paths. With F3 on, the map (M) shows every resident. In dev builds `window.__kampung` exposes state for headless scripts.
 
+**Conversation.** Raka's late grandmother is **Mbah Minah**; the kampung remembers her.
+- **Prompt.** `talkTarget()` picks the nearest visible resident within 2.5 m who is inside a cone around the camera's forward direction. The prompt says "Say hello" before the first meeting and "Talk to <proper name>" after. E opens the panel, and there's a Talk button on touch.
+- **Panel.** It shows a portrait, name, occupation, stage chip and 5 hearts (20 friendship each). The typewriter runs on wall-clock time; E, Space, Enter or Esc skips it. Choices use keys 1–6 or clicks. Esc goes back, or says goodbye. The camera turns to the NPC's head, and the NPC (`Resident.talking`) stops walking, faces Raka if standing, and gestures while speaking. Each exchange takes 3 game-minutes; the rest of the time the clock is paused.
+- **Flow.** Intro line on first meeting (per-NPC in `lines.json`), or a greeting based on stage, memory, "again today" or "busy walking". Then an etiquette choice once a day: the proper title (`properName()`: Pak/Bu/Mas/Mbak/Dek/Ustadz/Pak RT) or a bare first name, which costs −3 with elders (45+, Pak RT, Ustadz), is fine with under-25s and is flat with peers. Main menu: Chat… (12 topics in pages of 5, marked ♥/✕ once known), Ask about, Compliment, Joke around… (joke/tease), Hear the gossip, Goodbye. Gift, Invite and favours wait for Phases 4–6.
+- **Rules** (`social/social.ts`). Liked topic +4 (+5 in a good mood), neutral +1, disliked −3. The same topic within 2 days is −1 (−2 if grumpy). Gains are capped at +10 per NPC per day. After 7 days without talking, friendship drops 1 a day, down to 0. Ask reveals one fact a day, in order: a like, birthday, a dislike, story 1 (acquaintance+), more likes, story 2 (friend+), more dislikes. Compliments and jokes depend on traits, stage and mood. Tease needs friend stage (or acquaintance with a cheerful or sporty NPC), otherwise −4/−5. Gossip reveals how they feel about another resident, strongest feelings first; NPCs who dislike gossip refuse. Stages are at 10/35/60/80. Memories (last 10) feed next-day greetings.
+- **Provider.** `ui/dialogue.ts` builds a `DialogueContext` (kind + outcome chosen by game logic) and awaits `provider.getLine()`. Swap `provider` for an LLM-backed one later; it only returns text. `lines.json` has 103 keys and 378 lines, at least 5 variants per common line, with `traits` or `mood` tags for flavoured variants.
+- **Phone** (Tab). Contacts lists met residents by friendship. It shows the portrait (`ui/portrait.ts`, drawn from `AppearanceParams`), stage, hearts, known likes and dislikes, birthday, housemates, ties learned through gossip, and the last memories. Glossary lists about 40 terms.
+- Relationship state lives in memory only; saving is Phase 7.
+
 **Known gaps and issues**
 - The `infill` step, meant to add back-row houses inside blocks, places nothing: interiors are too narrow once the row houses are in. Trees fill those spaces instead.
 - Buildings can't be entered yet. The spec calls for separate interior scenes loaded with a fade.
-- No NPC conversation yet (Phase 3), no ambient NPCs, no audio, no save of player position or time, and no rain.
+- No ambient NPCs, no audio, no saving (so relationships reset on reload), and no rain. NPCs don't start conversations yet (Phase 5: teras call-outs, invitations).
 - NPC–NPC chats and gatherings are Phase 5. Residents only share places by schedule. Kerja bakti, arisan and pengajian aren't scheduled yet (Phase 6).
 - Walking takes real game time, so short blocks after a long walk can arrive late or be skipped. The schedules are written with that in mind; keep it in mind when adding blocks.
 - The prototype's claude.ai artifact hot-reload hook (`window.claude.hot`) was dropped in the migration; it did nothing outside claude.ai.

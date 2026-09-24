@@ -10,7 +10,7 @@ import { signs } from './render/signs';
 import { applyQuality, resize } from './render/quality';
 import { cols } from './core/collision';
 import { SETTINGS } from './core/settings';
-import { S } from './core/state';
+import { S, inWorld } from './core/state';
 import { player, updatePlayer, applyCamera } from './core/player';
 import { advanceTime } from './core/time';
 import { initInput } from './core/input';
@@ -23,6 +23,10 @@ import { pasarPagi } from './world/pasar';
 import { ground } from './world/ground';
 import { initWorldNav, initResidents, updateResidents, graphStats, npcStats } from './npc/npcs';
 import { updateNpcDebug } from './npc/debug';
+import { residents } from './npc/npcs';
+import { dailyDecay } from './social/social';
+import { updateDialogue, tryTalk } from './ui/dialogue';
+import { bindPhone } from './ui/contacts';
 import { toast, updateHUD } from './ui/hud';
 import { show, bindOverlayButtons, bindSettingsUI } from './ui/overlays';
 
@@ -31,6 +35,8 @@ addEventListener('resize', resize);
 bindOverlayButtons();
 initInput();
 bindSettingsUI();
+bindPhone();
+$('ttalk').onclick = tryTalk;
 
 /* ================= build world =================
    Every step draws from the seeded RNG; keep this order or the layout changes. */
@@ -49,6 +55,7 @@ initResidents();
 graphStats();
 
 /* ================= loop ================= */
+let decayDay = S.day;
 let last = performance.now(),
   fpsA = 60,
   dbgT = 0;
@@ -59,7 +66,7 @@ function loop(now: number) {
   const t0 = performance.now();
   const dt = Math.min(0.05, (now - last) / 1000);
   last = now;
-  if (S.started && !S.paused && !S.map && !S.sleeping) {
+  if (inWorld()) {
     updatePlayer(dt);
     advanceTime(dt);
   } else if (!S.started && !REDUCED) {
@@ -67,11 +74,20 @@ function loop(now: number) {
     player.pitch = 0.04 + Math.sin(now * 0.00007) * 0.03;
   }
   // NPCs hold still while paused; on the start screen they idle in place.
-  updateResidents(!S.started || (!S.paused && !S.map && !S.sleeping) ? dt : 0);
+  updateResidents(!S.started || S.dialog || inWorld() ? dt : 0);
   applyCamera();
   updateEnv((S.time / 60) % 24);
   if (S.started) updateHUD();
   updateNpcDebug(dt);
+  updateDialogue(dt);
+  // Friendships Raka has neglected for a week fade a little each new day.
+  if (S.day !== decayDay) {
+    decayDay = S.day;
+    dailyDecay(
+      residents.map(r => r.npc),
+      S.day,
+    );
+  }
   const t1 = performance.now();
   renderer.render(scene, camera);
   const t2 = performance.now();
