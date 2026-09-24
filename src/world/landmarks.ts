@@ -3,10 +3,13 @@
 import { R, rand, pick } from '../core/util';
 import { addCol } from '../core/collision';
 import { mat, solid, roofs, cyl, crowns, cones, lit, B, C, blob } from '../render/batch';
-import { buildHouse, bike } from './houses';
+import { buildHouse, bike, type House } from './houses';
 import { mango, kamboja } from './trees';
 
 const GOODS = ['#e2412e', '#f2c14e', '#3b7dd8', '#58b368', '#ff8d5c', '#f4f1ea', '#b35ec2', '#1f9a8a'];
+/** Raka's house, for its door (home activities) and the planters out front. */
+export let rakaHouse: House;
+
 export function landmarks() {
   /* Warung Bu Sri */
   const wc = '#3fb0a0';
@@ -192,6 +195,7 @@ export function landmarks() {
       teras: '#a86c57',
     },
   });
+  rakaHouse = rk;
   kamboja(19.2, 18.1);
   const np = rk.F(-1.4, 3.12);
   B(np[0] - 0.18, np[0] + 0.18, 2.0, 2.25, np[1] - 0.02, np[1], '#1f5f8a');

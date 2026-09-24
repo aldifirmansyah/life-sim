@@ -4,7 +4,22 @@ import { SETTINGS } from './settings';
 import { collide, collideCircles } from './collision';
 import { camera } from '../render/context';
 
-export const player = { x: 0, z: 55.5, vx: 0, vz: 0, yaw: 0, pitch: 0, bob: 0, speed: 0 };
+export const player = {
+  x: 0,
+  z: 55.5,
+  vx: 0,
+  vz: 0,
+  yaw: 0,
+  pitch: 0,
+  bob: 0,
+  speed: 0,
+  /** Moving at a run this frame. */
+  running: false,
+  /** Set by game/stats from energy and Fitness. */
+  canRun: true,
+  runSpeed: 6,
+  walkSpeed: 3.5,
+};
 /** Held key codes. */
 export const keys = new Set<string>();
 /** Touch joystick (left side) and look finger (right side). */
@@ -35,7 +50,9 @@ export function updatePlayer(dt: number) {
     fx /= len;
     fz /= len;
   }
-  const sp = run ? 6 : 3.5;
+  run = run && player.canRun;
+  player.running = run && len > 0.1;
+  const sp = run ? player.runSpeed : player.walkSpeed;
   const sy = Math.sin(player.yaw),
     cy = Math.cos(player.yaw);
   const tx = (fx * cy - fz * sy) * sp,

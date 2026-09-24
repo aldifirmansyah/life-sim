@@ -4,13 +4,15 @@
 import { $ } from '../core/util';
 import { S } from '../core/state';
 import { player, keys } from '../core/player';
-import { residents, talkTarget, heading, placeName, headPos, type Resident } from '../npc/npcs';
+import { residents, heading, placeName, headPos, type Resident } from '../npc/npcs';
 import type { NPC, Topic } from '../npc/types';
 import type { DialogueContext, DialogueProvider } from '../dialogue/types';
 import { TemplateDialogueProvider, TOPIC_LABEL, firstName, timeGreeting } from '../dialogue/template';
 import LINES from '../dialogue/lines.json';
 import * as social from '../social/social';
 import { drawPortrait } from './portrait';
+import * as st from '../game/stats';
+import { item, giftReaction } from '../game/items';
 import { toast } from './hud';
 import { tryLock } from './overlays';
 
@@ -42,11 +44,10 @@ interface Conversation {
 let conv: Conversation | null = null;
 /** The line being typed out; it runs on wall-clock time, not the (capped) frame delta. */
 let typing: { full: string; start: number; done: () => void } | null = null;
-let target: Resident | null = null;
 
-/* ================= prompt ================= */
+/* ================= camera and typing ================= */
 
-/** Every frame: find who Raka is looking at, and steer the camera while talking. */
+/** Every frame while talking: turn the camera to the resident and type out the current line. */
 export function updateDialogue(dt: number) {
   if (conv) {
     // Gently turn to face the resident's head.
@@ -66,20 +67,6 @@ export function updateDialogue(dt: number) {
       if (shown >= typing.full.length) finishTyping();
     }
   }
-  const canTalk = S.started && !S.paused && !S.map && !S.phone && !S.dialog && !S.sleeping;
-  target = canTalk ? talkTarget(player.yaw) : null;
-  const el = $('prompt');
-  el.hidden = !target;
-  $('ttalk').hidden = !target;
-  if (target) {
-    const met = social.social(target.npc).met;
-    el.lastElementChild!.textContent = met ? `Talk to ${social.properName(target.npc)}` : 'Say hello';
-  }
-}
-
-/** E pressed in the world. */
-export function tryTalk() {
-  if (target && !conv) void open(target);
 }
 
 /* ================= panel ================= */
@@ -215,16 +202,23 @@ function float(delta: number, capped: boolean) {
   setTimeout(() => el.remove(), 1400);
 }
 
-function apply(c: Conversation, delta: number) {
+function apply(c: Conversation, delta: number, uncapped = false) {
   S.time = Math.min(S.time + EXCHANGE_MIN, 26 * 60 - 2);
   if (delta === 0) return;
-  const ch = social.befriend(c.npc, delta, S.day);
+  const ch = social.befriend(c.npc, delta, S.day, uncapped);
+  // Good conversations train Charisma and lift Raka's mood.
+  if (ch.delta > 0) {
+    st.practise('charisma', 1 + Math.floor(ch.delta / 3));
+    st.addMood(1);
+  }
   c.net += ch.delta;
   if (ch.delta !== 0 || delta > 0) float(ch.delta, delta > 0 && ch.delta === 0);
   renderHeader(c);
 }
 
-async function open(r: Resident) {
+/** Start talking to a resident (called by the interaction prompt). */
+export async function openDialogue(r: Resident) {
+  if (conv) return;
   const c: Conversation = {
     r,
     npc: r.npc,
@@ -248,7 +242,7 @@ async function open(r: Resident) {
   renderHeader(c);
   const npc = c.npc;
   const g = social.greetingKind(npc, S.day, r.state === 'walk');
-  await say(c, { kind: g.kind, outcome: g.outcome, topic: g.topic });
+  await say(c, { kind: g.kind, outcome: g.outcome, topic: g.topic, item: 'item' in g ? g.item : undefined });
   if (g.kind === 'intro') {
     social.meet(npc, S.day);
     renderHeader(c);
@@ -290,12 +284,8 @@ function mainMenu(c: Conversation) {
   renderChoices([
     { label: 'Chat…', run: () => topicMenu(c, 0) },
     { label: `Ask about ${who}`, echo: `You ask ${who} about themselves.`, run: () => doAsk(c) },
-    {
-      label: `Compliment ${who}`,
-      echo: `You pay ${who} a compliment.`,
-      run: () => doSimple(c, 'compliment', social.compliment(npc, S.day)),
-    },
-    { label: 'Joke around…', run: () => jokeMenu(c) },
+    { label: 'Banter…', run: () => banterMenu(c) },
+    { label: 'Give a gift…', run: () => giftMenu(c, 0) },
     { label: 'Hear the gossip', echo: `You ask what ${who} makes of the neighbours.`, run: () => doGossip(c) },
     { label: 'Goodbye', echo: 'You say goodbye.', run: () => goodbye(c) },
   ]);
@@ -303,14 +293,14 @@ function mainMenu(c: Conversation) {
 
 const PAGE = 5;
 function topicMenu(c: Conversation, page: number) {
-  const st = social.social(c.npc);
+  const soc = social.social(c.npc);
   const pages = Math.ceil(social.TOPICS.length / PAGE);
   const list: Choice[] = social.TOPICS.slice(page * PAGE, page * PAGE + PAGE).map(t => {
     const label = TOPIC_LABEL[t];
     const notes: string[] = [];
-    if (st.known.likes.includes(t)) notes.push('♥ likes');
-    if (st.known.dislikes.includes(t)) notes.push('✕ dislikes');
-    const last = st.topicDay[t];
+    if (soc.known.likes.includes(t)) notes.push('♥ likes');
+    if (soc.known.dislikes.includes(t)) notes.push('✕ dislikes');
+    const last = soc.topicDay[t];
     if (last !== undefined && S.day - last < 2) notes.push('talked recently');
     return {
       label: label.charAt(0).toUpperCase() + label.slice(1),
@@ -328,18 +318,72 @@ function topicMenu(c: Conversation, page: number) {
   renderChoices(list);
 }
 
-function jokeMenu(c: Conversation) {
+function banterMenu(c: Conversation) {
   const npc = c.npc;
+  const who = social.properName(npc);
+  const cha = st.level('charisma');
   c.back = () => mainMenu(c);
   renderChoices([
-    { label: 'Tell a joke', echo: 'You tell a joke.', run: () => doSimple(c, 'joke', social.joke(npc, S.day)) },
     {
-      label: `Tease ${social.properName(npc)}`,
-      echo: `You tease ${social.properName(npc)}.`,
-      run: () => doSimple(c, 'tease', social.tease(npc, S.day)),
+      label: `Compliment ${who}`,
+      echo: `You pay ${who} a compliment.`,
+      run: () => doSimple(c, 'compliment', social.compliment(npc, S.day)),
+    },
+    { label: 'Tell a joke', echo: 'You tell a joke.', run: () => doSimple(c, 'joke', social.joke(npc, S.day, cha)) },
+    {
+      label: `Tease ${who}`,
+      echo: `You tease ${who}.`,
+      run: () => doSimple(c, 'tease', social.tease(npc, S.day, cha)),
     },
     { label: 'Back', run: () => mainMenu(c) },
   ]);
+}
+
+/** Gifts from the bag, five to a page. Reactions Raka has seen are remembered in Contacts. */
+function giftMenu(c: Conversation, page: number) {
+  const known = social.social(c.npc).known.gifts;
+  const list = st.contents();
+  c.back = () => mainMenu(c);
+  if (!list.length) {
+    renderChoices([{ label: 'Your bag is empty. Back', run: () => mainMenu(c) }]);
+    return;
+  }
+  const pages = Math.ceil(list.length / PAGE);
+  const choices: Choice[] = list.slice(page * PAGE, page * PAGE + PAGE).map(e => {
+    const seen = known[e.item.id];
+    const stars = e.item.cat === 'dish' ? ' ' + '\u2605'.repeat(e.q) : '';
+    return {
+      label: `${e.item.name}${stars}`,
+      note: [
+        seen === 'loved' ? '\u2665 loves' : seen === 'disliked' ? '\u2715 dislikes' : seen ? seen : '',
+        `\u00d7${e.qty}`,
+      ]
+        .filter(Boolean)
+        .join(' \u00b7 '),
+      echo: `You offer ${social.properName(c.npc)} some ${e.item.name.charAt(0).toLowerCase() + e.item.name.slice(1)}.`,
+      run: () => doGift(c, e.item.id),
+    };
+  });
+  choices.push(
+    page + 1 < pages
+      ? { label: 'More\u2026', run: () => giftMenu(c, page + 1) }
+      : { label: 'Back', run: () => mainMenu(c) },
+  );
+  renderChoices(choices);
+}
+
+async function doGift(c: Conversation, id: string) {
+  const it = item(id);
+  const e = st.bag.get(id)!;
+  const reaction = giftReaction(c.npc, id);
+  const res = social.gift(c.npc, S.day, it.name, reaction, it.cat === 'dish', e.q);
+  if (res.outcome !== 'again') {
+    st.take(id);
+    social.social(c.npc).known.gifts[id] = reaction;
+  }
+  await say(c, { kind: 'gift', outcome: res.outcome, item: it.name });
+  apply(c, res.delta, true);
+  mainMenu(c);
 }
 
 async function doTopic(c: Conversation, t: Topic) {

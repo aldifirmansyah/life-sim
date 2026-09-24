@@ -24,6 +24,7 @@ export type LineKind =
   | 'joke'
   | 'tease'
   | 'gossip'
+  | 'gift'
   | 'bye';
 
 export interface DialogueContext {
@@ -44,6 +45,8 @@ export interface DialogueContext {
   location: string;
   /** Where the NPC is heading, when walking. */
   heading?: string;
+  /** A gift's name. */
+  item?: string;
   /** Extra text a line may need, e.g. a backstory snippet or birthday. */
   detail?: string;
 }

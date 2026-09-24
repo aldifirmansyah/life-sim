@@ -6,7 +6,9 @@ import { player, keys, joy, look } from './player';
 import { canvas } from '../render/context';
 import { show, tryLock, play, pause, openMap, closeMap } from '../ui/overlays';
 import { toggleGraph } from '../npc/debug';
-import { dialogKey, tryTalk } from '../ui/dialogue';
+import { dialogKey } from '../ui/dialogue';
+import { panelKey } from '../ui/panel';
+import { interact } from '../game/interact';
 import { openPhone, closePhone } from '../ui/contacts';
 
 export function initInput() {
@@ -52,6 +54,7 @@ export function initInput() {
       return;
     }
     if (S.dialog) return dialogKey(e);
+    if (S.panel) return panelKey(e);
     if (S.phone) {
       if (e.code === 'Tab' || e.code === 'Escape') {
         e.preventDefault();
@@ -65,7 +68,7 @@ export function initInput() {
       return;
     }
     if (e.code === 'KeyE' && inWorld()) {
-      tryTalk();
+      interact();
       return;
     }
     if (e.code === 'KeyM') {

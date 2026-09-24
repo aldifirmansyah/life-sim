@@ -4,6 +4,7 @@ import { $ } from './util';
 import { S, DAYS } from './state';
 import { player, keys } from './player';
 import { toast } from '../ui/hud';
+import { sleepRestore } from '../game/stats';
 
 /** [minute of day, toast title, toast body] */
 export const EVENTS: [number, string, string][] = [
@@ -24,8 +25,11 @@ export function advanceTime(dt: number) {
   if (S.time >= 26 * 60 && !S.sleeping) sleep();
 }
 
-function sleep() {
+/** Sleep until 06:00: automatically at 02:00, or from home. Energy comes back with the hours slept. */
+export function sleep() {
+  if (S.sleeping) return;
   S.sleeping = true;
+  sleepRestore(S.time);
   const f = $('fade');
   f.textContent = 'Zzz…';
   f.classList.add('on');

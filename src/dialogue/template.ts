@@ -47,6 +47,7 @@ function keyFor(ctx: DialogueContext): string[] {
     case 'joke':
     case 'tease':
     case 'gossip':
+    case 'gift':
     case 'bye':
       return [`${ctx.kind}.${o}`];
     default:
@@ -100,8 +101,9 @@ function fill(t: string, ctx: DialogueContext) {
     heading: ctx.heading ?? '',
     detail: ctx.detail ?? '',
     job: ctx.npc.occupation,
+    item: ctx.item ? ctx.item.charAt(0).toLowerCase() + ctx.item.slice(1) : '',
   };
   const out = t.replace(/\{(\w+)\}/g, (m, k) => vars[k] ?? m);
-  // Capitalise a line that opens with a variable ("pasar prices? ...").
-  return out.charAt(0).toUpperCase() + out.slice(1);
+  // Capitalise sentences that open with a variable ("pasar prices? ...", "... used to. Nasi goreng, how lovely.").
+  return (out.charAt(0).toUpperCase() + out.slice(1)).replace(/([.!?]\s+)([a-z])/g, (_, p, c) => p + c.toUpperCase());
 }

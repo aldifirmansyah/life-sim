@@ -32,8 +32,9 @@ cd prototype && python3 -m http.server 5174
 ## Keys
 
 - `WASD` walk, `Shift` run, mouse to look.
-- `E` talk to the neighbour you're looking at. In a conversation, `1`–`6` (or click) choose, `Esc` goes back.
-- `Tab` phone: Contacts (everyone you've met, what you know about them) and a Glossary.
+- `E` talk to the neighbour you're looking at, or use what's in front of you: the warung, pasar stalls, the warkop, the bakso cart, your front door, your garden planters. In menus, number keys (or click) choose and `Esc` goes back.
+- `Tab` phone: Contacts (everyone you've met, what you know about them), Bag (eat or drink), Skills, and a Glossary.
+- Hold `Shift` for 200 m or more to go for a jog.
 - `M` map, `Esc` pause and settings, `H` hide the key hints.
 
 ## Debug keys
@@ -51,8 +52,9 @@ src/
   core/              util (seeded RNG), settings, state, time, player, collision (spatial hash), input
   render/            context (renderer/scene/camera), batch (instancing), textures, sky, lighting, signs, quality
   world/             layout data, houses, trees, landmarks, streets, boundaries, pasar pagi, ground
-  ui/                hud (clock, location, toasts), map, overlays (start, pause, settings), dialogue, contacts, portrait
+  ui/                hud (clock, location, toasts), map, overlays (start, pause, settings), dialogue, contacts, portrait, panel, activities
   dialogue/          DialogueProvider interface, TemplateDialogueProvider, lines.json
   social/            friendship rules, etiquette, memories, discoveries
+  game/              items and gift preferences, player stats and bag, interaction targets, garden
   npc/               residents: data model, roster, schedules, character generator + renderer, places, waypoint graph, runtime, debug view
 ```

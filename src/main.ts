@@ -25,7 +25,11 @@ import { initWorldNav, initResidents, updateResidents, graphStats, npcStats } fr
 import { updateNpcDebug } from './npc/debug';
 import { residents } from './npc/npcs';
 import { dailyDecay } from './social/social';
-import { updateDialogue, tryTalk } from './ui/dialogue';
+import { updateDialogue } from './ui/dialogue';
+import { updateInteraction, interact } from './game/interact';
+import { updateStats } from './game/stats';
+import { buildGarden, gardenNewDay } from './game/garden';
+import { registerActivities, updateActivities } from './ui/activities';
 import { bindPhone } from './ui/contacts';
 import { toast, updateHUD } from './ui/hud';
 import { show, bindOverlayButtons, bindSettingsUI } from './ui/overlays';
@@ -36,7 +40,7 @@ bindOverlayButtons();
 initInput();
 bindSettingsUI();
 bindPhone();
-$('ttalk').onclick = tryTalk;
+$('ttalk').onclick = interact;
 
 /* ================= build world =================
    Every step draws from the seeded RNG; keep this order or the layout changes. */
@@ -49,9 +53,12 @@ pasarPagi();
 ground();
 // NPC places and the waypoint graph; homes without a teras bench get stools, so this comes before the batches are built.
 initWorldNav();
+// Raka's planters go into the static batches too.
+buildGarden();
 ALL_BATCHES.forEach(b => b.build());
 buildCables();
 initResidents();
+registerActivities();
 graphStats();
 
 /* ================= loop ================= */
@@ -80,6 +87,9 @@ function loop(now: number) {
   if (S.started) updateHUD();
   updateNpcDebug(dt);
   updateDialogue(dt);
+  updateInteraction();
+  updateActivities();
+  if (inWorld()) updateStats(dt);
   // Friendships Raka has neglected for a week fade a little each new day.
   if (S.day !== decayDay) {
     decayDay = S.day;
@@ -87,6 +97,7 @@ function loop(now: number) {
       residents.map(r => r.npc),
       S.day,
     );
+    gardenNewDay(S.day);
   }
   const t1 = performance.now();
   renderer.render(scene, camera);
@@ -144,7 +155,21 @@ if (import.meta.env.DEV) {
     import('./npc/navgraph'),
     import('./npc/places'),
     import('./core/collision'),
-  ]).then(([npcs, nav, places, collision]) => {
-    (window as unknown as Record<string, unknown>).__kampung = { S, player, npcs, nav, places, collision, renderer };
+    import('./game/stats'),
+    import('./game/garden'),
+    import('./world/landmarks'),
+  ]).then(([npcs, nav, places, collision, stats, garden, landmarks]) => {
+    (window as unknown as Record<string, unknown>).__kampung = {
+      S,
+      player,
+      npcs,
+      nav,
+      places,
+      collision,
+      stats,
+      garden,
+      landmarks,
+      renderer,
+    };
   });
 }

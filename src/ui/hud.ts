@@ -2,6 +2,8 @@ import { $ } from '../core/util';
 import { S, DAYS } from '../core/state';
 import { player } from '../core/player';
 import { zoneAt } from '../world/layout';
+import { stats } from '../game/stats';
+import { rupiah } from '../game/items';
 
 /** Non-blocking notification; at most three are shown. */
 export function toast(title: string, sub?: string) {
@@ -20,7 +22,16 @@ export function toast(title: string, sub?: string) {
 
 const pad = (n: number) => String(Math.floor(n)).padStart(2, '0');
 let lastMin = -1;
+let vitals = '';
 export function updateHUD() {
+  const v = `${Math.round(stats.energy)}|${Math.round(stats.mood)}|${stats.money}`;
+  if (v !== vitals) {
+    vitals = v;
+    $('energybar').style.width = `${stats.energy}%`;
+    $('energybar').classList.toggle('low', stats.energy <= 15);
+    $('moodbar').style.width = `${stats.mood}%`;
+    $('money').textContent = rupiah(stats.money);
+  }
   const m = Math.floor(S.time);
   if (m !== lastMin) {
     lastMin = m;

@@ -10,6 +10,8 @@ export const S = {
   dialog: false,
   /** The phone (Contacts, Glossary) is open. */
   phone: false,
+  /** An activity panel (shop, home, garden, warung shift) is open. */
+  panel: false,
   sleeping: false,
   locked: false,
   lastZone: '',
@@ -17,6 +19,6 @@ export const S = {
 export const DAYS = ['Minggu', 'Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu'];
 
 /** An overlay that owns the mouse and keyboard is open (the world keeps rendering behind it). */
-export const inMenu = () => S.paused || S.map || S.dialog || S.phone;
+export const inMenu = () => S.paused || S.map || S.dialog || S.phone || S.panel;
 /** Raka can walk around and time runs. */
 export const inWorld = () => S.started && !inMenu() && !S.sleeping;

@@ -31,7 +31,15 @@ export const stageRank = (s: Stage) => STAGES.indexOf(s);
 export interface Social {
   met: boolean;
   metDay: number;
-  known: { likes: Topic[]; dislikes: Topic[]; birthday: boolean; stories: number; ties: string[] };
+  known: {
+    likes: Topic[];
+    dislikes: Topic[];
+    birthday: boolean;
+    stories: number;
+    ties: string[];
+    /** Gift reactions Raka has seen, by item id. */
+    gifts: Record<string, string>;
+  };
   /** Day each topic was last talked about. */
   topicDay: Partial<Record<Topic, number>>;
   /** Positive friendship gained today (for the daily cap). */
@@ -40,7 +48,7 @@ export interface Social {
   /** Day of the last proper greeting. */
   greetedDay: number;
   /** Per-day counters for actions that get stale when repeated. */
-  today: { day: number; asked: number; compliment: number; joke: number; tease: number; gossip: number };
+  today: { day: number; asked: number; compliment: number; joke: number; tease: number; gossip: number; gift: number };
 }
 
 const socials = new Map<string, Social>();
@@ -50,19 +58,19 @@ export function social(npc: NPC): Social {
     s = {
       met: false,
       metDay: -1,
-      known: { likes: [], dislikes: [], birthday: false, stories: 0, ties: [] },
+      known: { likes: [], dislikes: [], birthday: false, stories: 0, ties: [], gifts: {} },
       topicDay: {},
       gainDay: -1,
       gained: 0,
       greetedDay: -1,
-      today: { day: -1, asked: 0, compliment: 0, joke: 0, tease: 0, gossip: 0 },
+      today: { day: -1, asked: 0, compliment: 0, joke: 0, tease: 0, gossip: 0, gift: 0 },
     };
     socials.set(npc.id, s);
   }
   return s;
 }
 function counters(s: Social, day: number) {
-  if (s.today.day !== day) s.today = { day, asked: 0, compliment: 0, joke: 0, tease: 0, gossip: 0 };
+  if (s.today.day !== day) s.today = { day, asked: 0, compliment: 0, joke: 0, tease: 0, gossip: 0, gift: 0 };
   return s.today;
 }
 
@@ -74,7 +82,8 @@ export interface Change {
 }
 
 /** Apply a friendship change. Gains are capped per day; losses are not. Mood follows along. */
-export function befriend(npc: NPC, delta: number, day: number): Change {
+/** Apply a friendship change. Gains are capped per day (except gifts, which are limited to one a day instead); losses are not. */
+export function befriend(npc: NPC, delta: number, day: number, uncapped = false): Change {
   const s = social(npc);
   const rel = npc.playerRelationship;
   if (s.gainDay !== day) {
@@ -82,7 +91,7 @@ export function befriend(npc: NPC, delta: number, day: number): Change {
     s.gained = 0;
   }
   let d = delta;
-  if (d > 0) {
+  if (d > 0 && !uncapped) {
     d = Math.min(d, DAILY_CAP - s.gained);
     s.gained += Math.max(0, d);
   }
@@ -142,11 +151,16 @@ export function greetingKind(npc: NPC, day: number, walking: boolean) {
   if (walking) return { kind: 'greet.busy' as const };
   if (rel.friendship < -10) return { kind: 'greet' as const, outcome: 'cold' };
   const mem = [...rel.memories].reverse().find(m => m.day < day && day - m.day <= 5);
-  if (mem && ['topic_like', 'tease_bad', 'joke_good', 'compliment', 'first'].includes(mem.kind) && Math.random() < 0.6)
+  if (
+    mem &&
+    ['topic_like', 'tease_bad', 'joke_good', 'compliment', 'first', 'gift_loved'].includes(mem.kind) &&
+    Math.random() < 0.6
+  )
     return {
       kind: 'greet.memory' as const,
       outcome: mem.kind,
       topic: mem.kind === 'topic_like' ? (mem.about as Topic) : undefined,
+      item: mem.kind === 'gift_loved' ? mem.about : undefined,
     };
   const r = stageRank(rel.stage);
   return { kind: 'greet' as const, outcome: r >= 2 ? 'friend' : r === 1 ? 'acquaintance' : 'stranger' };
@@ -230,7 +244,8 @@ export function compliment(npc: NPC, day: number) {
   return { outcome: 'good', delta: npc.traits.includes('cheerful') || npc.traits.includes('caring') ? 3 : 2 };
 }
 
-export function joke(npc: NPC, day: number) {
+/** `charisma` is Raka's Charisma level; each level makes jokes and teasing land a little more often. */
+export function joke(npc: NPC, day: number, charisma = 1) {
   const c = counters(social(npc), day);
   c.joke++;
   const t = npc.traits;
@@ -239,6 +254,7 @@ export function joke(npc: NPC, day: number) {
   chance += stageRank(npc.playerRelationship.stage) >= 2 ? 0.15 : 0;
   chance += npc.mood >= 65 ? 0.1 : npc.mood < 35 ? -0.2 : 0;
   if (c.joke > 1) chance -= 0.3;
+  chance += (charisma - 1) * 0.02;
   const roll = Math.random();
   if (roll < chance) {
     remember(npc, { day, kind: 'joke_good', text: 'Laughed at one of Raka’s jokes', weight: 1 });
@@ -249,13 +265,15 @@ export function joke(npc: NPC, day: number) {
 }
 
 /** Teasing only works between friends, or with easy-going acquaintances. */
-export function tease(npc: NPC, day: number) {
+export function tease(npc: NPC, day: number, charisma = 1) {
   const c = counters(social(npc), day);
   c.tease++;
   const rank = stageRank(npc.playerRelationship.stage);
   const easy = npc.traits.includes('cheerful') || npc.traits.includes('sporty');
   const ok =
-    (rank >= 2 || (rank === 1 && easy)) && c.tease === 1 && Math.random() < (npc.traits.includes('grumpy') ? 0.5 : 0.8);
+    (rank >= 2 || (rank === 1 && easy)) &&
+    c.tease === 1 &&
+    Math.random() < (npc.traits.includes('grumpy') ? 0.5 : 0.8) + (charisma - 1) * 0.015;
   if (ok) return { outcome: 'good', delta: 3 };
   remember(npc, { day, kind: 'tease_bad', text: 'Raka said something hurtful', weight: 3 });
   return { outcome: 'bad', delta: rank === 0 ? -5 : npc.age >= 55 ? -5 : -4 };
@@ -285,3 +303,39 @@ export function gossip(npc: NPC, day: number, alive: (id: string) => boolean) {
 
 export const byeKind = (npc: NPC) =>
   npc.playerRelationship.friendship < -10 ? 'cold' : stageRank(npc.playerRelationship.stage) >= 1 ? 'warm' : 'neutral';
+
+const lowerFirst = (s: string) => s.charAt(0).toLowerCase() + s.slice(1);
+
+/** A gift, once a day per person. Home cooking (berbagi) counts for more; disliked gifts still sting. */
+export function gift(
+  npc: NPC,
+  day: number,
+  name: string,
+  reaction: 'loved' | 'liked' | 'neutral' | 'disliked',
+  homeCooked: boolean,
+  quality: number,
+) {
+  const c = counters(social(npc), day);
+  c.gift++;
+  if (c.gift > 1) return { outcome: 'again', delta: 0 };
+  let delta = { loved: 8, liked: 4, neutral: 1, disliked: -3 }[reaction];
+  if (homeCooked && reaction !== 'disliked') delta += 3 + (quality >= 4 ? 1 : 0);
+  if (reaction === 'loved' || (homeCooked && reaction !== 'disliked'))
+    remember(npc, {
+      day,
+      kind: 'gift_loved',
+      text: `Loved the ${lowerFirst(name)} Raka brought`,
+      weight: 3,
+      about: name,
+    });
+  else if (reaction === 'disliked')
+    remember(npc, {
+      day,
+      kind: 'gift_bad',
+      text: `Didn\u2019t care for the ${lowerFirst(name)} Raka brought`,
+      weight: 2,
+      about: name,
+    });
+  const outcome = homeCooked && reaction !== 'disliked' ? (reaction === 'loved' ? 'loved' : 'dish') : reaction;
+  return { outcome, delta };
+}
