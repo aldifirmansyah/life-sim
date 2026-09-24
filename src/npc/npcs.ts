@@ -187,7 +187,17 @@ function claim(r: Resident, location: string): Slot {
   const t = 0.35 + hash(r.i, 91) * 0.4;
   const x = any.approach[0] + (e[0] - any.approach[0]) * t + (hash(r.i, 92) - 0.5) * 0.8;
   const z = any.approach[1] + (e[1] - any.approach[1]) * t + (hash(r.i, 93) - 0.5) * 0.8;
-  return { ...any, x, z, approach: [x, z], pose: 'stand', y: 0, ry: Math.atan2(any.x - x, any.z - z), claimedBy: r.i, shared: false };
+  return {
+    ...any,
+    x,
+    z,
+    approach: [x, z],
+    pose: 'stand',
+    y: 0,
+    ry: Math.atan2(any.x - x, any.z - z),
+    claimedBy: r.i,
+    shared: false,
+  };
 }
 
 function release(r: Resident) {
@@ -217,8 +227,12 @@ export function resync() {
 }
 
 /** Estimated minutes to walk to a location, cached per block. */
+/** Path estimates allowed in this tick; the rest wait for the next one so a rush hour doesn't spike a frame. */
+let planBudget = Infinity;
 function travelMinutes(r: Resident, block: number, location: string) {
   if (r.plan?.block !== block) {
+    if (planBudget <= 0) return null;
+    planBudget--;
     const { slot, first } = findSlot(r, location);
     const to = slot ?? first;
     r.plan = { block, len: to === r.slot ? 0 : buildPath(r.slot, to).length };
@@ -227,8 +241,13 @@ function travelMinutes(r: Resident, block: number, location: string) {
 }
 
 /** 1 Hz schedule tick. */
+let tickStart = 0;
 function tick() {
-  for (const r of residents) advanceSchedule(r, S.time, false);
+  planBudget = 4;
+  const n = residents.length;
+  tickStart = (tickStart + 1) % n;
+  for (let k = 0; k < n; k++) advanceSchedule(residents[(tickStart + k) % n], S.time, false);
+  planBudget = Infinity;
 }
 
 /** Start walking to the next block's place once it's time to leave, early enough to arrive on
@@ -248,7 +267,9 @@ function advanceSchedule(r: Resident, t: number, catchUp: boolean) {
     }
     // Nothing is ever more than a few hours' walk away.
     if (t < nb.start - 300) return;
-    const leaveAt = nb.start - travelMinutes(r, next, nb.location) - 1 - hash(r.i * 31 + next, S.day) * 6;
+    const travel = travelMinutes(r, next, nb.location);
+    if (travel === null) return;
+    const leaveAt = nb.start - travel - 1 - hash(r.i * 31 + next, S.day) * 6;
     if (t < leaveAt) return;
     depart(r, next, nb.location);
     if (!catchUp) return;

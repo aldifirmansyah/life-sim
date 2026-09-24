@@ -47,7 +47,8 @@ export const homes = new Map<string, Poi>();
 /** Is the straight walk from a to b clear of colliders? */
 function clear(a: P2, b: P2) {
   const n = Math.ceil(Math.hypot(b[0] - a[0], b[1] - a[1]) / 0.2);
-  for (let i = 0; i <= n; i++) if (hit(a[0] + ((b[0] - a[0]) * i) / n, a[1] + ((b[1] - a[1]) * i) / n, 0.2)) return false;
+  for (let i = 0; i <= n; i++)
+    if (hit(a[0] + ((b[0] - a[0]) * i) / n, a[1] + ((b[1] - a[1]) * i) / n, 0.2)) return false;
   return true;
 }
 
@@ -109,7 +110,11 @@ function landmarkPois() {
   poi('warung', 'Warung Bu Sri', 'warung', [[9.0, -7.5]], {
     owner: [stand([10.3, -5.8], [10.3, -8])],
     helper: [stand([9.3, -5.75], [9.3, -8])],
-    customer: [stand([9.55, -6.7], [9.55, -5]), stand([8.95, -7.0], [9.3, -5]), stand([5.6, -6.2], [7, -5], { via: [[5.9, -7.2]] })],
+    customer: [
+      stand([9.55, -6.7], [9.55, -5]),
+      stand([8.95, -7.0], [9.3, -5]),
+      stand([5.6, -6.2], [7, -5], { via: [[5.9, -7.2]] }),
+    ],
     bench: [sit([6.8, -6.33], [6.8, -8], 0.45), sit([8.0, -6.33], [8.0, -8], 0.45)],
   });
   poi('warungMeja', 'Meja warung', 'meja', [[2.3, -1.2]], {

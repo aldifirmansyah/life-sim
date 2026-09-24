@@ -29,6 +29,12 @@ cd prototype && python3 -m http.server 5174
 # then open http://localhost:5174
 ```
 
+## Debug keys
+
+- `F3` (or backtick): performance overlay with CPU ms, draw calls and NPC counts per LOD tier, plus name tags over nearby residents. With it on, the map (`M`) shows every resident.
+- `G` (with F3 on): waypoint graph and the paths of walking residents.
+- `T` hold: fast-forward time (60×). `[` / `]`: jump an hour back or forward.
+
 ## Source layout
 
 ```
@@ -39,4 +45,5 @@ src/
   render/            context (renderer/scene/camera), batch (instancing), textures, sky, lighting, signs, quality
   world/             layout data, houses, trees, landmarks, streets, boundaries, pasar pagi, ground
   ui/                hud (clock, location, toasts), map, overlays (start, pause, settings)
+  npc/               residents: data model, roster, schedules, character generator + renderer, places, waypoint graph, runtime, debug view
 ```
