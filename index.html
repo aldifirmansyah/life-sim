@@ -31,6 +31,7 @@
             </div>
             <div id="money">Rp 150.000</div>
           </div>
+          <div id="phonebadge" hidden><span aria-hidden="true">💬</span> <b>0</b> new · <kbd>Tab</kbd></div>
         </div>
         <div id="cross"></div>
         <div id="prompt" hidden><kbd>E</kbd><span></span></div>
@@ -45,6 +46,7 @@
           <span><kbd>F3</kbd> performance</span>
           <span><kbd>Esc</kbd> pause</span>
         </div>
+        <div id="bubbles"></div>
         <div id="npctags" hidden></div>
         <pre id="debug" hidden></pre>
         <div id="joy" hidden><div id="knob"></div></div>
@@ -175,7 +177,8 @@
               <h2 id="phone-title">Contacts</h2>
             </div>
             <div class="seg" role="radiogroup" aria-label="Phone section" id="phonetabs">
-              <button type="button" role="radio" data-tab="contacts">Contacts</button
+              <button type="button" role="radio" data-tab="chats">Chats<i id="chatsbadge" hidden></i></button
+              ><button type="button" role="radio" data-tab="contacts">Contacts</button
               ><button type="button" role="radio" data-tab="bag">Bag</button
               ><button type="button" role="radio" data-tab="skills">Skills</button
               ><button type="button" role="radio" data-tab="glossary">Glossary</button>
@@ -183,6 +186,7 @@
             <button id="closephone" class="ghost" type="button">Close <kbd>Tab</kbd></button>
           </header>
           <p id="phone-count" class="build"></p>
+          <div id="chats" class="chats" hidden></div>
           <div id="contacts" class="contacts"></div>
           <div id="bag" class="baglist" hidden></div>
           <div id="skills" class="skills" hidden></div>

@@ -33,7 +33,8 @@ cd prototype && python3 -m http.server 5174
 
 - `WASD` walk, `Shift` run, mouse to look.
 - `E` talk to the neighbour you're looking at, or use what's in front of you: the warung, pasar stalls, the warkop, the bakso cart, your front door, your garden planters. In menus, number keys (or click) choose and `Esc` goes back.
-- `Tab` phone: Contacts (everyone you've met, what you know about them), Bag (eat or drink), Skills, and a Glossary.
+- `Tab` phone: Chats (the Warga RT 04 group, private messages, invitations and your plans), Contacts (everyone you've met, what you know about them), Bag (eat or drink), Skills, and a Glossary.
+- Neighbours on their teras call out as you pass: go over and talk. Use Invite… in a conversation to make plans, then turn up.
 - Hold `Shift` for 200 m or more to go for a jog.
 - `M` map, `Esc` pause and settings, `H` hide the key hints.
 
@@ -54,7 +55,7 @@ src/
   world/             layout data, houses, trees, landmarks, streets, boundaries, pasar pagi, ground
   ui/                hud (clock, location, toasts), map, overlays (start, pause, settings), dialogue, contacts, portrait, panel, activities
   dialogue/          DialogueProvider interface, TemplateDialogueProvider, lines.json
-  social/            friendship rules, etiquette, memories, discoveries
+  social/            friendship rules, etiquette, memories, discoveries; NPC–NPC chats and call-outs; plans; phone messages
   game/              items and gift preferences, player stats and bag, interaction targets, garden
-  npc/               residents: data model, roster, schedules, character generator + renderer, places, waypoint graph, runtime, debug view
+  npc/               residents and passers-by: data model, roster, schedules, character generator + renderer, places, waypoint graph, runtime, debug view
 ```

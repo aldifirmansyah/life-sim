@@ -16,14 +16,14 @@ Kampung is a first-person life-sim that runs in the browser. It is set in **Kamp
 1. **Foundation: DONE.** Originally `prototype/index.html`; migrated to Vite + TypeScript in `src/` (the user confirmed it matches).
 2. **NPC core: DONE.** Character generator, waypoint graph and A*, schedule-driven movement for 24 residents, simulation LOD, debug overlay. The user has run it on a Mac.
 3. **Conversation: DONE** (the user confirmed it, including the smoother reply-to-choices transition). Interaction prompt, dialogue panel, topics, relationships, memories, Contacts page.
-4. **Activities and economy: DONE, awaiting the user's check.** Stats, money, bag, shops, warung shift, freelance work, cooking, jogging, gardening, gifts.
-5. Living world: NPC–NPC chats, gatherings, gossip, invitations, ambient NPCs, phone.
+4. **Activities and economy: DONE** (the user confirmed it, including sellers being present and the buy/eat animations). Stats, money, bag, shops, warung shift, freelance work, cooking, jogging, gardening, gifts.
+5. **Living world: DONE, awaiting the user's check.** NPC–NPC chats, gatherings, gossip, invitations, ambient NPCs, phone.
 6. Depth: story arcs, events (17 Agustus), milestones, reputation, house restoration.
 7. Polish: save/load, settings, audio, tutorial, balancing.
 
 Do one phase at a time. At the end of each phase, check it and stop for the user's go-ahead.
 
-## Current state (Phase 4, Activities and economy)
+## Current state (Phase 5, Living world)
 The game lives in `src/` and builds with Vite (`npm run dev`, `npm run build`). `three` is pinned to 0.169.0 from npm, matching the prototype's r169. `prototype/index.html` is the original single-file build (Three.js from jsDelivr, no build step). It is kept only for comparison; don't develop in it.
 
 **Module map.** `src/main.ts` wires input and UI, builds the world, and runs the loop.
@@ -32,10 +32,10 @@ The game lives in `src/` and builds with Vite (`npm run dev`, `npm run build`). 
 - `world/`: `layout` (all layout data, palettes, `ZONES`), `houses`, `trees`, `landmarks`, `streets`, `boundaries`, `pasar`, `ground`.
 - `ui/`: `hud`, `map`, `overlays`.
 - `dialogue/`: `types` (`DialogueProvider`, `DialogueContext`), `lines.json` (all template text), `template` (`TemplateDialogueProvider`).
-- `social/`: `social` (friendship rules, etiquette, cooldowns, memories, what Raka has discovered).
+- `social/`: `social` (friendship rules, etiquette, cooldowns, memories, what Raka has discovered, good words and gossip), `life` (NPC–NPC chats, gossip spread, call-outs, waves), `plans` (outings, invitations, appointments), `phone` (group chat, private messages, food sharing).
 - `ui/` also has `dialogue` (the dialogue panel), `contacts` (the phone: Contacts, Bag, Skills, Glossary), `portrait`, `panel` (the general activity menu) and `activities` (shops, home, garden, warung shift).
 - `game/`: `items` (catalogue, gift preferences, shop stock, recipes), `stats` (energy, mood, money, skills, bag, jogging), `interact` (E targets: residents and things), `garden` (Raka's planters), `actions` (animated pay, take, sit, eat and stand sequences; seat finding).
-- `render/hands.ts`: Raka's first-person hands and the items he holds. `npc/vendors.ts`: pasar stall-keepers.
+- `render/hands.ts`: Raka's first-person hands and the items he holds. `npc/vendors.ts`: pasar stall-keepers. `npc/ambient.ts`: passers-by. `ui/bubbles.ts`: speech bubbles. `game/plate.ts`: food left at Raka's door.
 - `npc/`: `types` (the spec §8.2 NPC model), `roster` (the 24 residents and their ties), `schedule` (authoring helpers), `appearance` (character generator), `characters` (instanced renderer and poses), `places` (POIs, slots, homes), `navgraph` (lanes, A*, paths), `npcs` (runtime), `debug`.
 
 **Determinism.** The layout comes from `mulberry32(20260924)`. The build order in `main.ts` (blocks → landmarks → block trees → streets → boundaries → pasar → ground) and the order of `R()` calls inside each builder must not change, or the kampung changes. `Math.random` is only used for cosmetic noise (textures, stars, hill rotation, sign grain). NPC code never calls `R()`: it has its own `mulberry32(7331)` and a `hash(a, b)` for per-day jitter.
@@ -96,11 +96,24 @@ Colours are per-instance. The current view draws about 22–35 calls and about 6
   - From the bag: meals and home cooking are eaten sitting if a seat is within 3 m (warung bench, his own teras bench), otherwise standing. Snacks, drinks and fruit are always standing.
   - Bites shrink food; bowls and cups stay. `finishEating()` applies energy and mood, adds 5 or 15 game-minutes, and toasts.
 
+**Living world** (spec §8.4, `social/life.ts`, `social/plans.ts`, `social/phone.ts`).
+- **Bubbles** (`ui/bubbles.ts`). Pooled HTML labels over heads, only within 22 m and in view: "…" icons for chats, text for call-outs, overheard lines and passer-by greetings. Keyed by the Resident; `bubble(key, at, text, seconds, icon)`.
+- **NPC–NPC chats.** A 1 Hz tick in `life.ts` pairs anyone visible: walkers within 3.2 m, or people at rest within 2.6 m, who like each other (relationship ≥ 20 walking, ≥ 10 sitting; passers-by only chat with passers-by). `startChat` in `npcs.ts` sets `Resident.chat`: walkers keep closing until 1.25 m or they pass, then stop and face each other; the pair take turns gesturing (`chatSpeaker`). Chats last 4–9 game-min walking, 12–30 at rest, and end when either needs to leave. Each chat adds +1 both ways, and passes on what the speaker thinks of Raka (friend ≥ 35 → +1, ≤ −10 → −1, at most once a day per listener) with a `heard_good`/`heard_bad` memory that shows up in greetings. Near Raka (< 6.5 m) a chat shows up to two overheard lines (`overhear.*`); overhearing gossip about a third resident counts as learning that tie.
+- **Call-outs and waves.** Residents at rest on a teras (or friends sitting anywhere) call out as Raka passes within 7 m in front of them (150 game-min cooldown each, trait-weighted). Talking to them within 6 game-min gets a `greet.callout` line and +2. Friends 5–16 m away who face Raka wave (`wave()`, a raised-arm pose).
+- **Gatherings.** `@<household>.teras` is another household's teras; `VISITS` in `roster.ts` lays teras visits over schedules (the arisan circle at Bu RT's on Tue/Thu, old friends at Pak Darto's). When the two seats are taken, visitors stand by the pagar.
+- **Passers-by** (`npc/ambient.ts`). 6/12/20 by quality (`AMBIENT_MAX` crowd slots after the stall-keepers). They share the resident runtime (`people` = residents + ambients) with a generated day: away, one or two errands (pasar, warung, warkop, bakso, musholla, bridge, kali, lapangan, balai board), away. New faces and errands each day. E gives a one-line `passerby.*` greeting in a bubble. They aren't in `residents`, so Contacts, the social rules and the map ignore them. Changing quality calls `resetAmbients()`.
+- **Plans.** `Resident.plans` are one-off blocks laid over the week schedule for a given day; `todayBlocks(r)` (cached) is what the runtime follows, and `setPlan` keeps the current block index valid. Outings (`OUTINGS`): ngopi at the warkop (07:00/19:30), bakso (19:00), a walk to the bridge (06:30), sore at the lapangan (16:30), teh on Raka's teras (16:00/20:00, the `raka` POI, which is also where Raka's own bench seats come from). Each is offered at its next time at least an hour away. Residents decline when busy (work, study, prayer, ronda, away, already booked), too young, or on a friendship roll. Meeting them there (within 5 m, while they're at the planned slot) gives +8 uncapped, +8 mood and a memory; not turning up by start + 40 costs −5 and a text.
+- **Conversation menu** is now Chat…, Ask… (about them, hear the gossip, put in a good word for…, pass on gossip about…), Banter…, Give a gift… (Give or return… when Raka has their plate), Invite…, Goodbye. A good word lifts their feeling for the other person by 5 (8 at friend stage), once a day; when both sides of a feud reach ≥ 0 the kampung hears they've made peace (toast and group post). Passing on gossip lowers it by 6; gossips enjoy it (+2), caring people and the Ustadz disapprove (−3), others are uneasy (−1).
+- **Phone chats** (`social/phone.ts`, the Chats tab). The Warga RT 04 group: Pak RT's welcome, the ronda roster from schedules, Friday and Sunday notices, Bu Sri's warung posts, chatter from the talkative ones, feud flare-ups, and replies. Private messages: a new friend sends their number, friends invite Raka out (a 14% roll each game-hour from 08:00 to 20:30, one open offer at a time, answered with Accept/Decline in the thread, expiring 30 min before), missed plans, food at the door. Unread count on the HUD under the clock and on the tab; a toast per message. A Plans list at the top of Chats.
+- **Food sharing.** Once a day at a random time, maybe (40%), a caring neighbour who knows Raka leaves a dish on his teras (`game/plate.ts`, a plate under a tudung saji). E takes 2 portions. Returning the plate in conversation gives +3, or +4 on top of the gift if something goes back on it. A reminder text after 2 days.
+- All text goes through the provider: new line kinds `overhear`, `callout`, `passerby`, `invite`, `plan`, `word`, `plate`, `text` (keys `<kind>.<outcome>`); `dialogue/provider.ts` has `provider` and `lineFor(r, part)` for lines outside the panel. lines.json has 176 keys and about 750 lines.
+
 **Known gaps and issues**
 - The `infill` step, meant to add back-row houses inside blocks, places nothing: interiors are too narrow once the row houses are in. Trees fill those spaces instead.
 - Buildings can't be entered yet. The spec calls for separate interior scenes loaded with a fade.
-- No ambient NPCs, no audio, no saving (relationships, money and the bag reset on reload), and no rain. Futsal, fishing, guitar, ronda duty and house restoration aren't playable yet (Phases 5–6). NPCs don't start conversations yet (Phase 5: teras call-outs, invitations).
-- NPC–NPC chats and gatherings are Phase 5. Residents only share places by schedule. Kerja bakti, arisan and pengajian aren't scheduled yet (Phase 6).
+- No audio, no saving (relationships, money, plans, messages and the bag reset on reload), and no rain. Futsal, fishing, guitar, ronda duty and house restoration aren't playable yet (Phase 6). Friends don't yet walk up to Raka in person; they call out, wave and text.
+- Kerja bakti, arisan (as an event) and pengajian aren't scheduled yet (Phase 6). Reputation is Phase 6; gossip only moves individual friendships.
+- Chats and plans run on game time, but the life tick is 1 Hz real time, so while fast-forwarding (T) few chats happen and short ones end within a tick.
 - Walking takes real game time, so short blocks after a long walk can arrive late or be skipped. The schedules are written with that in mind; keep it in mind when adding blocks.
 - The prototype's claude.ai artifact hot-reload hook (`window.claude.hot`) was dropped in the migration; it did nothing outside claude.ai.
 - It has only been tested in headless Chromium with SwiftShader (about 30 FPS in software). It still needs a check on real hardware.

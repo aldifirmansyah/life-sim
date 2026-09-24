@@ -2,10 +2,27 @@
    his front door, garden pots). Whichever is nearest the centre of view wins. */
 import { $ } from '../core/util';
 import { player } from '../core/player';
-import { inWorld } from '../core/state';
-import { talkTarget, type Resident } from '../npc/npcs';
+import { S, inWorld } from '../core/state';
+import { talkTarget, headPos, wave, type Resident } from '../npc/npcs';
 import * as social from '../social/social';
 import { openDialogue } from '../ui/dialogue';
+import { lineFor } from '../dialogue/provider';
+import { bubble, hasBubble } from '../ui/bubbles';
+import { addMood } from './stats';
+
+/** Passers-by have no relationship with Raka: a nod, a smile and a one-line greeting. */
+const greetedToday = new Map<number, number>();
+function greetPasserby(r: Resident) {
+  if (hasBubble(r)) return;
+  const again = greetedToday.get(r.i) === S.day;
+  greetedToday.set(r.i, S.day);
+  wave(r, 1.2);
+  if (!again) addMood(1);
+  void lineFor(r, {
+    kind: 'passerby',
+    outcome: again ? 'again' : r.npc.age >= 45 ? 'elder' : r.npc.age < 20 ? 'young' : 'adult',
+  }).then(text => bubble(r, () => headPos(r), text, 3.5));
+}
 
 export interface Interactable {
   x: number;
@@ -56,17 +73,19 @@ export function updateInteraction() {
   $('ttalk').hidden = !target;
   if (!target) return;
   let text: string;
-  if (target.npc) {
+  if (target.npc?.ambient) text = 'Greet the passer-by';
+  else if (target.npc) {
     const met = social.social(target.npc.npc).met;
     text = met ? `Talk to ${social.properName(target.npc.npc)}` : 'Say hello';
   } else text = target.label;
   el.lastElementChild!.textContent = text;
-  $('ttalk').textContent = target.npc ? 'Talk' : 'Use';
+  $('ttalk').textContent = target.npc?.ambient ? 'Greet' : target.npc ? 'Talk' : 'Use';
 }
 
 /** E pressed, or the touch button. */
 export function interact() {
   if (!target || !inWorld()) return;
-  if (target.npc) void openDialogue(target.npc);
+  if (target.npc?.ambient) greetPasserby(target.npc);
+  else if (target.npc) void openDialogue(target.npc);
   else target.thing.run();
 }

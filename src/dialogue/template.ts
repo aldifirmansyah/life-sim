@@ -50,6 +50,15 @@ function keyFor(ctx: DialogueContext): string[] {
     case 'gift':
     case 'bye':
       return [`${ctx.kind}.${o}`];
+    case 'overhear':
+    case 'callout':
+    case 'passerby':
+    case 'invite':
+    case 'plan':
+    case 'word':
+    case 'plate':
+    case 'text':
+      return o ? [`${ctx.kind}.${o}`, ctx.kind] : [ctx.kind];
     default:
       return [ctx.kind];
   }
@@ -104,6 +113,9 @@ function fill(t: string, ctx: DialogueContext) {
     item: ctx.item ? ctx.item.charAt(0).toLowerCase() + ctx.item.slice(1) : '',
   };
   const out = t.replace(/\{(\w+)\}/g, (m, k) => vars[k] ?? m);
-  // Capitalise sentences that open with a variable ("pasar prices? ...", "... used to. Nasi goreng, how lovely.").
-  return (out.charAt(0).toUpperCase() + out.slice(1)).replace(/([.!?]\s+)([a-z])/g, (_, p, c) => p + c.toUpperCase());
+  // Capitalise sentences that open with a variable (but not after an ellipsis) ("pasar prices? ...", "... used to. Nasi goreng, how lovely.").
+  return (out.charAt(0).toUpperCase() + out.slice(1)).replace(
+    /(^|[^.])([.!?]\s+)([a-z])/g,
+    (_, b, p, c) => b + p + c.toUpperCase(),
+  );
 }

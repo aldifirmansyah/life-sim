@@ -25,7 +25,16 @@ export type LineKind =
   | 'tease'
   | 'gossip'
   | 'gift'
-  | 'bye';
+  | 'bye'
+  // Phase 5: lines outside the dialogue panel, and the living-world choices.
+  | 'overhear'
+  | 'callout'
+  | 'passerby'
+  | 'invite'
+  | 'plan'
+  | 'word'
+  | 'plate'
+  | 'text';
 
 export interface DialogueContext {
   kind: LineKind;

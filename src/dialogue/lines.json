@@ -772,5 +772,501 @@
     "Hehe, you're too generous. Save it.",
     "You already brought me something today. Put that away.",
     "Aduh, stop! Give it to one of the other neighbours."
+  ],
+  "greet.callout": [
+    "Eh, you came! {greet}, {raka}. Sit, sit.",
+    "There he is! I thought you'd walk right past me.",
+    "{raka}! Good, come here, I wanted a word.",
+    "{greet}! You heard me, then. Mampir sebentar, ya.",
+    "Ah, {raka}. Nobody stops any more, but you did.",
+    {
+      "t": "Hmph. You actually stopped. {greet}.",
+      "traits": ["grumpy"],
+      "emote": "happy"
+    },
+    {
+      "t": "Oh! I didn't think you'd really come over. {greet}, {raka}.",
+      "traits": ["shy"],
+      "emote": "shy"
+    }
+  ],
+  "greet.memory.heard_good": [
+    "{raka}! {other} says you're a good sort. {greet}!",
+    "Ah, the famous {raka}. {other} won't stop talking about you.",
+    "{greet}. I hear from {other} that you're settling in well.",
+    "So you're the one {other} keeps mentioning. {greet}, {raka}!",
+    "{other} told me about you. All good things, don't worry."
+  ],
+  "greet.memory.heard_bad": [
+    "{greet}, {raka}. I heard some things from {other}...",
+    "Hm. {other} had words about you, you know.",
+    "{greet}. {other} wasn't very happy with you, I hear.",
+    "Ah, {raka}. I've been hearing things. From {other}.",
+    "{greet}. Is it true what {other} says about you?"
+  ],
+  "overhear.raka_good": [
+    "...and that {raka}, he's alright. Polite, too.",
+    "...you know Mbah Minah's grandson? Good boy, that one.",
+    "...{raka} came by the other day. He listens, you know? Rare.",
+    "...no, no, {raka} is fine. Better than fine.",
+    "...I told you, {raka} is one of us now.",
+    "...Mbah Minah would be proud of that boy."
+  ],
+  "overhear.raka_bad": [
+    "...that {raka}, though. Big-city manners.",
+    "...I don't know about that {raka}. Something's off.",
+    "...Mbah Minah's grandson? Hmph. Don't get me started.",
+    "...he could learn some manners, that {raka}.",
+    "...{raka} said what? To me, he's never said anything nice."
+  ],
+  "overhear.raka_new": [
+    "...someone's living in Mbah Minah's house again, you know.",
+    "...have you met the new one on Gang Mawar? Mbah Minah's grandson.",
+    "...a designer, they say. What does a designer even do?",
+    "...Mbah Minah's cucu came back from the city. Finally.",
+    "...he hasn't said hello to me yet, that new one."
+  ],
+  "overhear.other_good": [
+    "...{other}? Heart of gold, that one.",
+    "...you know {other} helped me again last week?",
+    "...if everyone were like {other}, this kampung would be heaven.",
+    "...{other} always brings something. Always.",
+    "...I've known {other} for years. Never a bad word."
+  ],
+  "overhear.other_bad": [
+    "...and {other}, again! Every single night.",
+    "...don't mention {other} to me. I'm still angry.",
+    "...{other} still hasn't said sorry, you know.",
+    "...I'm not saying {other} is a bad person. I'm just saying.",
+    "...ask {other} yourself, see what excuse you get this time."
+  ],
+  "overhear.small": [
+    "...prices at the pasar, astaga. Cabai again!",
+    "...hot today, eh? The rain should come soon.",
+    "...my son says the same thing. Kids these days.",
+    "...yes, yes, after maghrib. Don't forget.",
+    "...hahaha! No, really, that's what he said!",
+    "...so I said, why not {topic}? And she laughed.",
+    "...is the arisan this week or next week?",
+    "...ya sudah, see you at the warung."
+  ],
+  "overhear.ambient": [
+    "...the bus was late again this morning.",
+    "...this kampung is so clean. Not like ours.",
+    "...I only came for the bakso, honestly.",
+    "...my cousin lives on Gang Melati, you know.",
+    "...hahaha, ya, ya. Nanti ya.",
+    "...the pasar here is cheaper, that's why I come."
+  ],
+  "callout.stranger": [
+    "Mas! You're Mbah Minah's cucu, right? Mampir!",
+    "Eh, the new neighbour! Mau ke mana, Mas?",
+    "Mas, Mas! Come, say hello!",
+    "You must be the one from Mbah Minah's house. Sini!",
+    "Mau ke mana, Mas? Stop for a minute!",
+    {
+      "t": "Oh... hello? Are you Mbah Minah's grandson?",
+      "traits": ["shy"]
+    }
+  ],
+  "callout.known": [
+    "Mau ke mana, {raka}?",
+    "{raka}! Mampir dulu!",
+    "Eh, {raka}! Busy today?",
+    "{greet}, {raka}! Where are you off to?",
+    "Hati-hati, {raka}!"
+  ],
+  "callout.acquaintance": [
+    "{raka}! Mau ke mana? Sini, sit a while.",
+    "Eh, {raka}! Don't just walk past!",
+    "{greet}, {raka}! Come, there's tea.",
+    "{raka}! Mampir, mampir!",
+    "Mau ke mana, {raka}? In such a hurry!",
+    {
+      "t": "Oi, {raka}! Too good to say hello now?",
+      "traits": ["grumpy", "gossip"]
+    }
+  ],
+  "callout.friend": [
+    "{raka}!! Sini! I've got news!",
+    "Oi, {raka}! Come sit, I made too much tea again.",
+    "{raka}! There you are. Mampir, mampir!",
+    "Mau ke mana, {raka}? Sit with me first!",
+    "{raka}! Just the person. Come here!",
+    {
+      "t": "Mas Raka! I have gossip. Big gossip!",
+      "traits": ["gossip"]
+    }
+  ],
+  "callout.join": [
+    "{raka}! Sini, join us!",
+    "Oi, {raka}! There's a seat here!",
+    "{raka}! Come, sit, have something.",
+    "Eh, {raka}! Ngopi dulu!",
+    "{raka}! You're just in time."
+  ],
+  "passerby.adult": [
+    "Monggo, Mas.",
+    "Permisi, Mas. {greet}!",
+    "{greet}! Nice kampung you have here.",
+    "Oh, {greet}. Just passing through.",
+    "Mari, Mas.",
+    "Hehe, {greet}, Mas."
+  ],
+  "passerby.elder": [
+    "Monggo, Nak.",
+    "{greet}, Nak. Hati-hati, ya.",
+    "Mari, Nak. Excuse me.",
+    "Ah, {greet}. Young people still greet, how nice.",
+    "Permisi, Nak."
+  ],
+  "passerby.young": [
+    "Eh, {greet}, Kak!",
+    "Permisi, Kak.",
+    "Hehe. Halo, Kak.",
+    "Kak! Is the bakso cart here tonight?",
+    "{greet}, Kak."
+  ],
+  "passerby.again": [
+    "Hehe, hello again.",
+    "Mari, Mas. Again!",
+    "We keep running into each other.",
+    "Monggo, monggo.",
+    "Yes, yes, {greet}!"
+  ],
+  "invite.yes": [
+    "{item}, {detail}? Boleh! I'll be there.",
+    "Oh, with pleasure. {detail}, then. Don't be late!",
+    "Ayo! {detail} works for me.",
+    "You're inviting me? Wah. Yes, {detail}.",
+    "Siap! {item} {detail}. I'll hold you to it.",
+    {
+      "t": "Hmph. Fine. {detail}. You're buying.",
+      "traits": ["grumpy"],
+      "emote": "happy"
+    },
+    {
+      "t": "Oh! Um, yes. Yes, I'd like that. {detail}.",
+      "traits": ["shy"],
+      "emote": "shy"
+    }
+  ],
+  "invite.no": [
+    "Ah, maybe another time, {raka}.",
+    "Hmm, I'm not sure. Let me think about it. Another day, ya.",
+    "Not this time. But thank you for asking.",
+    "Aduh, I'm a bit tired lately. Next time, ya?",
+    "Maybe when we know each other a little better, hehe.",
+    {
+      "t": "No. Ask me again when you're not so new.",
+      "traits": ["grumpy"],
+      "emote": "annoyed"
+    }
+  ],
+  "invite.busy": [
+    "{detail}? Aduh, I can't, I'm busy then.",
+    "Oh, I'd love to, but not {detail}. I have things on.",
+    "{detail} is bad for me. Another day?",
+    "Sayang sekali, I'm not free {detail}.",
+    "Can't, {raka}. Work. Or something like work."
+  ],
+  "invite.young": [
+    "Hehe, my mother won't let me, Kak.",
+    "I'm too young for that, Kak! Ask my parents.",
+    "Ibu says no going out at night, Kak.",
+    "Aaah I want to, but I'm not allowed.",
+    "Kak, I'd get in trouble! Ask me for something else."
+  ],
+  "invite.again": [
+    "You already asked me today, {raka}! Hehe.",
+    "Pelan-pelan, {raka}. One invitation a day is plenty.",
+    "Again? Let's see how the first one goes.",
+    "Hehe, you're keen. Ask me tomorrow.",
+    "We just talked about this!"
+  ],
+  "invite.stranger": [
+    "Eh? We've only just met, {raka}.",
+    "Ha, slow down. Let's get to know each other first.",
+    "Hmm, maybe once we've talked a bit more.",
+    "You're very forward for a new neighbour.",
+    "Invite me? I don't even know you yet!"
+  ],
+  "plan.met.kopi": [
+    "You came! Pak Slamet, two kopi tubruk!",
+    "Duduk, duduk. The kopi's on its way.",
+    "Ah, good. I hate drinking kopi alone.",
+    "{raka}! Right on time. Sit here.",
+    "There you are. Now we can talk properly."
+  ],
+  "plan.met.bakso": [
+    "{raka}! Mas Joko's broth is extra good tonight.",
+    "You came! Ayo, bakso!",
+    "Just in time. I already told Mas Joko you're coming.",
+    "Here you are. Nothing beats bakso at night, ya?",
+    "Ah, good. I was getting hungry waiting!"
+  ],
+  "plan.met.walk": [
+    "{greet}! Look at the kali, so calm this early.",
+    "You're up! I thought you city people slept till noon.",
+    "Ayo, let's walk. The air is best now.",
+    "There you are. Listen, the birds!",
+    "{raka}! Good morning. Let's go."
+  ],
+  "plan.met.sore": [
+    "{raka}! Look at the kids. We were like that once.",
+    "You came! Best time of day, sore.",
+    "Sit here. Watch the sky go orange.",
+    "Ah, {raka}. Nice and cool now, ya?",
+    "You made it. I saved you a seat."
+  ],
+  "plan.met.teh": [
+    "Permisi, {raka}! I brought something small.",
+    "Nice teras. Mbah Minah used to sit right here.",
+    "{greet}, {raka}! Is the tea ready?",
+    "Wah, so this is your place now. It feels like hers still.",
+    "I haven't sat on this teras in years."
+  ],
+  "plan": ["You came! Good.", "{raka}! Right on time.", "Ah, there you are.", "Sini, sini!", "Good, you made it."],
+  "word.good.warm": [
+    "Oh? You think so about {other}? Well... that's nice to hear.",
+    "Hmm. Maybe I should talk to {other} more.",
+    "You think so? I'll keep that in mind.",
+    "{other}, eh? Yes, they're alright.",
+    "That's kind of you to say, {raka}."
+  ],
+  "word.good.agree": [
+    "Of course! {other} is one of the best people here.",
+    "You don't have to tell me. I love {other}.",
+    "Right? {other} is a treasure.",
+    "Ha, we agree on that. {other} is wonderful.",
+    "I've always said so about {other}."
+  ],
+  "word.good.grudge": [
+    "Hmph. {other}. ...Maybe. We'll see.",
+    "{other}, a good person? ...Well. I suppose people change.",
+    "Don't try to fix it, {raka}. ...But I heard you.",
+    "{other}? I'm still angry. But thank you for telling me.",
+    "Hm. That doesn't sound like the {other} I know. But fine."
+  ],
+  "word.good.stranger": [
+    "And who are you to tell me about {other}?",
+    "You've been here five minutes, {raka}.",
+    "Hmm. You don't know the history.",
+    "Let's leave that for when we know each other.",
+    "That's between me and {other}."
+  ],
+  "word.good.again": [
+    "You're very busy fixing everyone today, {raka}.",
+    "Yes, yes, I heard you the first time.",
+    "One piece of advice a day is enough, hehe.",
+    "Tomorrow, {raka}. Let me think about today's first.",
+    "Again? You're like Pak RT."
+  ],
+  "word.bad.juicy": [
+    "No! {other} did that? Tell me everything.",
+    "Aduh, I knew it! I knew it about {other}!",
+    "Wah wah wah. Wait until Bu Ratna hears this.",
+    "Hehehe. {other}, eh? Interesting.",
+    "Really? {other}? Well well."
+  ],
+  "word.bad.disapprove": [
+    "{raka}. We don't talk about neighbours like that.",
+    "That's not kind. {other} isn't here to answer.",
+    "Hm. I'd rather not hear that, {raka}.",
+    "Careful. Words travel fast in a kampung.",
+    "Astaghfirullah. Let's not."
+  ],
+  "word.bad.uneasy": [
+    "Oh... {other}? I don't know about that.",
+    "Hmm. Maybe. I'd rather not get involved.",
+    "Ya... well. Everyone has their moments.",
+    "That's... hm. Okay.",
+    "I didn't need to know that, {raka}."
+  ],
+  "word.bad.again": [
+    "More? That's enough gossip for one day.",
+    "{raka}, you're worse than Bu Endang today.",
+    "Stop, stop. My ears are full.",
+    "Hehe, save some for tomorrow.",
+    "One story a day, {raka}."
+  ],
+  "plate.empty": [
+    "Oh, the plate! You didn't have to rush.",
+    "Thank you, {raka}. Was it good?",
+    "Ah, my plate. I was wondering where it went, hehe.",
+    "Thank you. Next time I'll make extra.",
+    "Good, good. Did you finish it all?"
+  ],
+  "plate.full": [
+    "And you put {item} on it! You know the proper way, {raka}.",
+    "Wah, the plate comes back full! Mbah Minah taught you well.",
+    "{item} on my plate? Now I owe you again, hehe.",
+    "That's how it's done here. Terima kasih, {raka}.",
+    "A full plate back. You're a real kampung boy now."
+  ],
+  "text.group.welcome": [
+    "Assalamualaikum warga. Please welcome Mas Raka, Mbah Minah's cucu, who has moved into her house on Gang Mawar. Say hello if you see him 🙏",
+    "Warga RT 04, we have a new neighbour: Mas Raka, grandson of the late Mbah Minah. Please make him welcome 🙏"
+  ],
+  "text.group.welcome_reply": [
+    "Welcome, Mas Raka! 🙏",
+    "Selamat datang, Mas Raka 😊",
+    "Wah, Mbah Minah's cucu! Welcome home.",
+    "Welcome! Mampir ke rumah, ya.",
+    "Welcome Mas Raka! The warung is open till late 😄",
+    "Selamat datang 🙏🙏"
+  ],
+  "text.group.ronda": [
+    "Jadwal ronda malam ini: {detail}. Jangan lupa ya, bapak-bapak 🔦",
+    "Ronda tonight: {detail}. Pos ronda from 22:00. Terima kasih 🙏",
+    "Reminder: {detail} are on ronda tonight. Stay safe everyone.",
+    "Malam ini ronda: {detail}. Kopi is on the RT 😄",
+    "Bapak-bapak {detail}, ronda tonight ya. 🙏"
+  ],
+  "text.group.jumat": [
+    "Jumat berkah, warga. Jumatan at the musholla, please come early 🙏",
+    "Reminder: Jumatan today. Ustadz Hasan asks us to come before 11:45.",
+    "Selamat hari Jumat. Don't forget Jumatan, bapak-bapak."
+  ],
+  "text.group.minggu": [
+    "Selamat pagi warga. Enjoy your Sunday, and please keep the gang clean 🙏",
+    "Minggu pagi! Kids, please play at the lapangan, not in the gang 😅",
+    "Happy Sunday, warga RT 04. Kerja bakti comes soon, I'll announce the date."
+  ],
+  "text.group.warung": [
+    "Warung sudah buka! Gorengan masih panas 🔥",
+    "Nasi uduk ready, warga. First come first served 😄",
+    "Pagi! Fresh gorengan and teh manis at the warung ☕",
+    "Warung open. Telur is cheaper today, stock up 🥚",
+    "Pagi warga, warung buka. Kerupuk just delivered!"
+  ],
+  "text.group.chatter": [
+    "Who else thinks it's going to rain this afternoon? 🌧️",
+    "Cabai at the pasar is expensive again 😩",
+    "Has anyone seen a grey cat? She hasn't come home since yesterday 🐈",
+    "Hahaha did everyone hear the motorbike at 2am? 🙄",
+    "Anyone going to the pasar tomorrow? Titip bawang ya 😅",
+    "The mangga at Pak Karyo's are almost ripe, I'm watching 👀",
+    "Who's got a spare ladder? Mine is broken.",
+    "Selamat sore warga! Hot hot hot today ☀️",
+    {
+      "t": "Did you see the sunset tonight? Beautiful 😍",
+      "traits": ["cheerful"]
+    },
+    {
+      "t": "Anyone know what happened at the balai yesterday? Just asking 👀",
+      "traits": ["gossip"]
+    },
+    {
+      "t": "Is it true someone is opening a minimarket on the main road? 🤔",
+      "traits": ["curious", "gossip"]
+    }
+  ],
+  "text.group.reply": [
+    "👍",
+    "Siap 🙏",
+    "Wkwkwk",
+    "Betul itu.",
+    "Aamiin 🙏",
+    "Hahaha iya",
+    "Noted, {other} 🙏",
+    "Terima kasih infonya",
+    "Mantap 👍"
+  ],
+  "text.group.feud_motor": [
+    "Once again, a certain motorbike was revving at midnight on Gang Anggrek. Some of us have to sleep. 😤",
+    "Warga, is it too much to ask that motorbikes are pushed, not revved, after 22:00? 🙄",
+    "Another night of engine noise. I won't name names. {other} knows.",
+    "Pak RT, please remind SOME people about the noise rule."
+  ],
+  "text.group.feud_loan": [
+    "Some people borrow money and forget the way to your house 🙃",
+    "Just a reminder that a promise is a promise. That's all.",
+    "Hutang is hutang, warga. Even between neighbours.",
+    "I won't say who. But she knows. 🙃"
+  ],
+  "text.group.calm": [
+    "Sabar, sabar, warga 🙏",
+    "Let's talk about it face to face, not here ya 🙏",
+    "Aduh, not in the group please 😅",
+    "Pak RT, maybe we can discuss at the next meeting?",
+    "Tenang, tenang. We're all neighbours 🙏"
+  ],
+  "text.group.peace": [
+    "Just want to say: {other} and I talked. All is well now 🙏",
+    "Terima kasih {other}. Let's forget the old story 🤝",
+    "Warga, {other} and I made peace. Mas Raka helped a bit, hehe 🙏",
+    "Maaf lahir batin, {other} 🤝"
+  ],
+  "text.invite.kopi": [
+    "Mas Raka, ngopi at Warkop Berkah {detail}? ☕",
+    "{raka}! Kopi tubruk {detail}? My treat, maybe 😄",
+    "Oi, warkop {detail}? Pak Slamet has new pisang goreng.",
+    "Free {detail}? Let's ngopi at the warkop."
+  ],
+  "text.invite.bakso": [
+    "{raka}, bakso Mas Joko {detail}? 🍜",
+    "Craving bakso. {detail} at the cart by the pos ronda, ikut?",
+    "Bakso {detail}? I'm buying the es teh 😄",
+    "Mas Joko's cart {detail}? Come!"
+  ],
+  "text.invite.walk": [
+    "{raka}, jalan pagi {detail}? By the kali, meet at the bridge 🌅",
+    "Walk by the kali {detail}? Good for the body, hehe.",
+    "Morning walk {detail}? Meet at the jembatan.",
+    "Ayo olahraga! Bridge, {detail}."
+  ],
+  "text.invite.sore": [
+    "Sore at the lapangan {detail}? Watch the kids play 😄",
+    "{raka}, lapangan {detail}? The breeze is nice there.",
+    "Sit at the lapangan {detail}? I'll bring kacang.",
+    "Free {detail}? Let's sit at the lapangan bench."
+  ],
+  "text.accepted": [
+    "Siap! See you there 👍",
+    "Mantap! Don't be late ya 😄",
+    "Okay! Sampai nanti.",
+    "Good, good. See you!",
+    "👍👍"
+  ],
+  "text.declined": [
+    "Ya sudah, no problem. Next time!",
+    "Okay, lain kali ya 🙏",
+    "Sayang! Another day then.",
+    "No worries, {raka}.",
+    "Hmm okay 😅 next time."
+  ],
+  "text.missed": [
+    "{raka}, I waited at {detail}... 😔",
+    "Where were you? I sat at {detail} for ages.",
+    "Hmph. {detail}, remember? Never mind.",
+    "I guess you forgot about {detail}. It's okay.",
+    "You didn't come to {detail}. Is everything alright?"
+  ],
+  "text.expired": [
+    "No answer, so I guess not. Next time ya!",
+    "Never mind about earlier, hehe.",
+    "Okay, maybe you're busy. Another day!",
+    "I'll take that as a no 😄"
+  ],
+  "text.hello": [
+    "{raka}! This is my number, save it ya 😄",
+    "Halo {raka}, it's me. Now you can't say you don't have my number 😄",
+    "Assalamualaikum {raka}. Save my number, in case you need anything 🙏",
+    "Hi! Saved you as \"Mas Raka Mbah Minah\" hehe",
+    "It's me! Message me any time."
+  ],
+  "text.plate": [
+    "{raka}, I left some {item} on your teras. Still warm! 😊",
+    "Made too much {item}, there's a plate by your door 🙏",
+    "Check your teras, {raka}. {item}, for you.",
+    "There's {item} by your door. Bring the plate back whenever, no rush 😄",
+    "For the new neighbour: {item}. On your teras!"
+  ],
+  "text.plate_remind": [
+    "{raka}, no rush about the plate hehe. Just saying 😄",
+    "Did you like it? The plate is the blue one, by the way 😅",
+    "Hehe, my plate misses me 🍽️",
+    "If you're passing by, bring the plate ya 🙏"
   ]
 }

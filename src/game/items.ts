@@ -87,6 +87,10 @@ export const ITEMS: Item[] = [
   I('bibit_tomat', 'Bibit tomat', 'seed', 5000, 'Tomato seedlings. Ready in 5 days if watered.'),
   I('bibit_kemangi', 'Bibit kemangi', 'seed', 4000, 'Lemon basil seedlings. Ready in 3 days if watered.'),
   // Home-cooked dishes (berbagi: sharing food wins hearts)
+  // Brought round by neighbours (never sold).
+  I('sayur_lodeh', 'Sayur lodeh', 'meal', 0, 'Vegetables in coconut milk, from a neighbour’s kitchen.', [24, 8]),
+  I('nasi_kuning', 'Nasi kuning', 'meal', 0, 'Turmeric rice with egg and serundeng, from a neighbour.', [27, 8]),
+  I('kolak', 'Kolak pisang', 'snack', 0, 'Banana and sweet potato in palm-sugar coconut milk.', [10, 8]),
   I('nasi_goreng', 'Nasi goreng', 'dish', 0, 'Home-made fried rice.', [30, 6]),
   I('tempe_goreng', 'Tempe goreng', 'dish', 0, 'Crispy fried tempe.', [16, 4]),
   I('telur_balado', 'Telur balado', 'dish', 0, 'Eggs in red chilli sauce.', [20, 6]),

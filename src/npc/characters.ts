@@ -88,6 +88,8 @@ export interface PoseState {
   gesture: number;
   /** 0..1: arms held forward (fishing, working at a counter). */
   reach: number;
+  /** 0..1: right arm raised in a wave. */
+  wave?: number;
   /** Seconds, for idle motion. */
   t: number;
 }
@@ -257,6 +259,11 @@ export class Crowd {
       arR = arR * (1 - st.reach) - 0.95 * st.reach;
     }
     if (st.gesture > 0) arR = arR * (1 - st.gesture) + (-1.05 - 0.35 * Math.sin(st.t * 5 + i)) * st.gesture;
+    let rollR = 0.07;
+    if (st.wave) {
+      arR = arR * (1 - st.wave) + (-2.75 + 0.12 * Math.sin(st.t * 9)) * st.wave;
+      rollR += st.wave * (0.2 + 0.28 * Math.sin(st.t * 9));
+    }
 
     trs(root, st.x, y, st.z, 0, st.ry, 0);
     const b = i * BOX_PER;
@@ -273,7 +280,7 @@ export class Crowd {
     }
     // Arms from the shoulders, splayed out slightly.
     set(this.boxes, b + Bx.ArmL, trs(loc, -d.shoulderX, d.shoulderY, 0, arL, 0, -0.07, d.armW, d.armLen, d.armW * 1.1));
-    set(this.boxes, b + Bx.ArmR, trs(loc, d.shoulderX, d.shoulderY, 0, arR, 0, 0.07, d.armW, d.armLen, d.armW * 1.1));
+    set(this.boxes, b + Bx.ArmR, trs(loc, d.shoulderX, d.shoulderY, 0, arR, 0, rollR, d.armW, d.armLen, d.armW * 1.1));
     set(this.torsos, i, trs(loc, 0, d.hipY - 0.02, 0, 0, 0, 0, d.torsoW, d.torsoH + 0.02, d.torsoD));
 
     // Skirt: hangs from the hips, or lies along the thighs when sitting.

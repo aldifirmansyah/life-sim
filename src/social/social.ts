@@ -47,6 +47,9 @@ export interface Social {
   gained: number;
   /** Day of the last proper greeting. */
   greetedDay: number;
+  /** Day Raka last invited them out, and last passed on a word about someone. */
+  invitedDay: number;
+  wordDay: number;
   /** Per-day counters for actions that get stale when repeated. */
   today: { day: number; asked: number; compliment: number; joke: number; tease: number; gossip: number; gift: number };
 }
@@ -63,6 +66,8 @@ export function social(npc: NPC): Social {
       gainDay: -1,
       gained: 0,
       greetedDay: -1,
+      invitedDay: -1,
+      wordDay: -1,
       today: { day: -1, asked: 0, compliment: 0, joke: 0, tease: 0, gossip: 0, gift: 0 },
     };
     socials.set(npc.id, s);
@@ -153,7 +158,9 @@ export function greetingKind(npc: NPC, day: number, walking: boolean) {
   const mem = [...rel.memories].reverse().find(m => m.day < day && day - m.day <= 5);
   if (
     mem &&
-    ['topic_like', 'tease_bad', 'joke_good', 'compliment', 'first', 'gift_loved'].includes(mem.kind) &&
+    ['topic_like', 'tease_bad', 'joke_good', 'compliment', 'first', 'gift_loved', 'heard_good', 'heard_bad'].includes(
+      mem.kind,
+    ) &&
     Math.random() < 0.6
   )
     return {
@@ -161,6 +168,7 @@ export function greetingKind(npc: NPC, day: number, walking: boolean) {
       outcome: mem.kind,
       topic: mem.kind === 'topic_like' ? (mem.about as Topic) : undefined,
       item: mem.kind === 'gift_loved' ? mem.about : undefined,
+      about: mem.kind.startsWith('heard') ? mem.about : undefined,
     };
   const r = stageRank(rel.stage);
   return { kind: 'greet' as const, outcome: r >= 2 ? 'friend' : r === 1 ? 'acquaintance' : 'stranger' };
@@ -338,4 +346,48 @@ export function gift(
     });
   const outcome = homeCooked && reaction !== 'disliked' ? (reaction === 'loved' ? 'loved' : 'dish') : reaction;
   return { outcome, delta };
+}
+
+/* ================= passing words between neighbours ================= */
+
+/** Neighbours who fell out, and whether Raka has helped them make peace. */
+const mended = new Set<string>();
+
+/** Put in a good word for another resident. Softens grudges over time; strangers don't take advice from Raka. */
+export function goodWord(npc: NPC, other: NPC, day: number) {
+  const s = social(npc);
+  if (s.wordDay === day) return { outcome: 'again', delta: 0, peace: false };
+  s.wordDay = day;
+  const rank = stageRank(npc.playerRelationship.stage);
+  if (rank === 0) return { outcome: 'stranger', delta: -1, peace: false };
+  const v = npc.relationships[other.id] ?? 0;
+  const lift = rank >= 2 ? 8 : 5;
+  npc.relationships[other.id] = Math.min(100, v + lift);
+  remember(npc, { day, kind: 'good_word', text: `Raka spoke up for ${other.name}`, weight: 1, about: other.id });
+  // A feud is over once both sides have come round.
+  const key = [npc.id, other.id].sort().join('|');
+  const peace =
+    v < 0 && npc.relationships[other.id] >= 0 && (other.relationships[npc.id] ?? 0) >= 0 && !mended.has(key);
+  if (peace) mended.add(key);
+  if (v <= -20) return { outcome: 'grudge', delta: 0, peace };
+  return { outcome: v >= 30 ? 'agree' : 'warm', delta: 1, peace };
+}
+
+/** Pass on something unkind about another resident. Gossips love it; most people think less of Raka for it. */
+export function badWord(npc: NPC, other: NPC, day: number) {
+  const s = social(npc);
+  if (s.wordDay === day) return { outcome: 'again', delta: 0 };
+  s.wordDay = day;
+  const v = npc.relationships[other.id] ?? 0;
+  npc.relationships[other.id] = Math.max(-100, v - 6);
+  remember(npc, {
+    day,
+    kind: 'bad_word',
+    text: `Raka talked about ${other.name} behind their back`,
+    weight: 2,
+    about: other.id,
+  });
+  if (npc.traits.includes('gossip')) return { outcome: 'juicy', delta: 2 };
+  if (npc.address === 'Ustadz' || npc.traits.includes('caring') || v >= 50) return { outcome: 'disapprove', delta: -3 };
+  return { outcome: 'uneasy', delta: -1 };
 }

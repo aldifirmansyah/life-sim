@@ -6,7 +6,6 @@ import { player } from '../core/player';
 import { Hands, POSES, type HandPose } from '../render/hands';
 import { pois, type Slot } from '../npc/places';
 import { PLAYER } from '../npc/npcs';
-import { rakaHouse } from '../world/landmarks';
 import { item } from './items';
 
 interface Step {
@@ -129,7 +128,7 @@ function consumeSteps(id: string): Step[] {
       update: k => hands.set('R', mouth, mouth, 1, Math.sin(k * Math.PI * (drink ? 1 : 3)) * 0.01),
       // Food gets smaller with every bite; bowls and cups stay (you eat from them).
       end: () => {
-        if (!drink && it.cat !== 'meal') hands.bite(Math.max(0.25, 1 - (i + 1) / n));
+        if (!drink && it.cat !== 'meal' && id !== 'kolak') hands.bite(Math.max(0.25, 1 - (i + 1) / n));
       },
     });
     out.push(move(0.3, 'R', mouth, POSES.holdR));
@@ -141,7 +140,7 @@ function consumeSteps(id: string): Step[] {
 
 /* ================= seats ================= */
 
-/** Somewhere Raka can sit: a free POI seat, or the bench on his own teras. */
+/** Somewhere Raka can sit: a free POI seat (his own teras bench is one too). */
 export interface Seat {
   x: number;
   z: number;
@@ -150,19 +149,6 @@ export interface Seat {
   approach: [number, number];
   slot?: Slot;
   taken?: boolean;
-}
-let homeSeats: Seat[] | null = null;
-function rakaSeats(): Seat[] {
-  if (homeSeats) return homeSeats;
-  const h = rakaHouse;
-  homeSeats =
-    h.bench === null
-      ? []
-      : [-0.35, 0.35].map(o => {
-          const [x, z] = h.F(h.bench! + o, h.fz + 0.42);
-          return { x, z, y: 0.46, ry: h.th, approach: h.F(h.bench! + o, h.fz + 1.0) };
-        });
-  return homeSeats;
 }
 
 /** The nearest free seat within reach, if any. */
@@ -180,7 +166,6 @@ export function findSeat(maxDist = 4): Seat | null {
     for (const s of p.slots)
       if (s.pose === 'sit' && !s.shared && s.claimedBy === -1)
         consider({ x: s.x, z: s.z, y: s.y, ry: s.ry, approach: s.approach, slot: s });
-  for (const s of rakaSeats()) if (!s.taken) consider(s);
   return best;
 }
 

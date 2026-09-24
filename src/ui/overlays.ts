@@ -5,6 +5,7 @@ import { keys } from '../core/player';
 import { SETTINGS, saveSettings } from '../core/settings';
 import { canvas } from '../render/context';
 import { applyQuality } from '../render/quality';
+import { resetAmbients } from '../npc/npcs';
 import { drawMap } from './map';
 
 export function show(id: string, on: boolean) {
@@ -72,6 +73,8 @@ export function bindSettingsUI() {
         SETTINGS.quality = +b.dataset.q!;
         saveSettings();
         applyQuality();
+        // The number of passers-by follows the quality setting.
+        resetAmbients();
       }),
   );
   const sens = $<HTMLInputElement>('sens'),

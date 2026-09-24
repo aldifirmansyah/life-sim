@@ -12,14 +12,15 @@ import { player } from '../core/player';
 import { hit, circles } from '../core/collision';
 import { mulberry32 } from '../core/util';
 import { fog } from '../render/context';
-import type { NPC } from './types';
+import type { NPC, ScheduleBlock } from './types';
 import { stageFor } from '../social/social';
 import { RESIDENTS, TIES, type ResidentDef } from './roster';
 import { generateAppearance } from './appearance';
-import { buildPlaces, groups, homes, pois, type P2, type Slot } from './places';
+import { buildPlaces, groups, homes, pois, type P2, type Poi, type Slot } from './places';
 import { buildGraph, buildPath, sample, nodes, edgeCount, type Path } from './navgraph';
 import { blockIndexAt } from './schedule';
 import { Crowd, type PoseState } from './characters';
+import { AMBIENT_MAX, ambientPerson, refreshAmbient } from './ambient';
 
 export type Tier = 'near' | 'mid' | 'far';
 const NEAR = 40,
@@ -69,9 +70,23 @@ export interface Resident {
   speaking: boolean;
   /** Serving Raka until this clock time (seconds): faces him and reaches across. */
   serveUntil: number;
+  /** Chatting with another NPC until a game-minute: both stop and face each other. */
+  chat: { with: Resident; until: number; closing: boolean; lastD: number } | null;
+  /** Waving at Raka until this clock time (seconds). */
+  waveUntil: number;
+  /** An unnamed passer-by (no relationships, not in Contacts). */
+  ambient: boolean;
+  /** One-off blocks laid over the week schedule on a given day (invitations). */
+  plans: { day: number; block: ScheduleBlock }[];
+  /** Today's blocks with plans applied, cached. */
+  dayCache: { day: number; ver: number; blocks: ScheduleBlock[] } | null;
 }
 
 export const residents: Resident[] = [];
+/** Passers-by, in crowd slots after the residents and stall-keepers. */
+export const ambients: Resident[] = [];
+/** Everyone the runtime moves: residents, then passers-by. */
+export const people: Resident[] = [];
 /** `Slot.claimedBy` value for a seat Raka is using. */
 export const PLAYER = -2;
 export let crowd: Crowd;
@@ -90,7 +105,7 @@ export function initWorldNav() {
 
 /** Create residents and their meshes. `extras` reserves crowd slots for non-resident figures (pasar stall-keepers). Call after the scene is built. */
 export function initResidents(extras = 0) {
-  crowd = new Crowd(RESIDENTS.length + extras);
+  crowd = new Crowd(RESIDENTS.length + extras + AMBIENT_MAX);
   for (const def of RESIDENTS) {
     const i = residents.length;
     const appearance = generateAppearance({ age: def.age, gender: def.gender, set: def.look }, rnd);
@@ -153,18 +168,112 @@ export function initResidents(extras = 0) {
       talking: false,
       speaking: false,
       serveUntil: 0,
+      chat: null,
+      waveUntil: 0,
+      ambient: false,
+      plans: [],
+      dayCache: null,
     });
+  }
+  people.push(...residents);
+  // Passers-by take the slots after the residents' and the extras (stall-keepers).
+  for (let k = 0; k < AMBIENT_MAX; k++) {
+    const i = RESIDENTS.length + extras + k;
+    const { def, npc } = ambientPerson(k);
+    const a: Resident = {
+      ...residents[0],
+      i,
+      def,
+      npc,
+      slot: pois.find(p => p.id === 'awayE')!.slots[0],
+      speed: WALK * (0.92 + rnd() * 0.16),
+      phase: rnd() * 6,
+      laneOff: 0.3 + rnd() * 0.3,
+      hidden: true,
+      ambient: true,
+      plans: [],
+      dayCache: null,
+    };
+    ambients.push(a);
+    people.push(a);
   }
   resync();
 }
 
+/** New faces and errands for the passers-by, once a day. */
+let ambientDayDone = -1;
+function refreshAmbients() {
+  if (ambientDayDone === S.day) return;
+  ambientDayDone = S.day;
+  ambients.forEach((a, k) => {
+    refreshAmbient(k, S.day, a.def, a.npc);
+    crowd.setAppearance(a.i, a.npc.appearance);
+    a.dayCache = null;
+  });
+}
+/** Re-roll today's passers-by (after the quality setting changes their number). */
+export function resetAmbients() {
+  ambientDayDone = -1;
+  forceResync = true;
+}
+let forceResync = false;
+
 /* ================= schedules and slots ================= */
 
-const today = (r: Resident) => r.npc.schedule[S.day % 7];
+/** Bumped whenever plans change, to rebuild cached days. */
+let planVer = 0;
+/** Today's blocks: the week schedule with any plans for today laid over it. */
+function today(r: Resident) {
+  const base = r.npc.schedule[S.day % 7];
+  if (!r.plans.length) return base;
+  const c = r.dayCache;
+  if (c && c.day === S.day && c.ver === planVer) return c.blocks;
+  let blocks = base;
+  for (const p of r.plans) if (p.day === S.day) blocks = overlayBlock(blocks, p.block);
+  r.dayCache = { day: S.day, ver: planVer, blocks };
+  return blocks;
+}
+export const todayBlocks = today;
+
+function overlayBlock(blocks: ScheduleBlock[], nb: ScheduleBlock) {
+  const out: ScheduleBlock[] = [];
+  for (const b of blocks) {
+    if (b.end <= nb.start || b.start >= nb.end) out.push(b);
+    else {
+      if (b.start < nb.start) out.push({ ...b, end: nb.start });
+      if (b.end > nb.end) out.push({ ...b, start: nb.end });
+    }
+  }
+  out.push(nb);
+  return out.sort((a, b) => a.start - b.start);
+}
+
+/** Add (or with `remove`, take away) a one-off block on a given day, e.g. an accepted invitation. */
+export function setPlan(r: Resident, day: number, block: ScheduleBlock, remove = false) {
+  const before = today(r);
+  const cur = before[r.block];
+  if (remove) r.plans = r.plans.filter(p => !(p.day === day && p.block === block));
+  else r.plans.push({ day, block });
+  // Forget old days.
+  r.plans = r.plans.filter(p => p.day >= S.day);
+  planVer++;
+  if (day !== S.day) return;
+  // Keep pointing at the same block (the one it is at or walking to) in the new list.
+  const after = today(r);
+  const k = after.findIndex(b => b.start === cur.start && b.location === cur.location);
+  r.block = k >= 0 ? k : blockIndexAt(after, S.time);
+  r.plan = null;
+}
 
 function candidates(r: Resident, location: string) {
   const [group, tag = group] = location.split('.');
-  const list = group === 'home' ? [homes.get(r.def.household)!] : (groups.get(group) ?? []);
+  // `home` is the resident's own house; `@<household>` is someone else's (a teras visit).
+  const list =
+    group === 'home'
+      ? [homes.get(r.def.household)!]
+      : group.startsWith('@')
+        ? [homes.get(group.slice(1))!]
+        : (groups.get(group) ?? []);
   return { list, tag };
 }
 
@@ -216,9 +325,13 @@ function release(r: Resident) {
 
 /** Put everyone where their schedule says they are now. Used at start, on a new day and after time jumps. */
 export function resync() {
+  forceResync = false;
+  refreshAmbients();
   // Free every slot, except a seat Raka is sitting on (claimed as PLAYER).
   for (const p of pois) for (const s of p.slots) if (s.claimedBy !== PLAYER) s.claimedBy = -1;
-  for (const r of residents) {
+  for (const r of people) {
+    r.chat = null;
+    r.plans = r.plans.filter(p => p.day >= S.day);
     const blocks = today(r);
     r.block = blockIndexAt(blocks, S.time);
     r.slot = claim(r, blocks[r.block].location);
@@ -255,9 +368,10 @@ function travelMinutes(r: Resident, block: number, location: string) {
 let tickStart = 0;
 function tick() {
   planBudget = 4;
-  const n = residents.length;
+  const n = people.length;
   tickStart = (tickStart + 1) % n;
-  for (let k = 0; k < n; k++) advanceSchedule(residents[(tickStart + k) % n], S.time, false);
+  for (const r of people) if (r.chat && (S.time >= r.chat.until || r.chat.with.chat?.with !== r)) endChat(r);
+  for (let k = 0; k < n; k++) advanceSchedule(people[(tickStart + k) % n], S.time, false);
   planBudget = Infinity;
 }
 
@@ -283,6 +397,7 @@ function advanceSchedule(r: Resident, t: number, catchUp: boolean) {
     if (travel === null) return;
     const leaveAt = nb.start - travel - 1 - hash(r.i * 31 + next, S.day) * 6;
     if (t < leaveAt) return;
+    if (r.chat) endChat(r);
     depart(r, next, nb.location);
     if (!catchUp) return;
     r.s = (t - leaveAt) * r.speed;
@@ -336,6 +451,17 @@ function simulate(r: Resident, t: number) {
   const dm = Math.max(0, t - r.simT);
   r.simT = t;
   if (r.talking || r.state !== 'walk' || !r.path) return 0;
+  // Stopping for a chat: keep walking until close to the other person, or until passing them.
+  if (r.chat) {
+    const c = r.chat;
+    if (!c.closing) return 0;
+    const d = Math.hypot(c.with.x - r.x, c.with.z - r.z);
+    if (d < 1.25 || d > c.lastD + 0.01) {
+      c.closing = false;
+      return 0;
+    }
+    c.lastD = d;
+  }
   const ds = dm * r.speed;
   r.s += ds;
   if (r.s >= r.path.length) {
@@ -372,20 +498,22 @@ function place(r: Resident, dtReal: number, full: boolean) {
     const off = laneOffset(r, seg);
     r.x = _pt.x - _pt.dz * off;
     r.z = _pt.z + _pt.dx * off;
-    const target = r.talking ? Math.atan2(player.x - r.x, player.z - r.z) : Math.atan2(_pt.dx, _pt.dz);
+    const look = lookTarget(r);
+    const target = look ? Math.atan2(look[0] - r.x, look[1] - r.z) : Math.atan2(_pt.dx, _pt.dz);
     r.ry = full ? turn(r.ry, target, dtReal * 8) : target;
     return;
   }
   const s = r.slot;
+  const look = lookTarget(r);
   if (r.wander) {
-    if (r.talking) r.ry = turn(r.ry, Math.atan2(player.x - r.x, player.z - r.z), dtReal * 6);
+    if (look) r.ry = turn(r.ry, Math.atan2(look[0] - r.x, look[1] - r.z), dtReal * 6);
     return;
   }
-  // Standing NPCs turn to face Raka while talking or serving him; seated ones stay put and turn their head.
-  if ((r.talking || clock < r.serveUntil) && r.settle >= 1 && s.pose === 'stand') {
+  // Standing NPCs turn to face Raka (or whoever they're chatting with); seated ones stay put and turn their head.
+  if (look && r.settle >= 1 && s.pose === 'stand') {
     r.x = s.x;
     r.z = s.z;
-    r.ry = turn(r.ry, Math.atan2(player.x - r.x, player.z - r.z), dtReal * 6);
+    r.ry = turn(r.ry, Math.atan2(look[0] - r.x, look[1] - r.z), dtReal * 6);
     return;
   }
   if (r.settle < 1) {
@@ -401,6 +529,13 @@ function place(r: Resident, dtReal: number, full: boolean) {
   }
 }
 
+/** Who a resident is facing: Raka while talking to or serving him, a neighbour while chatting. */
+function lookTarget(r: Resident): [number, number] | null {
+  if (r.talking || clock < r.serveUntil) return [player.x, player.z];
+  if (r.chat && !r.chat.closing) return [r.chat.with.x, r.chat.with.z];
+  return null;
+}
+
 const turn = (a: number, b: number, k: number) => {
   let d = ((b - a + Math.PI) % (Math.PI * 2)) - Math.PI;
   if (d < -Math.PI) d += Math.PI * 2;
@@ -410,7 +545,7 @@ const turn = (a: number, b: number, k: number) => {
 /** Kids on the lapangan wander between random spots (near and mid tiers only). */
 function wander(r: Resident, dtReal: number, dm: number) {
   const w = r.slot.wander;
-  if (r.talking && r.wander) return 0;
+  if ((r.talking || r.chat) && r.wander) return 0;
   if (!w || r.state !== 'at' || r.settle < 1 || r.slot.pose !== 'stand') {
     r.wander = null;
     return 0;
@@ -494,7 +629,7 @@ export function updateResidents(dtReal: number) {
   const t = S.time;
   clock += dtReal;
   // New day or a jump in time: re-place everyone rather than simulate the gap.
-  if (S.day !== lastDay || t < lastT || t - lastT > 30) resync();
+  if (S.day !== lastDay || t < lastT || t - lastT > 30 || forceResync) resync();
   lastT = t;
   lastDay = S.day;
   tickAcc += dtReal;
@@ -509,12 +644,12 @@ export function updateResidents(dtReal: number) {
   npcStats.near = npcStats.mid = npcStats.far = npcStats.hidden = npcStats.walking = 0;
   nearList.length = 0;
   circles.length = 0;
-  for (const r of residents) {
+  for (const r of people) {
     r.dist = Math.hypot(r.x - player.x, r.z - player.z);
     r.tier = r.dist < NEAR ? 'near' : r.dist < MID ? 'mid' : 'far';
     if (r.tier === 'near') nearList.push(r);
   }
-  for (const r of residents) {
+  for (const r of people) {
     // Mid and far tiers only advance at 10 Hz and 1 Hz.
     const interval = r.tier === 'near' ? 0 : r.tier === 'mid' ? 0.1 : 1;
     const due = clock - r.lastPoseAt >= interval || r.lastPoseAt < 0;
@@ -570,19 +705,27 @@ function pose(r: Resident, full: boolean, dtR: number) {
   pst.t = clock;
   pst.gesture = 0;
   pst.reach = 0;
+  pst.wave = 0;
   let headTarget = 0;
   if (full) {
     if (r.speaking) pst.gesture = 0.55 + 0.45 * Math.sin(clock * 2.1 + r.i);
+    else if (r.chat && chatSpeaker(r)) pst.gesture = 0.35 + 0.35 * Math.sin(clock * 1.7 + r.i);
     else if (atSlot && act === 'chat' && !r.talking) pst.gesture = Math.max(0, Math.sin(clock * 0.45 + r.i * 1.7)) ** 3;
+    if (clock < r.waveUntil) pst.wave = Math.min(1, (r.waveUntil - clock) / 0.3, 1);
     if (clock < r.serveUntil) pst.reach = 0.9;
     else if (atSlot && act === 'fish') pst.reach = 0.9;
     else if (atSlot && act === 'work' && pst.pose === 'stand') pst.reach = 0.25 + 0.2 * Math.sin(clock * 0.8 + r.i);
     else if (atSlot && act === 'garden') pst.reach = 0.5;
     // Look at the player when he's close and in front.
-    if (r.dist < 5) {
+    const look = lookTarget(r);
+    if (look) {
+      let a = Math.atan2(look[0] - r.x, look[1] - r.z) - r.ry;
+      a = Math.atan2(Math.sin(a), Math.cos(a));
+      headTarget = Math.max(-1.1, Math.min(1.1, a));
+    } else if (r.dist < 5 || clock < r.waveUntil) {
       let a = Math.atan2(player.x - r.x, player.z - r.z) - r.ry;
       a = Math.atan2(Math.sin(a), Math.cos(a));
-      if (Math.abs(a) < 1.9 || r.talking || clock < r.serveUntil) headTarget = Math.max(-1.1, Math.min(1.1, a));
+      if (Math.abs(a) < 1.9 || clock < r.waveUntil) headTarget = Math.max(-1.1, Math.min(1.1, a));
     }
     r.headYaw += (headTarget - r.headYaw) * Math.min(1, dtR * 5);
   } else r.headYaw = 0;
@@ -590,6 +733,38 @@ function pose(r: Resident, full: boolean, dtR: number) {
   crowd.pose(r.i, pst);
   r.poseT = clock;
 }
+
+/* ================= NPC–NPC chats and waves ================= */
+
+/** Two neighbours stop and chat until a game-minute. */
+export function startChat(a: Resident, b: Resident, until: number) {
+  const d = Math.hypot(a.x - b.x, a.z - b.z);
+  a.chat = { with: b, until, closing: a.state === 'walk', lastD: d };
+  b.chat = { with: a, until, closing: b.state === 'walk', lastD: d };
+  a.lastPoseAt = b.lastPoseAt = -1;
+}
+export function endChat(r: Resident) {
+  const o = r.chat?.with;
+  r.chat = null;
+  if (o?.chat?.with === r) o.chat = null;
+}
+/** Which of a chatting pair is talking right now; they take turns every few seconds. */
+export function chatSpeaker(r: Resident) {
+  const o = r.chat?.with;
+  if (!o) return false;
+  const turnNo = Math.floor(clock / 3.4 + hash(Math.min(r.i, o.i), Math.max(r.i, o.i)) * 5);
+  return (turnNo % 2 === 0) === r.i < o.i;
+}
+/** Raise an arm to Raka for a moment. */
+export function wave(r: Resident, seconds = 1.8) {
+  r.waveUntil = clock + seconds;
+  r.lastPoseAt = -1;
+}
+export const npcClock = () => clock;
+/** Is this resident settled somewhere (not walking, not indoors)? */
+export const atRest = (r: Resident) => r.state === 'at' && r.settle >= 1 && r.slot.pose !== 'hidden';
+/** The activity of the block a resident is in or walking to. */
+export const activityOf = (r: Resident) => today(r)[r.block]?.activity;
 
 /* ================= conversation ================= */
 
@@ -606,7 +781,7 @@ export function talkTarget(yaw: number, range = 2.5): Resident | null {
     fz = -Math.cos(yaw);
   let best: Resident | null = null,
     bestA = Infinity;
-  for (const r of residents) {
+  for (const r of people) {
     if (r.hidden || r.tier !== 'near' || r.dist > range) continue;
     const dx = r.x - player.x,
       dz = r.z - player.z,
@@ -628,7 +803,14 @@ export function heading(r: Resident) {
   if (r.slot.poi === homes.get(r.def.household)) return 'home';
   if (r.slot.tag === 'away') return act === 'study' ? (r.def.age < 18 ? 'school' : 'campus') : 'work';
   if (r.slot.poi.id.startsWith('pasar')) return 'the pasar';
-  return r.slot.poi.name;
+  return visitName(r.slot.poi) ?? r.slot.poi.name;
+}
+
+/** "Pak Darto's place" for a neighbour's house, "your place" for Raka's. */
+function visitName(poi: Poi) {
+  if (poi.id === 'raka') return 'your place';
+  const host = residents.find(o => homes.get(o.def.household) === poi);
+  return host ? `${host.npc.name}’s place` : null;
 }
 
 /** Name of where a resident is now. */
@@ -637,7 +819,7 @@ export function placeName(r: Resident) {
     ? 'my place'
     : r.slot.poi.id.startsWith('pasar')
       ? 'the pasar'
-      : r.slot.poi.name;
+      : (visitName(r.slot.poi) ?? r.slot.poi.name);
 }
 
 /* ================= debug helpers ================= */

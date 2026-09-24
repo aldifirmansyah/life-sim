@@ -16,6 +16,8 @@ import * as st from '../game/stats';
 import { pots, CROPS, isReady, refreshGarden, type Pot } from '../game/garden';
 import { openPanel, closePanel, setPanelFooter, type Row } from './panel';
 import { toast } from './hud';
+import { plate, takePlate } from '../social/phone';
+import { platePos, showPlate } from '../game/plate';
 
 const hour = () => (S.time / 60) % 24;
 const clockText = (t: number) =>
@@ -496,6 +498,29 @@ export function registerActivities() {
   const h = rakaHouse;
   const [dx, dz] = h.F(h.dx, h.fz + 0.2);
   interactables.push({ x: dx, z: dz, reach: 2.2, label: () => 'Rumah Raka', run: () => homeMenu() });
+  // Food a neighbour left by the door.
+  interactables.push({
+    x: platePos[0],
+    z: platePos[1],
+    reach: 2.0,
+    label: () => {
+      const p = plate;
+      if (p?.state !== 'waiting') return null;
+      const r = residents.find(r => r.npc.id === p.npc)!;
+      return `Take the ${item(p.item).name.toLowerCase()} from ${social.properName(r.npc)}`;
+    },
+    run: () => {
+      const p = takePlate();
+      if (!p) return;
+      st.add(p.item, 2);
+      showPlate(false);
+      const r = residents.find(r => r.npc.id === p.npc)!;
+      toast(
+        `${item(p.item).name} ×2 from ${social.properName(r.npc)}`,
+        'In your bag. Take the plate back when you see them, with something on it if you can.',
+      );
+    },
+  });
   for (const p of pots)
     interactables.push({ x: p.x, z: p.z, reach: 1.9, label: () => potLabel(p), run: () => usePot(p) });
 }

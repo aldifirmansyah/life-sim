@@ -1,7 +1,7 @@
 /* The 24 residents of RT 04 (spec §8.1). Households share a home; schedules are
    written as [time, location, activity] steps (see schedule.ts). */
 import type { AppearanceParams, Topic, Trait, WeekSchedule } from './types';
-import { week } from './schedule';
+import { week, overlay } from './schedule';
 
 export interface ResidentDef {
   id: string;
@@ -844,8 +844,25 @@ export const TIES: [string, string, number][] = [
   ['fajar', 'dimas', 45],
   ['bima', 'dimas', 25],
   ['joko', 'yusuf', 30],
+  ['wati', 'sumi', 40],
   // Feud: Udin revs customers' motorbikes late at night; Pak Hartono has complained to Pak RT twice.
   ['udin', 'hartono', -45],
   // Grudge: Bu Endang borrowed money from Bu Wati before Lebaran and has not paid it back.
   ['wati', 'endang', -35],
 ];
+
+/** Teras visits (spec §8.4 gatherings): neighbours dropping in on each other in the afternoon.
+    `@<household>.teras` is that household's teras; when its seats are taken, visitors stand by the pagar. */
+const VISITS: [who: string, host: string, days: number[], from: string, to: string][] = [
+  // The arisan circle meets on Bu RT's teras.
+  ['yati', 'rt', [2, 4], '15:00', '16:30'],
+  ['endang', 'rt', [2, 4], '15:00', '16:30'],
+  // Old friends on Pak Darto's teras.
+  ['hartono', 'darto', [1, 3, 6], '15:15', '16:30'],
+  ['wati', 'darto', [1, 4], '15:40', '16:40'],
+  ['ayu', 'yusuf', [3], '16:00', '17:00'],
+];
+for (const [who, host, days, from, to] of VISITS) {
+  const def = RESIDENTS.find(r => r.id === who)!;
+  for (const dow of days) def.schedule[dow] = overlay(def.schedule[dow], from, to, `@${host}.teras`, 'chat');
+}

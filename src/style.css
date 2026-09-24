@@ -1150,3 +1150,220 @@ input[type='checkbox'] {
 .skill em.money {
   grid-column: 2 / -1;
 }
+
+/* speech bubbles over NPCs */
+#bubbles {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  pointer-events: none;
+}
+.bubble {
+  position: absolute;
+  left: 0;
+  top: 0;
+  max-width: 260px;
+  padding: 6px 10px 7px;
+  border-radius: 12px;
+  background: rgba(255, 250, 240, 0.94);
+  color: #2a1f16;
+  font: 600 13px/1.35 var(--ui);
+  text-align: center;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.25);
+  transform-origin: 50% 100%;
+  will-change: transform, opacity;
+}
+.bubble::after {
+  content: '';
+  position: absolute;
+  left: 50%;
+  bottom: -6px;
+  margin-left: -6px;
+  border: 6px solid transparent;
+  border-bottom: 0;
+  border-top-color: rgba(255, 250, 240, 0.94);
+}
+.bubble.icon {
+  padding: 3px 9px 4px;
+  font: 800 15px/1.2 var(--ui);
+  letter-spacing: 0.08em;
+}
+
+/* unread messages under the clock */
+#phonebadge {
+  margin-top: 8px;
+  padding: 3px 9px 4px;
+  border-radius: 999px;
+  background: var(--teal-dk);
+  color: #fff;
+  font: 700 12px/1.4 var(--ui);
+  text-align: center;
+}
+#phonebadge kbd {
+  font-size: 10px;
+}
+#chatsbadge {
+  display: inline-block;
+  min-width: 16px;
+  margin-left: 5px;
+  padding: 0 4px;
+  border-radius: 999px;
+  background: var(--merah);
+  color: #fff;
+  font: 800 10px/16px var(--ui);
+  font-style: normal;
+}
+
+/* phone: chats and plans */
+.chats {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  overflow: auto;
+  min-height: 0;
+}
+.chats .empty {
+  margin: 8px 0;
+  color: var(--ink-dim);
+}
+.plans {
+  padding: 10px 12px;
+  border: 1px solid rgba(242, 181, 60, 0.35);
+  border-radius: 12px;
+  background: rgba(242, 181, 60, 0.07);
+}
+.plans h4 {
+  margin: 0 0 4px;
+  font: 700 11px/1.4 var(--ui);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--kunyit);
+}
+.plans ul {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.plans li {
+  padding: 4px 0;
+}
+.plans li span {
+  display: block;
+  font-size: 12px;
+  color: var(--ink-dim);
+}
+.threads {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.threads button {
+  position: relative;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 9px 12px;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: rgba(255, 240, 215, 0.04);
+  color: var(--ink);
+  text-align: left;
+  cursor: pointer;
+}
+.threads button:hover {
+  background: rgba(255, 240, 215, 0.09);
+}
+.threads div {
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+}
+.threads small {
+  color: var(--ink-faint);
+}
+.threads p {
+  margin: 0;
+  padding-right: 28px;
+  font-size: 12px;
+  color: var(--ink-dim);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.threads i {
+  position: absolute;
+  right: 12px;
+  bottom: 9px;
+  min-width: 18px;
+  padding: 0 5px;
+  border-radius: 999px;
+  background: var(--teal);
+  color: #062a25;
+  font: 800 11px/18px var(--ui);
+  font-style: normal;
+  text-align: center;
+}
+.threadhead {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.threadhead b {
+  font: 400 18px/1.1 var(--display);
+  color: var(--kunyit);
+}
+.threadhead .ghost {
+  padding: 5px 10px;
+}
+.msgs {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.msgs li {
+  align-self: flex-start;
+  max-width: min(78%, 520px);
+  padding: 7px 11px 6px;
+  border-radius: 4px 14px 14px 14px;
+  background: rgba(255, 240, 215, 0.08);
+}
+.msgs li.mine {
+  align-self: flex-end;
+  border-radius: 14px 4px 14px 14px;
+  background: rgba(47, 179, 161, 0.25);
+}
+.msgs li.system {
+  align-self: center;
+  background: none;
+  color: var(--ink-faint);
+  font-size: 12px;
+}
+.msgs b {
+  display: block;
+  font-size: 12px;
+  color: var(--kunyit);
+}
+.msgs p {
+  margin: 0;
+}
+.msgs small {
+  display: block;
+  text-align: right;
+  font-size: 10px;
+  color: var(--ink-faint);
+}
+.msgs .offer {
+  display: flex;
+  gap: 8px;
+  margin: 6px 0 2px;
+}
+.msgs .offer button {
+  padding: 5px 14px;
+}

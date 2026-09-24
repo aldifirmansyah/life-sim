@@ -5,6 +5,7 @@ import { C } from '../render/batch';
 import { hit } from '../core/collision';
 import { houses, type House } from '../world/houses';
 import { pasarCols } from '../world/pasar';
+import { rakaHouse } from '../world/landmarks';
 
 export type P2 = [number, number];
 export type Pose = 'stand' | 'sit' | 'squat' | 'hidden';
@@ -246,6 +247,18 @@ function pasarPois() {
   });
 }
 
+/** Raka's own teras bench: where he sits, and where guests he invites for tea sit with him. */
+function rakaPoi() {
+  const h = rakaHouse;
+  const { F, fz, dx, sb, th } = h;
+  const bx = h.bench ?? 1.2;
+  const seat = (o: number): SlotSpec => {
+    const [x, z] = F(bx + o, fz + 0.42);
+    return sit([x, z], th, 0.46, { approach: F(bx + o, fz + 1.0) });
+  };
+  poi('raka', 'Rumah Raka', 'raka', [F(dx, fz + sb + 0.9), F(dx, fz + 1.0)], { teras: [seat(-0.35), seat(0.35)] });
+}
+
 /** Home POI for a row house: in through the door, or out on the teras bench (a stool pair if it has none). */
 function housePoi(h: House, k: number, household: string) {
   const { F, fz, dx, sb, th, w } = h;
@@ -298,6 +311,7 @@ export const HOUSEHOLD_SITES: Record<string, P2 | 'warung'> = {
 
 export function buildPlaces() {
   landmarkPois();
+  rakaPoi();
   pasarPois();
   const taken = new Set<number>();
   for (const [household, site] of Object.entries(HOUSEHOLD_SITES)) {

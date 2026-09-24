@@ -13,6 +13,8 @@ import * as stats from '../game/stats';
 import { consumeFromBag, findSeat } from '../game/actions';
 import { finishEating } from './activities';
 import { item, rupiah } from '../game/items';
+import { threads, GROUP, unreadTotal, setViewing, onPhoneChange, answer, dayName, type Thread } from '../social/phone';
+import { upcoming, outing, when, withWhom, appointments } from '../social/plans';
 
 const GLOSSARY: [string, string][] = [
   ['Pak / Bu', 'Mr / Mrs. For elders and anyone older or respected. Use it with the first name: Pak Darto, Bu Sri.'],
@@ -58,23 +60,35 @@ const GLOSSARY: [string, string][] = [
   ['Hati-hati', 'Take care, go carefully.'],
 ];
 
+let lastTab: Tab = 'contacts';
 export function openPhone() {
   if (!S.started || S.dialog || S.map || S.paused) return;
   S.phone = true;
   keys.clear();
   if (document.pointerLockElement) document.exitPointerLock();
   $('phone').hidden = false;
-  showTab('contacts');
+  // New messages open straight onto the chats.
+  openThread = null;
+  showTab(unreadTotal() ? 'chats' : lastTab);
 }
 export function closePhone() {
   S.phone = false;
+  setViewing(null);
   $('phone').hidden = true;
   tryLock();
 }
 
-type Tab = 'contacts' | 'bag' | 'skills' | 'glossary';
-const TAB_TITLE: Record<Tab, string> = { contacts: 'Contacts', bag: 'Bag', skills: 'Skills', glossary: 'Glossary' };
+type Tab = 'chats' | 'contacts' | 'bag' | 'skills' | 'glossary';
+const TAB_TITLE: Record<Tab, string> = {
+  chats: 'Chats',
+  contacts: 'Contacts',
+  bag: 'Bag',
+  skills: 'Skills',
+  glossary: 'Glossary',
+};
+let tabNow: Tab = 'contacts';
 const RENDER: Record<Tab, () => void> = {
+  chats: renderChats,
   contacts: renderContacts,
   bag: renderBag,
   skills: renderSkills,
@@ -82,6 +96,8 @@ const RENDER: Record<Tab, () => void> = {
 };
 
 function showTab(tab: Tab) {
+  tabNow = lastTab = tab;
+  if (tab !== 'chats') setViewing(null);
   document
     .querySelectorAll<HTMLElement>('#phonetabs button')
     .forEach(b => b.setAttribute('aria-checked', String(b.dataset.tab === tab)));
@@ -96,6 +112,114 @@ export function bindPhone() {
     .forEach(b => (b.onclick = () => showTab(b.dataset.tab as Tab)));
   $('closephone').onclick = closePhone;
   $('tphone').onclick = openPhone;
+  onPhoneChange(content => {
+    const n = unreadTotal();
+    $('phonebadge').hidden = !n;
+    $('phonebadge').querySelector('b')!.textContent = String(n);
+    $('chatsbadge').hidden = !n;
+    $('chatsbadge').textContent = String(n);
+    if (content && S.phone && tabNow === 'chats') renderChats();
+  });
+}
+
+/* ================= chats ================= */
+
+let openThread: string | null = null;
+const clock = (day: number, t: number) => {
+  const hh = String(Math.floor(t / 60) % 24).padStart(2, '0'),
+    mm = String(Math.floor(t % 60)).padStart(2, '0');
+  return day === S.day ? `${hh}:${mm}` : day === S.day - 1 ? `yesterday ${hh}:${mm}` : `${dayName(day)} ${hh}:${mm}`;
+};
+
+function renderChats() {
+  const box = $('chats');
+  if (openThread) return renderThread(box, threads.get(openThread)!);
+  setViewing(null);
+  const plans = upcoming();
+  $('phone-count').textContent = plans.length
+    ? `${plans.length} plan${plans.length > 1 ? 's' : ''} coming up`
+    : 'Messages';
+  const plansHtml = plans.length
+    ? `<section class="plans"><h4>Plans</h4><ul>${plans
+        .map(a => {
+          const o = outing(a.outing);
+          return `<li><b>${esc(o.name.replace('Raka’s', 'your'))}</b> with ${esc(withWhom(a))}<span>${esc(when(a.day, a.start))} · ${esc(o.place)}${a.state === 'offered' ? ' · <em>they’re waiting for your answer</em>' : ''}</span></li>`;
+        })
+        .join('')}</ul></section>`
+    : '';
+  const list = [...threads.values()]
+    .filter(t => t.msgs.length)
+    .sort((a, b) => {
+      const la = a.msgs[a.msgs.length - 1],
+        lb = b.msgs[b.msgs.length - 1];
+      return lb.day - la.day || lb.time - la.time;
+    });
+  box.innerHTML =
+    plansHtml +
+    (list.length
+      ? '<ul class="threads"></ul>'
+      : '<p class="empty">No messages yet. Neighbours text once they know you, and the RT group chat wakes up early.</p>');
+  const ul = box.querySelector('.threads');
+  for (const t of list) {
+    const last = t.msgs[t.msgs.length - 1];
+    const li = document.createElement('li');
+    const who =
+      last.from === 'raka'
+        ? 'You: '
+        : t.id === GROUP
+          ? `${residents.find(r => r.npc.id === last.from)?.npc.name ?? ''}: `
+          : '';
+    li.innerHTML = `<button type="button"><div><b></b><small></small></div><p></p>${t.unread ? `<i>${t.unread}</i>` : ''}</button>`;
+    li.querySelector('b')!.textContent = t.title;
+    li.querySelector('small')!.textContent = clock(last.day, last.time);
+    li.querySelector('p')!.textContent = who + last.text;
+    li.querySelector('button')!.onclick = () => {
+      openThread = t.id;
+      renderChats();
+    };
+    ul!.appendChild(li);
+  }
+}
+
+function renderThread(box: HTMLElement, t: Thread) {
+  setViewing(t.id);
+  $('phone-count').textContent =
+    t.id === GROUP ? `${residents.length} members · announcements and chatter` : 'Private messages';
+  box.innerHTML = `<div class="threadhead"><button type="button" class="ghost">‹ Chats</button><b></b></div><ol class="msgs"></ol>`;
+  box.querySelector('.threadhead b')!.textContent = t.title;
+  box.querySelector<HTMLElement>('.threadhead button')!.onclick = () => {
+    openThread = null;
+    renderChats();
+  };
+  const ol = box.querySelector('.msgs')!;
+  for (const m of t.msgs) {
+    const li = document.createElement('li');
+    li.className = m.from === 'raka' ? 'mine' : m.from === 'system' ? 'system' : '';
+    const sender = t.id === GROUP && m.from !== 'raka' ? residents.find(r => r.npc.id === m.from)?.npc.name : '';
+    li.innerHTML = `${sender ? '<b></b>' : ''}<p></p><small></small>`;
+    if (sender) li.querySelector('b')!.textContent = sender;
+    li.querySelector('p')!.textContent = m.text;
+    li.querySelector('small')!.textContent = clock(m.day, m.time);
+    const a = m.offer !== undefined ? appointments.find(x => x.id === m.offer) : undefined;
+    if (a?.state === 'offered') {
+      const row = document.createElement('div');
+      row.className = 'offer';
+      for (const [label, yes] of [
+        ['Accept', true],
+        ['Decline', false],
+      ] as const) {
+        const b = document.createElement('button');
+        b.type = 'button';
+        b.className = yes ? 'primary' : 'ghost';
+        b.textContent = label;
+        b.onclick = () => answer(a, yes);
+        row.appendChild(b);
+      }
+      li.appendChild(row);
+    }
+    ol.appendChild(li);
+  }
+  ol.lastElementChild?.scrollIntoView({ block: 'end' });
 }
 
 const esc = (s: string) => s.replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' })[c]!);

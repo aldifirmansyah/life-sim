@@ -6,8 +6,9 @@ import { S } from '../core/state';
 import { player, keys } from '../core/player';
 import { residents, heading, placeName, headPos, type Resident } from '../npc/npcs';
 import type { NPC, Topic } from '../npc/types';
-import type { DialogueContext, DialogueProvider } from '../dialogue/types';
-import { TemplateDialogueProvider, TOPIC_LABEL, firstName, timeGreeting } from '../dialogue/template';
+import type { DialogueContext } from '../dialogue/types';
+import { TOPIC_LABEL, firstName, timeGreeting } from '../dialogue/template';
+import { provider } from '../dialogue/provider';
 import LINES from '../dialogue/lines.json';
 import * as social from '../social/social';
 import { drawPortrait } from './portrait';
@@ -15,9 +16,11 @@ import * as st from '../game/stats';
 import { item, giftReaction } from '../game/items';
 import { toast } from './hud';
 import { tryLock } from './overlays';
+import { answeredCallout } from '../social/life';
+import { OUTINGS, invite, nextSlot, rakaBusy, when, appointments, type Outing } from '../social/plans';
+import { owesPlate, returnPlate, announcePeace } from '../social/phone';
 
-/** Swap this for an LLM-backed provider later; it only ever words lines. */
-export const provider: DialogueProvider = new TemplateDialogueProvider();
+export { provider };
 const lines = LINES as unknown as Record<string, string[]>;
 const stories = (npc: NPC) => lines[`npc.${npc.id}.story`] ?? [];
 
@@ -241,12 +244,23 @@ export async function openDialogue(r: Resident) {
   document.querySelector<HTMLElement>('.dlg-lines')!.onclick = finishTyping;
   renderHeader(c);
   const npc = c.npc;
-  const g = social.greetingKind(npc, S.day, r.state === 'walk');
-  await say(c, { kind: g.kind, outcome: g.outcome, topic: g.topic, item: 'item' in g ? g.item : undefined });
+  let g = social.greetingKind(npc, S.day, r.state === 'walk');
+  // Came over after they called out: they're pleased.
+  const answered = answeredCallout(r) && g.kind !== 'intro';
+  if (answered && g.kind !== 'greet.again') g = { kind: 'greet', outcome: 'callout' };
+  const other = 'about' in g && g.about ? residents.find(o => o.npc.id === g.about)?.npc : undefined;
+  await say(c, {
+    kind: g.kind,
+    outcome: g.outcome,
+    topic: g.topic,
+    item: 'item' in g ? g.item : undefined,
+    other,
+  });
   if (g.kind === 'intro') {
     social.meet(npc, S.day);
     renderHeader(c);
   }
+  if (answered) apply(c, 2);
   c.busy = false;
   if (social.social(npc).greetedDay !== S.day) greetMenu(c);
   else mainMenu(c);
@@ -278,17 +292,117 @@ function greetMenu(c: Conversation) {
 }
 
 function mainMenu(c: Conversation) {
-  const npc = c.npc;
-  const who = social.properName(npc);
   c.back = null;
+  const plate = owesPlate(c.r);
   renderChoices([
     { label: 'Chat…', run: () => topicMenu(c, 0) },
-    { label: `Ask about ${who}`, echo: `You ask ${who} about themselves.`, run: () => doAsk(c) },
+    { label: 'Ask…', run: () => askMenu(c) },
     { label: 'Banter…', run: () => banterMenu(c) },
-    { label: 'Give a gift…', run: () => giftMenu(c, 0) },
-    { label: 'Hear the gossip', echo: `You ask what ${who} makes of the neighbours.`, run: () => doGossip(c) },
+    {
+      label: plate ? 'Give or return…' : 'Give a gift…',
+      note: plate ? 'you have their plate' : undefined,
+      run: () => giftMenu(c, 0),
+    },
+    { label: 'Invite…', run: () => inviteMenu(c) },
     { label: 'Goodbye', echo: 'You say goodbye.', run: () => goodbye(c) },
   ]);
+}
+
+function askMenu(c: Conversation) {
+  const who = social.properName(c.npc);
+  c.back = () => mainMenu(c);
+  renderChoices([
+    { label: `Ask about ${who}`, echo: `You ask ${who} about themselves.`, run: () => doAsk(c) },
+    { label: 'Hear the gossip', echo: `You ask what ${who} makes of the neighbours.`, run: () => doGossip(c) },
+    { label: 'Put in a good word for…', run: () => peopleMenu(c, 'good', 0) },
+    { label: 'Pass on some gossip about…', run: () => peopleMenu(c, 'bad', 0) },
+    { label: 'Back', run: () => mainMenu(c) },
+  ]);
+}
+
+/** Pick another neighbour to talk about. Ones whose feelings Raka already knows come first. */
+function peopleMenu(c: Conversation, mode: 'good' | 'bad', page: number) {
+  const npc = c.npc;
+  const known = social.social(npc).known.ties;
+  const list = residents
+    .filter(r => r !== c.r && social.social(r.npc).met)
+    .sort((a, b) => Number(known.includes(b.npc.id)) - Number(known.includes(a.npc.id)));
+  c.back = () => askMenu(c);
+  if (!list.length) {
+    renderChoices([{ label: 'You don’t know anyone else yet. Back', run: () => askMenu(c) }]);
+    return;
+  }
+  const pages = Math.ceil(list.length / PAGE);
+  const choices: Choice[] = list.slice(page * PAGE, page * PAGE + PAGE).map(r => {
+    const v = npc.relationships[r.npc.id] ?? 0;
+    const note = known.includes(r.npc.id)
+      ? v >= 30
+        ? 'they’re close'
+        : v <= -20
+          ? 'they don’t get along'
+          : 'they know each other'
+      : undefined;
+    const name = social.properName(r.npc);
+    return {
+      label: name,
+      note,
+      echo: mode === 'good' ? `You say something nice about ${name}.` : `You pass on something unkind about ${name}.`,
+      run: () => doWord(c, mode, r.npc),
+    };
+  });
+  choices.push(
+    page + 1 < pages
+      ? { label: 'More…', run: () => peopleMenu(c, mode, page + 1) }
+      : { label: 'Back', run: () => askMenu(c) },
+  );
+  renderChoices(choices);
+}
+
+async function doWord(c: Conversation, mode: 'good' | 'bad', other: NPC) {
+  const res = mode === 'good' ? social.goodWord(c.npc, other, S.day) : social.badWord(c.npc, other, S.day);
+  await say(c, { kind: 'word', outcome: `${mode}.${res.outcome}`, other });
+  apply(c, res.delta);
+  if ('peace' in res && res.peace) {
+    const o = residents.find(r => r.npc === other)!;
+    announcePeace(c.r, o);
+  }
+  mainMenu(c);
+}
+
+/** Ask them along: each outing at its next free time. */
+function inviteMenu(c: Conversation) {
+  c.back = () => mainMenu(c);
+  const planned = appointments.find(a => a.npc === c.npc.id && a.state === 'planned');
+  const list: Choice[] = OUTINGS.map(o => {
+    const { day, start } = nextSlot(o);
+    const clash = rakaBusy(day, start, o.minutes);
+    return {
+      label: o.name.replace('Raka’s', 'my'),
+      note: clash ? `${when(day, start)} · you have plans` : when(day, start),
+      echo: clash ? undefined : `You ask ${social.properName(c.npc)} along for ${o.short}, ${when(day, start)}.`,
+      run: () => (clash ? void 0 : doInvite(c, o)),
+    };
+  });
+  list.push({ label: 'Back', run: () => mainMenu(c) });
+  renderChoices(list);
+  if (planned) $('dlg-you').textContent = `You already have plans with them: ${when(planned.day, planned.start)}.`;
+}
+
+async function doInvite(c: Conversation, o: Outing) {
+  if (social.stageRank(c.npc.playerRelationship.stage) === 0) {
+    await say(c, { kind: 'invite', outcome: 'stranger', item: o.short });
+    mainMenu(c);
+    return;
+  }
+  const res = invite(c.r, o);
+  await say(c, { kind: 'invite', outcome: res.outcome, item: o.short, detail: when(res.day, res.start) });
+  apply(c, res.delta);
+  if (res.outcome === 'yes')
+    toast(
+      `Plan: ${o.short} with ${social.properName(c.npc)}`,
+      `${when(res.day, res.start)} at ${o.place}. It’s in your phone.`,
+    );
+  mainMenu(c);
 }
 
 const PAGE = 5;
@@ -344,26 +458,32 @@ function giftMenu(c: Conversation, page: number) {
   const known = social.social(c.npc).known.gifts;
   const list = st.contents();
   c.back = () => mainMenu(c);
-  if (!list.length) {
+  if (!list.length && !owesPlate(c.r)) {
     renderChoices([{ label: 'Your bag is empty. Back', run: () => mainMenu(c) }]);
     return;
   }
-  const pages = Math.ceil(list.length / PAGE);
-  const choices: Choice[] = list.slice(page * PAGE, page * PAGE + PAGE).map(e => {
-    const seen = known[e.item.id];
-    const stars = e.item.cat === 'dish' ? ' ' + '\u2605'.repeat(e.q) : '';
-    return {
-      label: `${e.item.name}${stars}`,
-      note: [
-        seen === 'loved' ? '\u2665 loves' : seen === 'disliked' ? '\u2715 dislikes' : seen ? seen : '',
-        `\u00d7${e.qty}`,
-      ]
-        .filter(Boolean)
-        .join(' \u00b7 '),
-      echo: `You offer ${social.properName(c.npc)} some ${e.item.name.charAt(0).toLowerCase() + e.item.name.slice(1)}.`,
-      run: () => doGift(c, e.item.id),
-    };
-  });
+  const plateRow: Choice[] = owesPlate(c.r)
+    ? [{ label: 'Return the plate', note: 'empty', echo: 'You hand back the plate.', run: () => doPlate(c) }]
+    : [];
+  const per = PAGE - plateRow.length;
+  const pages = Math.ceil(list.length / per);
+  const choices: Choice[] = plateRow.concat(
+    list.slice(page * per, page * per + per).map(e => {
+      const seen = known[e.item.id];
+      const stars = e.item.cat === 'dish' ? ' ' + '\u2605'.repeat(e.q) : '';
+      return {
+        label: `${e.item.name}${stars}`,
+        note: [
+          seen === 'loved' ? '\u2665 loves' : seen === 'disliked' ? '\u2715 dislikes' : seen ? seen : '',
+          `\u00d7${e.qty}`,
+        ]
+          .filter(Boolean)
+          .join(' \u00b7 '),
+        echo: `You offer ${social.properName(c.npc)} some ${e.item.name.charAt(0).toLowerCase() + e.item.name.slice(1)}.`,
+        run: () => doGift(c, e.item.id),
+      };
+    }),
+  );
   choices.push(
     page + 1 < pages
       ? { label: 'More\u2026', run: () => giftMenu(c, page + 1) }
@@ -383,6 +503,19 @@ async function doGift(c: Conversation, id: string) {
   }
   await say(c, { kind: 'gift', outcome: res.outcome, item: it.name });
   apply(c, res.delta, true);
+  // Something on the plate on its way back: the proper way to return it.
+  if (res.outcome !== 'again' && owesPlate(c.r)) {
+    const bonus = returnPlate(c.r, true)!;
+    await say(c, { kind: 'plate', outcome: 'full', item: it.name });
+    apply(c, bonus, true);
+  }
+  mainMenu(c);
+}
+
+async function doPlate(c: Conversation) {
+  const bonus = returnPlate(c.r, false);
+  await say(c, { kind: 'plate', outcome: 'empty' });
+  if (bonus) apply(c, bonus, true);
   mainMenu(c);
 }
 

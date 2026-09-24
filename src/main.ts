@@ -23,6 +23,10 @@ import { pasarPagi } from './world/pasar';
 import { ground } from './world/ground';
 import { initWorldNav, initResidents, updateResidents, graphStats, npcStats, residents, crowd } from './npc/npcs';
 import { updateNpcDebug } from './npc/debug';
+import { updateLife } from './social/life';
+import { updatePhone, onPhoneChange, plate } from './social/phone';
+import { buildPlate, showPlate } from './game/plate';
+import { updateBubbles } from './ui/bubbles';
 import { dailyDecay } from './social/social';
 import { updateDialogue } from './ui/dialogue';
 import { updateInteraction, interact } from './game/interact';
@@ -64,6 +68,8 @@ buildCables();
 initResidents(vendorCount());
 initVendors(crowd, RESIDENTS.length);
 initActions();
+buildPlate();
+onPhoneChange(() => showPlate(plate?.state === 'waiting'));
 registerActivities();
 graphStats();
 
@@ -88,9 +94,15 @@ function loop(now: number) {
   }
   // NPCs hold still while paused; on the start screen they idle in place.
   // NPCs keep living while Raka talks or eats; they hold still while the game is paused.
-  updateResidents(!S.started || S.dialog || S.acting || inWorld() ? dt : 0);
+  const living = !S.started || S.dialog || S.acting || inWorld();
+  updateResidents(living ? dt : 0);
+  if (S.started && living) {
+    updateLife(dt);
+    updatePhone(dt);
+  }
   updateVendors();
   applyCamera();
+  if (S.started) updateBubbles();
   updateEnv((S.time / 60) % 24);
   if (S.started) updateHUD();
   updateNpcDebug(dt);
@@ -167,7 +179,10 @@ if (import.meta.env.DEV) {
     import('./game/stats'),
     import('./game/garden'),
     import('./world/landmarks'),
-  ]).then(([npcs, nav, places, collision, stats, garden, landmarks]) => {
+    import('./social/social'),
+    import('./social/plans'),
+    import('./social/phone'),
+  ]).then(([npcs, nav, places, collision, stats, garden, landmarks, social, plans, phone]) => {
     (window as unknown as Record<string, unknown>).__kampung = {
       S,
       player,
@@ -178,6 +193,9 @@ if (import.meta.env.DEV) {
       stats,
       garden,
       landmarks,
+      social,
+      plans,
+      phone,
       renderer,
     };
   });
