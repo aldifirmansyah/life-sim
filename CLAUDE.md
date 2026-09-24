@@ -15,7 +15,7 @@ Kampung is a first-person life-sim that runs in the browser. It is set in **Kamp
 ## Build phases (spec §12)
 1. **Foundation: DONE.** Originally `prototype/index.html`; migrated to Vite + TypeScript in `src/` (the user confirmed it matches).
 2. **NPC core: DONE.** Character generator, waypoint graph and A*, schedule-driven movement for 24 residents, simulation LOD, debug overlay. The user has run it on a Mac.
-3. **Conversation: DONE, awaiting the user's check.** Interaction prompt, dialogue panel, topics, relationships, memories, Contacts page.
+3. **Conversation: DONE** (the user confirmed it, including the smoother reply-to-choices transition). Interaction prompt, dialogue panel, topics, relationships, memories, Contacts page.
 4. Activities and economy.
 5. Living world: NPC–NPC chats, gatherings, gossip, invitations, ambient NPCs, phone.
 6. Depth: story arcs, events (17 Agustus), milestones, reputation, house restoration.
