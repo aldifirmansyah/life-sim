@@ -13,7 +13,7 @@ Kampung is a first-person life-sim that runs in the browser. It is set in **Kamp
 - **Language:** English UI and dialogue, with Indonesian terms (Pak, Bu, Mas, Mbak, warung, gang…) and a glossary.
 
 ## Build phases (spec §12)
-1. **Foundation: DONE.** It is in `prototype/index.html`.
+1. **Foundation: DONE.** Originally `prototype/index.html`; now migrated to Vite + TypeScript in `src/` (awaiting the user's side-by-side check before Phase 2).
 2. NPC core: character generator, waypoint graph and A*, schedule-driven movement for 24 residents, simulation LOD, debug overlay. Verify 60 FPS.
 3. Conversation: interaction prompt, dialogue panel, topics, relationships, memories, Contacts page.
 4. Activities and economy.
@@ -23,8 +23,16 @@ Kampung is a first-person life-sim that runs in the browser. It is set in **Kamp
 
 Do one phase at a time. At the end of each phase, check it and stop for the user's go-ahead.
 
-## Current state (Phase 1 prototype)
-The prototype is a single file: Three.js r169 loaded from jsDelivr through an importmap, with no build step. It was first published as a claude.ai artifact, which is why everything is inlined.
+## Current state (Phase 1, Vite + TypeScript)
+The game lives in `src/` and builds with Vite (`npm run dev`, `npm run build`). `three` is pinned to 0.169.0 from npm, matching the prototype's r169. `prototype/index.html` is the original single-file build (Three.js from jsDelivr, no build step). It is kept only for comparison; don't develop in it.
+
+**Module map.** `src/main.ts` wires input and UI, builds the world, and runs the loop.
+- `core/`: `util` (seeded RNG `R`, helpers), `settings`, `state` (`S`), `time` (clock, `EVENTS`, sleep), `player` (movement, camera), `collision` (colliders + spatial hash), `input`.
+- `render/`: `context` (renderer, scene, camera, fog), `batch` (instancing and the `B`/`C`/`blob` helpers), `textures`, `sky`, `lighting` (`KF`, `updateEnv`), `signs`, `quality`.
+- `world/`: `layout` (all layout data, palettes, `ZONES`), `houses`, `trees`, `landmarks`, `streets`, `boundaries`, `pasar`, `ground`.
+- `ui/`: `hud`, `map`, `overlays`.
+
+**Determinism.** The layout comes from `mulberry32(20260924)`. The build order in `main.ts` (blocks → landmarks → block trees → streets → boundaries → pasar → ground) and the order of `R()` calls inside each builder must not change, or the kampung changes. `Math.random` is only used for cosmetic noise (textures, stars, hill rotation, sign grain).
 
 **World layout.** Units are metres. +z is south (toward the entrance) and −z is north (toward the kali and sawah).
 - Main road `Jalan Sukamaju`: x ∈ [-3, 3], z ∈ [-60, 60].
@@ -42,7 +50,7 @@ The prototype is a single file: Three.js r169 loaded from jsDelivr through an im
 
 Colours are per-instance. The current view draws about 22–35 calls and about 67k triangles.
 
-**Colliders.** A flat array of AABBs (`cols`) with an `on` flag, used for the pasar stalls. The player is a circle of radius 0.32 pushed out of the boxes, with 2 substeps per frame. There is no spatial hash yet (about 500 colliders).
+**Colliders.** A flat array of AABBs (`cols`) with an `on` flag, used for the pasar stalls, indexed by a uniform spatial hash (4 m cells) in `core/collision.ts`. `query()` returns candidate indices in insertion order, so resolution order matches the old linear scan. Use `hit`, `overlapsAny` and `collide` rather than scanning `cols`. The player is a circle of radius 0.32 pushed out of the boxes, with 2 substeps per frame.
 
 **Time.** `S.time` is in minutes since midnight. The day runs from 06:00 to 26:00 (02:00), then an auto-sleep moves the player to Raka's teras. The base rate is 1.2 game-minutes per real second (24 h ≈ 20 min). Holding T gives 60×, and [ / ] jumps an hour. Lighting uses keyframes (`KF`) for the sky, the sun/moon directional light and the hemisphere light. The shadow camera follows the player. Adzan and other events are listed in `EVENTS`.
 
@@ -54,17 +62,14 @@ Colours are per-instance. The current view draws about 22–35 calls and about 6
 - The `infill` step, meant to add back-row houses inside blocks, places nothing: interiors are too narrow once the row houses are in. Trees fill those spaces instead.
 - Buildings can't be entered yet. The spec calls for separate interior scenes loaded with a fade.
 - There are no NPCs, no audio, no save of player position or time, and no rain.
+- The prototype's claude.ai artifact hot-reload hook (`window.claude.hot`) was dropped in the migration; it did nothing outside claude.ai.
 - It has only been tested in headless Chromium with SwiftShader (about 30 FPS in software). It still needs a check on real hardware.
 
-## Recommended first task in Claude Code
-Move the prototype into a **Vite + TypeScript** project, as spec §2 asks, **without changing behaviour or visuals**. Split it into modules, for example:
-`src/world/{layout,houses,landmarks,streets,boundaries,ground}.ts`, `src/render/{batch,sky,lighting,signs}.ts`, `src/core/{time,input,player,collision,settings}.ts`, `src/ui/{hud,map,overlays}.ts`, `src/main.ts`.
-- Install `three` from npm instead of using the CDN importmap.
-- Keep the seeded RNG (`mulberry32(20260924)`) so the kampung layout stays identical.
-- Add a simple spatial hash for colliders. Phase 2 needs it for NPC avoidance.
-- Once the migrated build matches the prototype, start Phase 2.
+## Vite + TypeScript migration: DONE, pending the user's check
+The prototype was split into the modules above with `three` from npm, the same seeded RNG, and a spatial hash for colliders. Behaviour and visuals are meant to be identical to `prototype/index.html`. Wait for the user to confirm that before starting Phase 2.
 
 ## Working conventions
+- Run `npm run build` (typecheck + build) before committing. Format with `npm run format`.
 - Performance budget (spec §9): < 150 draw calls, < 300k triangles, < 8 ms JS per frame. Check with F3.
 - Don't load a separate model per NPC. Use procedural low-poly characters with a shared geometry and instanced or recoloured materials.
 - Social logic ticks at 1 Hz. Only near NPCs (< 40 m) get a full per-frame update.
