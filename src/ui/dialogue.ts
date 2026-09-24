@@ -26,6 +26,8 @@ const CPS = 55; // typewriter characters per second
 interface Choice {
   label: string;
   note?: string;
+  /** What Raka says or does, shown above the reply. Menu navigation has none and leaves the text alone. */
+  echo?: string;
   run: () => void | Promise<void>;
 }
 interface Conversation {
@@ -60,7 +62,7 @@ export function updateDialogue(dt: number) {
     player.pitch += (pitch - player.pitch) * k;
     if (typing) {
       const shown = ((performance.now() - typing.start) / 1000) * CPS;
-      $('dlg-text').textContent = typing.full.slice(0, Math.floor(shown));
+      reveal(typing.full, Math.floor(shown));
       if (shown >= typing.full.length) finishTyping();
     }
   }
@@ -101,16 +103,27 @@ async function say(c: Conversation, part: Partial<DialogueContext> & Pick<Dialog
   const line = await provider.getLine(ctx(c, part));
   const text = $('dlg-text');
   text.dataset.emote = line.emote ?? 'neutral';
+  // Choices step aside (their space stays reserved) while the line types out.
   renderChoices([]);
+  reveal(line.text, 0);
   c.r.speaking = true;
   await new Promise<void>(done => {
     typing = { full: line.text, start: performance.now(), done };
   });
   c.r.speaking = false;
+  // A beat before the choices come back, so the reply lands first.
+  await new Promise(r => setTimeout(r, 140));
+}
+/** Show the first n characters of a line. The rest is laid out but invisible, so words never jump between lines. */
+function reveal(full: string, n: number) {
+  const el = $('dlg-text');
+  if (el.childElementCount !== 2) el.innerHTML = '<span></span><span class="rest"></span>';
+  el.firstElementChild!.textContent = full.slice(0, n);
+  el.lastElementChild!.textContent = full.slice(n);
 }
 function finishTyping() {
   if (!typing) return;
-  $('dlg-text').textContent = typing.full;
+  reveal(typing.full, typing.full.length);
   const t = typing;
   typing = null;
   t.done();
@@ -147,6 +160,7 @@ function renderChoices(list: Choice[]) {
   ol.innerHTML = '';
   list.forEach((ch, i) => {
     const li = document.createElement('li');
+    li.style.animationDelay = `${i * 28}ms`;
     const b = document.createElement('button');
     b.type = 'button';
     b.innerHTML = `<kbd>${i + 1}</kbd><span></span>${ch.note ? '<small></small>' : ''}`;
@@ -164,6 +178,11 @@ function choose(i: number) {
   const ch = c.choices[i];
   if (!ch) return;
   c.busy = true;
+  // Show what Raka said, and clear the old reply straight away instead of leaving it up until the new one starts.
+  if (ch.echo) {
+    $('dlg-you').textContent = ch.echo;
+    reveal('', 0);
+  }
   Promise.resolve(ch.run()).finally(() => {
     if (conv === c) c.busy = false;
   });
@@ -180,6 +199,8 @@ export function dialogKey(e: KeyboardEvent) {
     if (c.back) c.back();
     else {
       c.busy = true;
+      $('dlg-you').textContent = 'You say goodbye.';
+      reveal('', 0);
       void goodbye(c);
     }
   }
@@ -220,6 +241,10 @@ async function open(r: Resident) {
   if (document.pointerLockElement) document.exitPointerLock();
   $('prompt').hidden = true;
   $('dialog').hidden = false;
+  $('dlg-you').textContent = '';
+  reveal('', 0);
+  // Clicking the text skips the typing, like Space does.
+  document.querySelector<HTMLElement>('.dlg-lines')!.onclick = finishTyping;
   renderHeader(c);
   const npc = c.npc;
   const g = social.greetingKind(npc, S.day, r.state === 'walk');
@@ -245,8 +270,16 @@ function greetMenu(c: Conversation) {
   };
   c.back = null;
   renderChoices([
-    { label: `“Selamat ${word}, ${social.properName(npc)}.”`, run: () => reply(true) },
-    { label: `“${timeGreeting(S.time)}, ${firstName(npc.name)}!”`, run: () => reply(false) },
+    {
+      label: `“Selamat ${word}, ${social.properName(npc)}.”`,
+      echo: `“Selamat ${word}, ${social.properName(npc)}.”`,
+      run: () => reply(true),
+    },
+    {
+      label: `“${timeGreeting(S.time)}, ${firstName(npc.name)}!”`,
+      echo: `“${timeGreeting(S.time)}, ${firstName(npc.name)}!”`,
+      run: () => reply(false),
+    },
   ]);
 }
 
@@ -256,11 +289,15 @@ function mainMenu(c: Conversation) {
   c.back = null;
   renderChoices([
     { label: 'Chat…', run: () => topicMenu(c, 0) },
-    { label: `Ask about ${who}`, run: () => doAsk(c) },
-    { label: `Compliment ${who}`, run: () => doSimple(c, 'compliment', social.compliment(npc, S.day)) },
+    { label: `Ask about ${who}`, echo: `You ask ${who} about themselves.`, run: () => doAsk(c) },
+    {
+      label: `Compliment ${who}`,
+      echo: `You pay ${who} a compliment.`,
+      run: () => doSimple(c, 'compliment', social.compliment(npc, S.day)),
+    },
     { label: 'Joke around…', run: () => jokeMenu(c) },
-    { label: 'Hear the gossip', run: () => doGossip(c) },
-    { label: 'Goodbye', run: () => goodbye(c) },
+    { label: 'Hear the gossip', echo: `You ask what ${who} makes of the neighbours.`, run: () => doGossip(c) },
+    { label: 'Goodbye', echo: 'You say goodbye.', run: () => goodbye(c) },
   ]);
 }
 
@@ -277,6 +314,7 @@ function topicMenu(c: Conversation, page: number) {
     if (last !== undefined && S.day - last < 2) notes.push('talked recently');
     return {
       label: label.charAt(0).toUpperCase() + label.slice(1),
+      echo: `You bring up ${label}.`,
       note: notes.join(' · ') || undefined,
       run: () => doTopic(c, t),
     };
@@ -294,8 +332,12 @@ function jokeMenu(c: Conversation) {
   const npc = c.npc;
   c.back = () => mainMenu(c);
   renderChoices([
-    { label: 'Tell a joke', run: () => doSimple(c, 'joke', social.joke(npc, S.day)) },
-    { label: `Tease ${social.properName(npc)}`, run: () => doSimple(c, 'tease', social.tease(npc, S.day)) },
+    { label: 'Tell a joke', echo: 'You tell a joke.', run: () => doSimple(c, 'joke', social.joke(npc, S.day)) },
+    {
+      label: `Tease ${social.properName(npc)}`,
+      echo: `You tease ${social.properName(npc)}.`,
+      run: () => doSimple(c, 'tease', social.tease(npc, S.day)),
+    },
     { label: 'Back', run: () => mainMenu(c) },
   ]);
 }
