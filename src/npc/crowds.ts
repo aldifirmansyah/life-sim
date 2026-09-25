@@ -95,8 +95,7 @@ function districtWeight(x: number, z: number) {
 }
 
 /** Start a walker on a pavement 30–140 m from Aldi. */
-function spawn(w: Walker) {
-  const segs = segsNear(player.x, player.z, 140).filter(s => s.road.kind !== 'expressway');
+function spawn(w: Walker, segs: ReturnType<typeof segsNear>) {
   for (let tries = 0; tries < 6 && segs.length; tries++) {
     const s = segs[(seed = (seed * 16807) % 2147483647) % segs.length];
     const dx = s.bx - s.ax,
@@ -127,6 +126,9 @@ export function updateCrowds(dt: number) {
   acc += dt;
   const respawnTick = acc > 0.25;
   if (respawnTick) acc = 0;
+  // A few new walkers a tick at most, from one search of the roads near Aldi.
+  let tries = 4;
+  let segs: ReturnType<typeof segsNear> | null = null;
   for (let i = 0; i < N; i++) {
     const w = walkers[i];
     const slot = NAMED_SLOTS + i;
@@ -148,8 +150,9 @@ export function updateCrowds(dt: number) {
       p.phase += dt * w.speed * 4.2;
       p.t += dt;
       crowd.pose(slot, p);
-    } else if (respawnTick && active < want && player.y < 6) {
-      spawn(w);
+    } else if (respawnTick && active < want && player.y < 6 && tries-- > 0) {
+      segs ??= segsNear(player.x, player.z, 140).filter(s => s.road.kind !== 'expressway');
+      spawn(w, segs);
       if (w.on) active++;
     }
   }

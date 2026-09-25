@@ -390,7 +390,7 @@ export function updateTrains(dt: number) {
     tr.st = stateAt(tr.sc, railT + (tr.k * tr.sc.cycle) / tr.sc.trains);
     // Far trains only need their middle car (for boarding checks and the map); their instances stay hidden.
     const [mx, mz] = along(tr.sc.line, tr.st.s);
-    const far = Math.hypot(mx - px, mz - pz) > 1400;
+    const far = Math.hypot(mx - px, mz - pz) > 900;
     if (far && tr.hidden) {
       ci += CARS;
       ni += 2;
@@ -457,6 +457,7 @@ export function updateTrains(dt: number) {
 }
 
 /** Screen doors open where a train is standing with its doors open. */
+const psHidden = new Set<(typeof platformSides)[number]>();
 function updateScreenDoors() {
   let pi = 0;
   for (const ps of platformSides) ps.open = false;
@@ -470,6 +471,14 @@ function updateScreenDoors() {
   }
   for (const ps of platformSides) {
     const near = Math.hypot(ps.station.x - player.x, ps.station.z - player.z) < 250;
+    // Far platforms' leaves are already hidden: only their colliders follow the doors.
+    if (!near && psHidden.has(ps)) {
+      for (const o of ps.openings) o.col.on = !ps.open;
+      pi += ps.openings.length * 2;
+      continue;
+    }
+    if (near) psHidden.delete(ps);
+    else psHidden.add(ps);
     const ry = Math.atan2(-ps.station.dz, ps.station.dx);
     const FLOOR = ps.line.floor;
     for (const o of ps.openings) {
