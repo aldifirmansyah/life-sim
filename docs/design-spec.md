@@ -260,6 +260,7 @@ Target: **60 FPS with ~24 residents + up to 20 ambient NPCs** on integrated grap
 ---
 
 ## 13. Future Versions (out of scope for v1)
+- Open world: the kampung becomes one neighbourhood of a small coastal town (beach, mall, hotel, country club, theme park), travelled in place on foot, bicycle, motorbike, angkot and ojek. Planned with the user in `docs/openworld-plan.md`.
 - Romance and partner stage (data hook reserved in the NPC model).
 - LLM dialogue provider (Claude API) plugged into the `DialogueProvider` interface.
 - Full Bahasa Indonesia language toggle.
