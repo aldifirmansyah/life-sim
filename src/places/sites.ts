@@ -80,3 +80,20 @@ export const ZOO = { x: -380, z: -794, w: 70, d: 40 };
 export const TRAIL = { x: -150, z: -380 };
 /** Woodlands Checkpoint, for the Causeway to Johor Bahru. */
 export const CHECKPOINT = { x: -686, z: -906, w: 30, d: 16 };
+
+/* Step 11: Aldi's own car. */
+/** BB Drive Centre: the yard with the circuit, the office to its west. */
+export const DRIVE_CENTRE = { x: -1194, z: 328, w: 60, d: 44 };
+/** Leng Kee Autos, the used-car dealer. */
+export const DEALER = { x: -358, z: 258 };
+/** Petrol stations. */
+export const PETROL = [
+  { x: -820, z: 240 },
+  { x: 620, z: 320 },
+];
+/** ERP gantries on the roads into the city: where, the road's direction (unit), its width. */
+export const ERP = [
+  { name: 'Nicoll Highway', x: 400, z: 270, dx: 0.99, dz: -0.124, w: 12 },
+  { name: 'Orchard Road', x: 195, z: 110, dx: 0.747, dz: 0.664, w: 12 },
+  { name: 'Marina Boulevard', x: 410, z: 620, dx: 0.984, dz: 0.179, w: 10 },
+];

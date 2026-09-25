@@ -31,6 +31,9 @@ import {
   CABLE,
   ZOO,
   CHECKPOINT,
+  DRIVE_CENTRE,
+  DEALER,
+  PETROL,
 } from '../places/sites';
 
 export const CHUNK = 128;
@@ -716,6 +719,10 @@ function landmarks() {
   reserve(CABLE.bx, CABLE.bz, 8);
   reserve(ZOO.x, ZOO.z, 42);
   reserve(CHECKPOINT.x, CHECKPOINT.z, 18);
+  // The driving centre, the car dealer and the petrol stations.
+  reserve(DRIVE_CENTRE.x - 6, DRIVE_CENTRE.z, 40);
+  reserve(DEALER.x, DEALER.z, 20);
+  for (const s of PETROL) reserve(s.x, s.z, 10);
   // The embassy's compound and the getai field keep their ground clear.
   reserve(EMBASSY.x, EMBASSY.z, 20);
   reserve(GETAI.x, GETAI.z, 11);

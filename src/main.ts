@@ -46,6 +46,7 @@ import { buildRegions, updateRegions, loadRegions } from './places/regions';
 import { buildRoadGraph } from './city/roadgraph';
 import { buildTraffic, updateTraffic } from './city/traffic';
 import { buildTaxis, updateTaxis, taxiMenu, nabApp } from './game/taxi';
+import { buildCar, updateCar, carMenu, carApp, carMarker, loadCar } from './game/car';
 import { properName } from './social/social';
 import { showMoney, showVitals, resetStats, drain, addEnergy, addMood } from './game/stats';
 import { buildChangi, updateChangi, ARRIVAL } from './places/changi';
@@ -58,7 +59,7 @@ import { landAt, polyEdgeDist, ISLANDS } from './city/geo';
 addEventListener('resize', resize);
 // E: aboard a bus, ring the bell; aboard a train, choose the stop; otherwise use what's in front.
 actions.interact = () => {
-  if (player.ride) taxiMenu() || busMenu() || pickStop();
+  if (player.ride) carMenu() || taxiMenu() || busMenu() || pickStop();
   else interact();
 };
 // L: the work laptop.
@@ -85,6 +86,7 @@ buildRegions();
 buildRoadGraph();
 buildTraffic();
 buildTaxis();
+buildCar();
 buildWeather();
 apps.push({ label: 'HomeLah', note: 'rooms for rent', run: homeApp });
 buildPeople();
@@ -92,6 +94,7 @@ buildCrowds();
 apps.push({ label: 'Contacts', note: 'people you know', run: contacts });
 apps.push({ label: 'Calendar', note: "what's on", run: calendarApp });
 apps.push({ label: 'Nab', note: 'ride-hail', run: nabApp });
+apps.push({ label: 'My car', run: carApp });
 buildBuses();
 initStream();
 const genMs = performance.now() - tGen;
@@ -115,6 +118,7 @@ function newGame() {
   loadCentre(undefined);
   loadEvents(undefined);
   loadRegions(undefined);
+  loadCar(undefined);
 }
 
 /** Energy runs down with the hours awake; a night's sleep fills it up. */
@@ -164,6 +168,7 @@ function loop(now: number) {
   updateBuses(dt);
   updateRegions(dt);
   updateTaxis(dt);
+  updateCar();
   lap('trains');
   if (S.started) {
     updatePeople(dt);
@@ -185,6 +190,7 @@ function loop(now: number) {
     updateArrival();
     updateHomes();
     homeMarker();
+    carMarker();
     updateWork();
     vitalsTick();
   }
@@ -337,6 +343,7 @@ if (import.meta.env.DEV) {
     import('./game/taxi'),
     import('./city/traffic'),
     import('./city/roadgraph'),
+    import('./game/car'),
   ]).then(
     ([
       geo,
@@ -367,6 +374,7 @@ if (import.meta.env.DEV) {
       taxi,
       traffic,
       roadgraph,
+      car,
     ]) => {
       (window as unknown as Record<string, unknown>).__sg = {
         S,
@@ -399,6 +407,7 @@ if (import.meta.env.DEV) {
         taxi,
         traffic,
         roadgraph,
+        car,
         renderer,
         parts,
       };

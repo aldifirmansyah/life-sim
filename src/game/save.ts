@@ -13,6 +13,7 @@ import { savePeople, loadPeople } from '../npc/people';
 import { saveCentre, loadCentre } from '../places/centre';
 import { saveEvents, loadEvents } from './events';
 import { saveRegions, loadRegions } from '../places/regions';
+import { saveCar, loadCar } from './car';
 
 const KEY = 'sg-save';
 const VERSION = 3;
@@ -34,6 +35,7 @@ export function saveGame(): boolean {
     faith: saveCentre(),
     events: saveEvents(),
     regions: saveRegions(),
+    car: saveCar(),
   };
   try {
     localStorage.setItem(KEY, JSON.stringify(d));
@@ -69,6 +71,7 @@ export function loadGame(): boolean {
   loadCentre(d.faith);
   loadEvents(d.events);
   loadRegions(d.regions);
+  loadCar(d.car);
   return true;
 }
 export function deleteSave() {
