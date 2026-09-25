@@ -165,11 +165,12 @@ function loop(now: number) {
   }
   lap('player');
   updateTrains(dt);
+  lap('trains');
   updateBuses(dt);
   updateRegions(dt);
   updateTaxis(dt);
   updateCar();
-  lap('trains');
+  lap('vehicles');
   if (S.started) {
     updatePeople(dt);
     updateCrowds(dt);
@@ -195,6 +196,7 @@ function loop(now: number) {
     vitalsTick();
   }
   updateMarker();
+  lap('places');
   const water =
     landAt(player.x, player.z) === 'sea' ? 1 : Math.max(0, 1 - polyEdgeDist(ISLANDS.main, player.x, player.z) / 40);
   updateAudio({ road: roadCloseness(player.x, player.z), water });
@@ -410,6 +412,7 @@ if (import.meta.env.DEV) {
         car,
         renderer,
         parts,
+        ms: () => ({ upd: updMs, draw: drawMs }),
       };
     },
   );
