@@ -309,12 +309,35 @@ function buildCable() {
       reach: 3,
       size: 1.5,
       label: () => 'Lift up to the cable car',
-      run: () => blink('Up…', () => Object.assign(player, { x, z: z + 4.5, y: CABLE.h + 0.3, yaw: Math.PI })),
+      run: () => blink('Up…', () => Object.assign(player, { x, z: z + 4.5, y: CABLE.h + 0.3, yaw: 0, pitch: 0 })),
     });
+    // Boarding: the cabin standing at this end, from anywhere on the platform.
+    const end = name === 'Sentosa' ? 1 : 0;
     register({
       x,
+      y: CABLE.h + 1.5,
+      z,
+      reach: 9,
+      size: 5,
+      label: () => {
+        const c = cabins.find(q => q.u === end && q.wait > 1);
+        if (player.ride || Math.abs(player.y - CABLE.h - 0.3) > 1) return null;
+        return c ? `Ride the cable car to ${end ? 'HarbourFront' : 'Sentosa'} (S$18)` : 'Wait for the cable car';
+      },
+      run: () => {
+        const c = cabins.find(q => q.u === end && q.wait > 1);
+        if (!c) return toast('Cable car', 'The next cabin comes in a minute.');
+        if (!spend(18)) return toast('Not enough money', 'The cable car is S$18.');
+        cab = c;
+        player.ride = cabinRide();
+        toast('Cable car', 'Up over the harbour. Hold on to your phone.', null);
+      },
+    });
+    p.box(x + 4.2, x + 5.8, CABLE.h + 0.3, CABLE.h + 2.5, z + 5.6, z + 5.8, '#b9c0c6');
+    register({
+      x: x + 5,
       y: CABLE.h + 1.3,
-      z: z + 3.2,
+      z: z + 5.6,
       reach: 3,
       size: 1.2,
       label: () => 'Lift down',
@@ -367,29 +390,6 @@ function buildCable() {
     scene.add(mesh);
     const c: Cabin = { mesh, u, dir, wait: CAB_DWELL, side };
     cabins.push(c);
-    register({
-      get x() {
-        return c.mesh.position.x;
-      },
-      get z() {
-        return c.mesh.position.z;
-      },
-      get y() {
-        return c.mesh.position.y + 1;
-      },
-      reach: 5,
-      size: 2,
-      label: () =>
-        !player.ride && c.wait > 1 && Math.abs(player.y - CABLE.h) < 2
-          ? `Ride the cable car to ${c.dir === 1 ? 'Sentosa' : 'HarbourFront'} (S$18)`
-          : null,
-      run: () => {
-        if (!spend(18)) return toast('Not enough money', 'The cable car is S$18.');
-        cab = c;
-        player.ride = cabinRide();
-        toast('Cable car', 'Up over the harbour. Hold on to your phone.', null);
-      },
-    });
   }
 }
 function cabinRide(): Ride {

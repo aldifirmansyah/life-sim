@@ -249,7 +249,7 @@ function buildSpots() {
     add(`g.seat.${i}`, { x: GETAI.x - 1.2 + i * 2.4, y: 0, z: GETAI.z, ry: Math.PI, sit: 0.45, where: 'The getai' });
   add('e.kueh', { x: KATONG_ROW.x0 + 16.5, y: 0, z: KATONG_ROW.z0 - 1.3, ry: -Math.PI / 2, where: 'Katong' });
   add('e.bikes', { x: BEACH.x + 2.8, y: 0, z: BEACH.z + 2.4, ry: 0, where: 'East Coast Park' });
-  add('n.keeper', { x: ZOO.x - 22, y: 0, z: ZOO.z + 7.8, ry: Math.PI, where: 'Mandai Zoo' });
+  add('n.keeper', { x: ZOO.x - 15, y: 0, z: ZOO.z + 8, ry: Math.PI, where: 'Mandai Zoo' });
   add('tb.bakery', {
     x: tb.x - tb.w / 2 + (tb.w / 4) * 2.5,
     y: 0,

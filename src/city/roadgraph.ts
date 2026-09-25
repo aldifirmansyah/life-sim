@@ -68,8 +68,16 @@ export function buildRoadGraph() {
   // Candidate pairs through a coarse grid of the segments' boxes.
   const sgrid = new Map<string, number[]>();
   segs.forEach((s, i) => {
-    for (let ix = Math.floor((Math.min(s.ax, s.bx) - 4) / CELL); ix <= Math.floor((Math.max(s.ax, s.bx) + 4) / CELL); ix++)
-      for (let iz = Math.floor((Math.min(s.az, s.bz) - 4) / CELL); iz <= Math.floor((Math.max(s.az, s.bz) + 4) / CELL); iz++) {
+    for (
+      let ix = Math.floor((Math.min(s.ax, s.bx) - 4) / CELL);
+      ix <= Math.floor((Math.max(s.ax, s.bx) + 4) / CELL);
+      ix++
+    )
+      for (
+        let iz = Math.floor((Math.min(s.az, s.bz) - 4) / CELL);
+        iz <= Math.floor((Math.max(s.az, s.bz) + 4) / CELL);
+        iz++
+      ) {
         const k = ix + ',' + iz;
         let c = sgrid.get(k);
         if (!c) sgrid.set(k, (c = []));
@@ -198,4 +206,5 @@ export function route(ax: number, az: number, bx: number, bz: number): [number, 
   return p ? p.map(n => [n.x, n.z]) : null;
 }
 /** Length of a path of points. */
-export const pathLength = (p: [number, number][]) => p.reduce((s, q, i) => (i ? s + Math.hypot(q[0] - p[i - 1][0], q[1] - p[i - 1][1]) : 0), 0);
+export const pathLength = (p: [number, number][]) =>
+  p.reduce((s, q, i) => (i ? s + Math.hypot(q[0] - p[i - 1][0], q[1] - p[i - 1][1]) : 0), 0);
