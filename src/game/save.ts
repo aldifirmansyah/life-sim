@@ -1,15 +1,16 @@
 /* Save and load (one slot in localStorage): where Aldi is, the day and the time,
-   the wallet and cards, the arrival goals, the serviced apartment. Each module with game state will add a saveX()/loadX() pair here as
-   it arrives (see docs/singapore-plan.md). A version mismatch is ignored. */
+   the wallet, cards, energy and mood, the arrival goals, the serviced apartment, the job. Each module with game state will add a saveX()/loadX() pair here as
+   it arrives (see docs/singapore-plan.md). Older versions load with the missing parts at their defaults; newer ones are ignored. */
 import { S } from '../core/state';
 import { player } from '../core/player';
 import { dateLabel } from './calendar';
 import { saveStats, loadStats } from './stats';
 import { saveArrival, loadArrival } from './arrival';
 import { saveOneNorth, loadOneNorth } from '../places/onenorth';
+import { saveWork, loadWork } from './work';
 
 const KEY = 'sg-save';
-const VERSION = 2;
+const VERSION = 3;
 
 export function saveGame(): boolean {
   // Not while riding: a saved game resumes on solid ground.
@@ -22,6 +23,7 @@ export function saveGame(): boolean {
     stats: saveStats(),
     arrival: saveArrival(),
     onenorth: saveOneNorth(),
+    work: saveWork(),
   };
   try {
     localStorage.setItem(KEY, JSON.stringify(d));
@@ -33,7 +35,7 @@ export function saveGame(): boolean {
 function read() {
   try {
     const d = JSON.parse(localStorage.getItem(KEY) || 'null');
-    return d && d.v === VERSION ? d : null;
+    return d && d.v >= 2 && d.v <= VERSION ? d : null;
   } catch (e) {
     return null;
   }
@@ -51,6 +53,7 @@ export function loadGame(): boolean {
   loadStats(d.stats);
   loadArrival(d.arrival);
   loadOneNorth(d.onenorth);
+  loadWork(d.work);
   return true;
 }
 export function deleteSave() {

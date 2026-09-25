@@ -1,6 +1,9 @@
-/* Aldi's wallet and cards, in SGD. More stats (energy, mood, skills) come back
-   with the steps that use them (ported from kampung-v1's game/stats.ts). */
+/* Aldi's wallet and cards, in SGD, and the two everyday stats: energy (spent by
+   the hours awake and by work, restored by sleep, rest, meals and kopi) and mood
+   (meals, work done well, a good stand-up; missing things lowers it). Skills come
+   back with the steps that use them (ported from kampung-v1's game/stats.ts). */
 import { $ } from '../core/util';
+import { player } from '../core/player';
 import { sfx } from '../audio/audio';
 
 export const wallet = {
@@ -10,6 +13,7 @@ export const wallet = {
   /** An EZ-Lah transit card: the fare gates open. */
   card: false,
 };
+export const vitals = { energy: 80, mood: 70 };
 
 export const sgd = (n: number) => `S$${n.toFixed(2)}`;
 
@@ -30,8 +34,53 @@ export function showMoney() {
   $('money').textContent = sgd(wallet.money);
 }
 
-export const saveStats = () => ({ ...wallet });
-export function loadStats(d: Partial<typeof wallet> | undefined) {
-  if (d) Object.assign(wallet, d);
+const clamp100 = (v: number) => Math.max(0, Math.min(100, v));
+export function addEnergy(n: number) {
+  vitals.energy = clamp100(vitals.energy + n);
+  showVitals();
+}
+export function addMood(n: number) {
+  vitals.mood = clamp100(vitals.mood + n);
+  showVitals();
+}
+/** Tired: work goes slower and Aldi can't run. */
+export const tired = () => vitals.energy < 20;
+
+export function showVitals() {
+  for (const [id, v] of [
+    ['energybar', vitals.energy],
+    ['moodbar', vitals.mood],
+  ] as const) {
+    const el = $(id);
+    el.style.width = v + '%';
+    el.classList.toggle('low', v < 20);
+  }
+  player.canRun = !tired();
+}
+
+/** Awake, Aldi tires slowly: `minutes` of game time passed (called once a game minute or after a skip). */
+export function drain(minutes: number) {
+  vitals.energy = clamp100(vitals.energy - minutes * (3.5 / 60));
+  vitals.mood = clamp100(vitals.mood + (vitals.energy < 20 ? -2 : 0) * (minutes / 60));
+  showVitals();
+}
+
+export const saveStats = () => ({ ...wallet, ...vitals });
+export function loadStats(d: (Partial<typeof wallet> & Partial<typeof vitals>) | undefined) {
+  if (d) {
+    wallet.money = d.money ?? wallet.money;
+    wallet.sim = d.sim ?? wallet.sim;
+    wallet.card = d.card ?? wallet.card;
+    vitals.energy = d.energy ?? vitals.energy;
+    vitals.mood = d.mood ?? vitals.mood;
+  }
   showMoney();
+  showVitals();
+}
+/** A new game: S$500, no cards, rested. */
+export function resetStats() {
+  Object.assign(wallet, { money: 500, sim: false, card: false });
+  Object.assign(vitals, { energy: 80, mood: 70 });
+  showMoney();
+  showVitals();
 }

@@ -11,6 +11,7 @@ import { addRoad, allSegs, nearRoad, type Road } from './roads';
 import { nearTrack, EWL } from './mrtdata';
 import { sign } from '../render/signs';
 import { STYLE } from './facade';
+import { CHOPEE_HQ, CLEMENTI_HAWKER } from '../places/sites';
 
 export const CHUNK = 128;
 export const LOT = 36;
@@ -624,15 +625,35 @@ function marinaBay() {
 /** The other landmarks, one per district. */
 function landmarks() {
   const tn = (id: string) => TOWNS.find(t => t.id === id)!;
-  // Chopee's campus at Science Park: orange glass blocks round a court.
+  // Chopee's campus at Science Park, north of the drive. The headquarters' first two floors are walk-in
+  // (places/chopee.ts builds them); here only the tower above them, and the other blocks.
   {
-    const t = tn('science_park');
-    building(t.x - 20, t.z - 15, 34, 22, 34, '#ee4d2d', STYLE.glass);
-    building(t.x + 22, t.z + 12, 26, 26, 26, '#f06a45', STYLE.glass);
-    building(t.x - 18, t.z + 28, 22, 18, 18, '#e8e4dc', STYLE.office);
-    reserve(t.x, t.z, 45);
-    landmarkSign('Chopee', 'Science Park Drive', t.x - 20, 36, t.z - 26.2, 0, '#ee4d2d');
+    const { x0, x1, z0, z1, h } = CHOPEE_HQ;
+    const [x, z] = [(x0 + x1) / 2, (z0 + z1) / 2];
+    put({
+      p: 'bldg',
+      x,
+      y: (h + 34) / 2,
+      z,
+      sx: x1 - x0,
+      sy: 34 - h,
+      sz: z1 - z0,
+      ry: 0,
+      c: '#ee4d2d',
+      st: STYLE.glass,
+    });
+    putCol(x, z, (x1 - x0) / 2, (z1 - z0) / 2, 0, h, 34);
+    reserve(x, z, 30);
+    landmarkSign('Chopee', 'Science Park Drive', x, 30, z1 + 0.3, 0, '#ee4d2d');
+    building(-560, 262, 24, 24, 26, '#f06a45', STYLE.glass);
+    building(-600, 255, 22, 18, 18, '#e8e4dc', STYLE.office);
+    reserve(-560, 262, 20);
+    reserve(-600, 255, 16);
   }
+  // NUS on Kent Ridge: a sign by the road (the campus itself is generated).
+  landmarkSign('NUS', 'National University of Singapore · Kent Ridge', -820, 4, 326, Math.PI);
+  // Clementi: the hawker centre and the bus interchange by the MRT (places/clementi.ts).
+  reserve(CLEMENTI_HAWKER.x, CLEMENTI_HAWKER.z, 28);
   // one-north Residences: the serviced-apartment tower (its ground-floor studio is places/onenorth.ts).
   building(-532, 148, 24, 18, 46, '#e6e0d4', STYLE.office);
   reserve(-532, 158, 30);

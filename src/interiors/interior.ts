@@ -19,6 +19,9 @@ export interface Room {
   x1: number;
   z0: number;
   z1: number;
+  /** Feet height range for rooms on upper floors (default: any). */
+  y0?: number;
+  y1?: number;
 }
 export interface Interior {
   /** Shown in the HUD: "Rumah Raka · Dapur". */
@@ -61,8 +64,8 @@ export function roomL(F: Frame, name: string, lx0: number, lx1: number, lz0: num
   };
 }
 
-const roomAt = (it: Interior, x: number, z: number) =>
-  it.rooms.find(r => x >= r.x0 && x <= r.x1 && z >= r.z0 && z <= r.z1);
+const roomAt = (it: Interior, x: number, z: number, y: number) =>
+  it.rooms.find(r => x >= r.x0 && x <= r.x1 && z >= r.z0 && z <= r.z1 && y >= (r.y0 ?? -1e9) && y < (r.y1 ?? 1e9));
 
 /** One warm lamp, moved to whichever interior Raka is near. It stays in the scene (intensity 0 when
     unused) so materials never recompile. */
@@ -92,7 +95,7 @@ export function updateInteriors(dt: number) {
       nearD = d;
       near = it;
     }
-    const r = roomAt(it, player.x, player.z);
+    const r = roomAt(it, player.x, player.z, player.y);
     if (r) {
       inside = it;
       room = r;

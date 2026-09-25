@@ -87,6 +87,11 @@ export const ROADS: Road[] = [
     [-620, 420],
     [-700, 500],
   ]),
+  R('Kent Ridge Road', 'main', 9, [
+    [-878, 330],
+    [-790, 310],
+    [-700, 290],
+  ]),
   R('Science Park Drive', 'main', 9, [
     [-700, 290],
     [-600, 330],

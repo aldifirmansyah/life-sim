@@ -12,6 +12,7 @@ import { toast } from '../ui/hud';
 import { S } from '../core/state';
 import { player } from '../core/player';
 import { sleep, passTime, setWake } from '../core/time';
+import { addEnergy } from '../game/stats';
 import { markDone, setTarget } from '../game/arrival';
 
 /** The studio: x0..x1, z0..z1; the door in the middle of the south wall. */
@@ -130,7 +131,7 @@ export function buildOneNorth() {
     label: () => (S.time >= 20 * 60 || S.time < 6 * 60 ? 'Sleep until morning' : 'Rest for an hour'),
     run: () => {
       if (S.time >= 20 * 60) sleep();
-      else passTime(60, 'Resting…');
+      else passTime(60, 'Resting…', () => addEnergy(15));
     },
   });
 }

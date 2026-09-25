@@ -3,11 +3,10 @@
    Vortex (optional), ride the East-West Line to Buona Vista, check in at the
    serviced apartment in one-north. Places register their marker spots with
    `setTarget`; they report goals with `markDone`. */
-import * as THREE from 'three';
 import { $ } from '../core/util';
 import { S } from '../core/state';
 import { player } from '../core/player';
-import { camera } from '../render/context';
+import { markTo } from './marker';
 import { toast } from '../ui/hud';
 import { sfx } from '../audio/audio';
 import { EWL, PLAT_OUT } from '../city/mrtdata';
@@ -48,7 +47,7 @@ function finish() {
   setTimeout(() => {
     toast(
       'Wei Jie (Chopee): Welcome to Singapore!',
-      'Settled in already? Rest today lah. Monday 10am, Science Park Drive, I bring you round for onboarding.',
+      'Settled in already? Rest today lah. Monday 10am at Chopee, Science Park Drive: bus 96 from one-north stops right outside. I meet you at reception.',
       'msg',
     );
     render();
@@ -71,42 +70,22 @@ function render() {
   }
 }
 
-const _v = new THREE.Vector3();
 /** Every frame: check the MRT goal, and put the marker over the next place. */
 export function updateArrival() {
-  const m = $('marker');
-  if (finished || !S.started) {
-    m.hidden = true;
-    return;
-  }
+  if (finished || !S.started) return;
   if (!done.has('mrt')) {
     const at = stationAt(player.x, player.z, player.y);
     if (at?.st === bv && !player.ride) markDone('mrt');
   }
   const next = GOALS.find(g => !g.optional && !done.has(g.id));
-  let t = next ? targets[next.id] : undefined;
-  if (next?.id === 'mrt' && (player.ride || stationAt(player.x, player.z, player.y)))
+  if (!next) return;
+  let t = targets[next.id];
+  let label = next.id === 'cards' ? '8-Twelve' : next.id === 'mrt' ? 'MRT' : 'one-north Residences';
+  if (next.id === 'mrt' && (player.ride || stationAt(player.x, player.z, player.y))) {
     t = player.ride ? undefined : [bv.x, EWL.floor + 1, bv.z];
-  if (!t || S.map || S.paused) {
-    m.hidden = true;
-    return;
+    label = 'Buona Vista';
   }
-  // Project the spot onto the screen; off-screen or behind, pin it to the edge.
-  const p = _v.set(t[0], t[1] + 2, t[2]).project(camera);
-  const behind = p.z > 1;
-  let sx = (p.x * 0.5 + 0.5) * innerWidth,
-    sy = (-p.y * 0.5 + 0.5) * innerHeight;
-  if (behind) {
-    sx = innerWidth - sx;
-    sy = innerHeight - 40;
-  }
-  sx = Math.max(40, Math.min(innerWidth - 40, sx));
-  sy = Math.max(60, Math.min(innerHeight - 40, sy));
-  const dist = Math.hypot(t[0] - player.x, t[2] - player.z);
-  m.hidden = false;
-  m.querySelector('span')!.textContent =
-    `${next!.id === 'cards' ? '8-Twelve' : next!.id === 'mrt' ? (stationAt(player.x, player.z, player.y) ? 'Buona Vista' : 'MRT') : 'one-north Residences'} · ${Math.round(dist)} m`;
-  m.style.transform = `translate(${sx}px, ${sy}px) translate(-50%, -100%)`;
+  if (t) markTo(label, t);
 }
 
 export const arrivalDone = () => finished;

@@ -12,7 +12,7 @@ import { cols } from './core/collision';
 import { SETTINGS } from './core/settings';
 import { S, inWorld } from './core/state';
 import { player, updatePlayer, applyCamera } from './core/player';
-import { advanceTime } from './core/time';
+import { advanceTime, resetWake } from './core/time';
 import { initInput } from './core/input';
 import { updateInteriors } from './interiors/interior';
 import { updateAudio } from './audio/audio';
@@ -27,21 +27,28 @@ import { initStream, updateStream, applyCityFog, liveChunks, pools } from './cit
 import { updateTrains, pickStop } from './city/trains';
 import { updateFares } from './city/fares';
 import { updateInteraction, interact } from './game/interact';
-import { startArrival, updateArrival } from './game/arrival';
-import { showMoney } from './game/stats';
+import { startArrival, updateArrival, loadArrival } from './game/arrival';
+import { updateWork, openLaptop, loadWork } from './game/work';
+import { updateMarker } from './game/marker';
+import { buildBuses, updateBuses, busMenu } from './city/buses';
+import { buildChopee } from './places/chopee';
+import { buildClementi } from './places/clementi';
+import { showMoney, showVitals, resetStats, drain, addEnergy, addMood } from './game/stats';
 import { buildChangi, updateChangi, ARRIVAL } from './places/changi';
-import { buildOneNorth } from './places/onenorth';
+import { buildOneNorth, loadOneNorth } from './places/onenorth';
 import { actions } from './core/input';
 import { roadCloseness } from './city/roads';
 import { landAt, polyEdgeDist, ISLANDS } from './city/geo';
 
 /* ================= input & UI ================= */
 addEventListener('resize', resize);
-// E: aboard a train, choose the stop to get off at.
+// E: aboard a bus, ring the bell; aboard a train, choose the stop; otherwise use what's in front.
 actions.interact = () => {
-  if (player.ride) pickStop();
+  if (player.ride) busMenu() || pickStop();
   else interact();
 };
+// L: the work laptop.
+actions.laptop = () => openLaptop();
 bindOverlayButtons();
 initInput();
 bindSettingsUI();
@@ -52,6 +59,9 @@ generateCity();
 buildMrt();
 buildChangi();
 buildOneNorth();
+buildChopee();
+buildClementi();
+buildBuses();
 initStream();
 const genMs = performance.now() - tGen;
 
@@ -64,6 +74,24 @@ function newGame() {
   player.pitch = 0;
   S.day = 1;
   S.time = 7 * 60 + 30;
+  resetWake();
+  resetStats();
+  loadArrival(undefined);
+  loadOneNorth(undefined);
+  loadWork(undefined);
+}
+
+/** Energy runs down with the hours awake; a night's sleep fills it up. */
+let lastTime = -1,
+  lastDay = -1;
+function vitalsTick() {
+  if (!S.started) return;
+  if (lastDay >= 0 && S.day > lastDay) {
+    addEnergy(100);
+    addMood(3);
+  } else if (lastTime >= 0 && S.time > lastTime) drain(S.time - lastTime);
+  lastTime = S.time;
+  lastDay = S.day;
 }
 
 /* ================= loop ================= */
@@ -95,6 +123,7 @@ function loop(now: number) {
   }
   lap('player');
   updateTrains(dt);
+  updateBuses(dt);
   lap('trains');
   updateStream(player.x, player.z);
   lap('stream');
@@ -103,7 +132,12 @@ function loop(now: number) {
   updateChangi(dt);
   updateFares();
   updateInteraction();
-  if (S.started) updateArrival();
+  if (S.started) {
+    updateArrival();
+    updateWork();
+    vitalsTick();
+  }
+  updateMarker();
   const water =
     landAt(player.x, player.z) === 'sea' ? 1 : Math.max(0, 1 - polyEdgeDist(ISLANDS.main, player.x, player.z) / 40);
   updateAudio({ road: roadCloseness(player.x, player.z), water });
@@ -148,10 +182,10 @@ async function start() {
     /* draw with fallbacks */
   }
   buildSigns();
-  // Money shows under the clock; energy and mood come back later.
+  // Energy, mood and money under the clock.
   document.querySelector<HTMLElement>('.vitals')!.hidden = false;
-  document.querySelectorAll<HTMLElement>('.vital').forEach(v => (v.hidden = true));
   showMoney();
+  showVitals();
   applyQuality();
   applyCityFog();
   // Behind the start screen: the new-game spot, or where the saved game left off.
@@ -236,8 +270,28 @@ if (import.meta.env.DEV) {
     import('./game/stats'),
     import('./places/changi'),
     import('./places/onenorth'),
+    import('./game/work'),
+    import('./city/buses'),
+    import('./places/sites'),
   ]).then(
-    ([geo, gen, stream, trains, mrt, collision, levels, mrtbuild, settings, quality, stats, changi, onenorth]) => {
+    ([
+      geo,
+      gen,
+      stream,
+      trains,
+      mrt,
+      collision,
+      levels,
+      mrtbuild,
+      settings,
+      quality,
+      stats,
+      changi,
+      onenorth,
+      work,
+      buses,
+      sites,
+    ]) => {
       (window as unknown as Record<string, unknown>).__sg = {
         S,
         player,
@@ -254,6 +308,9 @@ if (import.meta.env.DEV) {
         stats,
         changi,
         onenorth,
+        work,
+        buses,
+        sites,
         renderer,
         parts,
       };

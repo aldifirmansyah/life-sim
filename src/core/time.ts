@@ -40,6 +40,9 @@ const wake = {
   after: () => {},
   text: 'A new day in Singapore.',
 };
+export function resetWake() {
+  Object.assign(wake, { place: () => {}, after: () => {}, text: 'A new day in Singapore.' });
+}
 export function setWake(place: () => void, after: () => void, text: string) {
   Object.assign(wake, { place, after, text });
 }
@@ -59,6 +62,23 @@ export function passTime(minutes: number, text: string, done?: () => void) {
       done?.();
     }, 400);
   }, 1100);
+}
+
+/** A quick fade to black and back (a lift ride): `mid` runs while the screen is dark. */
+export function blink(text: string, mid: () => void) {
+  if (S.sleeping) return;
+  S.sleeping = true;
+  const f = $('fade');
+  f.textContent = text;
+  f.classList.add('on');
+  setTimeout(() => {
+    mid();
+    S.time = Math.min(S.time + 1, 26 * 60 - 1);
+    setTimeout(() => {
+      f.classList.remove('on');
+      S.sleeping = false;
+    }, 250);
+  }, 700);
 }
 
 /** Sleep until 06:00: automatically at 02:00, or from home. */

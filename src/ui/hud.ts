@@ -5,7 +5,7 @@ import { player } from '../core/player';
 import { dateLabel } from '../game/calendar';
 import { sfx, type Sfx } from '../audio/audio';
 import { placeName, regionAt, townAt } from '../city/geo';
-import { rideLabel, stationAt } from '../city/trains';
+import { stationAt } from '../city/trains';
 
 /** Non-blocking notification; at most three are shown. */
 export function toast(title: string, sub?: string, sound: Sfx | null = 'toast') {
@@ -28,7 +28,7 @@ let lastMin = -1;
 let lastEyebrow = '';
 /** Where Aldi is, in words: aboard a train, on a platform, in a room, or a place on the island. */
 export function whereLabel() {
-  const r = rideLabel();
+  const r = player.ride?.label();
   if (r) return r;
   const st = stationAt(player.x, player.z, player.y);
   if (st) return `${st.st.name} MRT`;
