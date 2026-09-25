@@ -3,10 +3,9 @@ import * as THREE from 'three';
 import { scene } from './context';
 import { tex } from './textures';
 import { glowMats } from './lighting';
-import { GZ, GX, GZN, GXN } from '../world/layout';
 import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js';
 
-interface SignSpec {
+export interface SignSpec {
   text: string;
   sub?: string;
   w: number;
@@ -65,27 +64,37 @@ interface Placed {
   both: boolean;
 }
 let queue: Placed[] = [];
-function sign(o: SignSpec, x: number, y: number, z: number, ry: number, { glow = false, both = false } = {}) {
+export function sign(o: SignSpec, x: number, y: number, z: number, ry: number, { glow = false, both = false } = {}) {
   queue.push({ o, at: [x, y, z, ry], glow, both });
 }
 
 const AW = 2048,
-  CW = 1016,
-  PAD = 8;
+  PAD = 8,
+  MAXH = 4096;
 function buildAtlas() {
-  // Shelf packing in two columns; a sign is 1016 px wide, as tall as its aspect needs.
-  const cells = queue.map(q => ({ q, h: Math.max(120, Math.round((CW * q.o.h) / q.o.w)), x: 0, y: 0 }));
-  const colY = [0, 0];
-  for (const c of cells) {
-    const k = colY[0] <= colY[1] ? 0 : 1;
-    c.x = k * (CW + PAD * 2) + PAD;
-    c.y = colY[k] + PAD;
-    colY[k] += c.h + PAD * 2;
+  // Shelf packing in columns: two columns (1016 px signs) when they fit in 4096 px of height, otherwise
+  // four or eight narrower ones. A sign is as tall as its aspect needs.
+  let cols = 2,
+    CW = 0,
+    AH = 0;
+  let cells: { q: Placed; h: number; x: number; y: number }[] = [];
+  for (; cols <= 8; cols *= 2) {
+    CW = AW / cols - PAD * 2;
+    cells = queue.map(q => ({ q, h: Math.max(Math.round(CW * 0.12), Math.round((CW * q.o.h) / q.o.w)), x: 0, y: 0 }));
+    const colY = new Array(cols).fill(0);
+    for (const c of cells) {
+      let k = 0;
+      for (let i = 1; i < cols; i++) if (colY[i] < colY[k]) k = i;
+      c.x = k * (CW + PAD * 2) + PAD;
+      c.y = colY[k] + PAD;
+      colY[k] += c.h + PAD * 2;
+    }
+    AH = Math.max(...colY);
+    if (AH <= MAXH) break;
   }
-  const AH = Math.max(colY[0], colY[1]);
   const t = tex(
     AW,
-    AH,
+    Math.min(AH, MAXH),
     g => {
       for (const c of cells) {
         // The border colour runs into the padding, so mipmaps don't bleed a neighbour in.
@@ -108,8 +117,8 @@ function buildAtlas() {
     const { o, at, glow, both } = c.q;
     const u0 = c.x / AW,
       u1 = (c.x + CW) / AW,
-      v1 = 1 - c.y / AH,
-      v0 = 1 - (c.y + c.h) / AH;
+      v1 = 1 - c.y / Math.min(AH, MAXH),
+      v0 = 1 - (c.y + c.h) / Math.min(AH, MAXH);
     for (const r of both ? [at[3], at[3] + Math.PI] : [at[3]]) {
       const geo = new THREE.PlaneGeometry(o.w, o.h);
       const uv = geo.attributes.uv as THREE.BufferAttribute;
@@ -135,197 +144,8 @@ function buildAtlas() {
   queue = [];
 }
 
-export function signs() {
-  sign(
-    {
-      text: 'Warung Bu Sri',
-      sub: 'SEMBAKO · JAJANAN · GAS · PULSA',
-      w: 5,
-      h: 0.8,
-      bg: '#fbe7a1',
-      fg: '#c7301f',
-      subfg: '#1f5f8a',
-      border: '#1f5f8a',
-    },
-    8.4,
-    3.0,
-    -4.86,
-    Math.PI,
-    { glow: true },
-  );
-  sign(
-    { text: 'Warung Bu Sri', w: 3.2, h: 0.6, bg: '#fbe7a1', fg: '#c7301f', border: '#1f5f8a' },
-    5.47,
-    3.0,
-    -2.65,
-    -Math.PI / 2,
-    { glow: true },
-  );
-  sign(
-    {
-      text: 'Warkop Berkah',
-      sub: 'KOPI · MIE REBUS · GORENGAN',
-      w: 4.2,
-      h: 0.72,
-      bg: '#241b14',
-      fg: '#f2b53c',
-      subfg: '#f4ecdc',
-      border: '#f2b53c',
-    },
-    -7.3,
-    2.4,
-    17.28,
-    Math.PI,
-    { glow: true },
-  );
-  sign(
-    {
-      text: 'Musholla Al-Ikhlas',
-      sub: 'RT 04 / RW 07',
-      w: 5.2,
-      h: 0.8,
-      bg: '#2e8b57',
-      fg: '#fdfbf3',
-      subfg: '#e9d58a',
-      border: '#e9d58a',
-    },
-    4.93,
-    3.3,
-    -17,
-    -Math.PI / 2,
-    { glow: true },
-  );
-  sign(
-    {
-      text: 'Balai Warga',
-      sub: 'RW 07 · KAMPUNG SUKAMAJU',
-      w: 5.6,
-      h: 0.8,
-      bg: '#f4ecd8',
-      fg: '#8e2b1f',
-      subfg: '#3b3226',
-      border: '#8e2b1f',
-    },
-    -13,
-    3.21,
-    -30.48,
-    Math.PI,
-  );
-  sign(
-    {
-      text: 'Pos Ronda',
-      sub: 'RT 04 · SIAGA 24 JAM',
-      w: 2.4,
-      h: 0.62,
-      bg: '#d8392a',
-      fg: '#fff7e8',
-      border: '#fff7e8',
-    },
-    -3.78,
-    2.2,
-    41.1,
-    Math.PI / 2,
-  );
-  sign(
-    { text: 'Bakso Mas Joko', w: 1.5, h: 0.38, bg: '#f4f1ea', fg: '#c7301f', border: '#2f6fb3' },
-    -5.28,
-    1.56,
-    43.85,
-    Math.PI / 2,
-  );
-  sign(
-    {
-      text: 'Pangkalan Ojek',
-      sub: 'ANTAR JEMPUT · RT 04',
-      w: 3.6,
-      h: 0.62,
-      bg: '#f2b53c',
-      fg: '#2a1c05',
-      border: '#2a1c05',
-    },
-    3.25,
-    2.98,
-    54.1,
-    -Math.PI / 2,
-  );
-  sign(
-    {
-      text: 'Selamat Datang',
-      sub: 'KAMPUNG SUKAMAJU · RT 04 / RW 07',
-      w: 7.8,
-      h: 0.62,
-      bg: '#f4f1ea',
-      fg: '#c7301f',
-      subfg: '#2a2a2a',
-      border: '#c7301f',
-    },
-    0,
-    4.33,
-    57.82,
-    0,
-  );
-  sign(
-    {
-      text: 'Hati-hati di Jalan',
-      sub: 'TERIMA KASIH ATAS KUNJUNGAN ANDA',
-      w: 7.8,
-      h: 0.62,
-      bg: '#f4f1ea',
-      fg: '#c7301f',
-      subfg: '#2a2a2a',
-      border: '#c7301f',
-    },
-    0,
-    4.33,
-    57.18,
-    Math.PI,
-  );
-  sign(
-    {
-      text: 'Kebun Warga',
-      sub: 'TANAM · RAWAT · PETIK',
-      w: 2.6,
-      h: 0.55,
-      bg: '#3a7a3a',
-      fg: '#fdfbf3',
-      border: '#e9d58a',
-    },
-    41.6,
-    1.35,
-    -51.98,
-    Math.PI,
-    { both: true },
-  );
-  GZ.forEach((g, i) => {
-    const t = {
-      text: 'GG. ' + GZN[i].slice(5).toUpperCase(),
-      w: 1.4,
-      h: 0.34,
-      bg: '#1d6e46',
-      fg: '#ffffff',
-      border: '#ffffff',
-      font: 'ui',
-    } as const;
-    sign(t, -3.35, 2.7, g - 1.5, 0, { both: true });
-    sign(t, 3.35, 2.7, g + 1.5, 0, { both: true });
-  });
-  GX.forEach((g, i) =>
-    sign(
-      {
-        text: 'GG. ' + GXN[i].slice(5).toUpperCase(),
-        w: 1.4,
-        h: 0.34,
-        bg: '#1d6e46',
-        fg: '#ffffff',
-        border: '#ffffff',
-        font: 'ui',
-      },
-      g - 1.55,
-      2.7,
-      -51.7,
-      Math.PI / 2,
-      { both: true },
-    ),
-  );
-  buildAtlas();
+/** Build every queued sign into the atlas and the two merged meshes. Call once, after the fonts load and
+    after everything that places signs (station names, shopfronts). */
+export function buildSigns() {
+  if (queue.length) buildAtlas();
 }

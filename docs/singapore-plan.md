@@ -137,7 +137,7 @@ Same budget (spec §9): under 150 draw calls, under 300k triangles, under 8 ms o
 
 ## Steps (a check with the user after each)
 
-1. **The new spec and the groundwork.** Rewrite `docs/design-spec.md` and CLAUDE.md for Singapore. The 30-minute day. The island framework: regions with their own seeds and compression, 128 m chunks with streaming, the skyline, builders for HDB blocks, shophouse rows and towers, the road graph. Clear out the kampung content. Aldi can walk a blockout of the island's towns and ride an MRT line through it.
+1. **The new spec and the groundwork (done).** Rewrite `docs/design-spec.md` and CLAUDE.md for Singapore. The 30-minute day. The island framework: regions with their own seeds and compression, 128 m chunks with streaming, the skyline, builders for HDB blocks, shophouse rows and towers, the road graph. Clear out the kampung content. Aldi can walk a blockout of the island's towns and ride an MRT line through it.
 2. **Changi and the first ride.** The airport (arrival hall, the dome and waterfall, the MRT station), the East-West Line across the island with the transfers at Tanah Merah and Buona Vista. The arrival tutorial.
 3. **Science Park Drive, one-north and Clementi.** Chopee's headquarters (the lobby and gantries, the team's floor, the pantry, meeting rooms, the food court), the serviced apartment at one-north, Clementi's town centre, HDB blocks with void decks and lifts, the market and hawker centre, the mall, the bus interchange; NUS and Kent Ridge between them. The sprint job and buses.
 4. **The CBD and Marina Bay.** Chopee's city office tower (lift lobby, the floor, meeting rooms), Raffles Place, the hawker market, the river quays, Marina Bay's landmarks. Meetings, all-hands and hackathons there.

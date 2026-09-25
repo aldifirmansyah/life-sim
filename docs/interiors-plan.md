@@ -1,3 +1,5 @@
+> **Kampung version.** This plan was for Kampung Sukamaju (kept on the branch `kampung-v1`). The interiors framework it built (`interiors/interior.ts`, `door.ts`, `shutter.ts`) carries over to Singapore; the rooms themselves were kampung content. Singapore's interiors are planned in `docs/singapore-plan.md`.
+
 # Walk-in interiors: plan
 
 Agreed with the user after Phase 7. The spec (§4) is updated to match.

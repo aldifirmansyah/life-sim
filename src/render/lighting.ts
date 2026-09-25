@@ -1,14 +1,13 @@
-/* Day/night: keyframed sky, sun/moon and hemisphere light, window glow,
-   street-light pools and pasar pagi visibility. `h` is the hour of day (0–24). */
+/* Day/night: keyframed sky, sun/moon and hemisphere light, window glow and
+   street lights. `h` is the hour of day (0–24). Other modules follow the light
+   through `envHooks` (called with the hour, night 0..1 and window glow 0..1). */
 import * as THREE from 'three';
 import { smooth } from '../core/util';
 import { SETTINGS } from '../core/settings';
 import { player } from '../core/player';
 import { scene, fog, camera, renderer } from './context';
-import { litMat, bulbMat, pasar } from './batch';
-import { skyU, sky, starMat, stars, moon, hillMat } from './sky';
-import { waterTex, poolMat } from '../world/ground';
-import { pasarCols } from '../world/pasar';
+import { litMat, bulbMat } from './batch';
+import { skyU, sky, starMat, stars, moon } from './sky';
 
 export const hemi = new THREE.HemisphereLight(0xffffff, 0x444444, 1);
 scene.add(hemi);
@@ -55,6 +54,10 @@ const KF = (
 const tmpC = [new THREE.Color(), new THREE.Color(), new THREE.Color(), new THREE.Color(), new THREE.Color()];
 /** Sign materials whose emissive glow follows the window lights. */
 export const glowMats: THREE.MeshLambertMaterial[] = [];
+/** Called at the end of every `updateEnv` with the hour, night (0..1) and window glow (0..1). */
+export const envHooks: ((h: number, night: number, win: number) => void)[] = [];
+/** The current light, for materials that shade themselves (the skyline, the sea). */
+export const env = { night: 0, win: 0, hor: new THREE.Color(), top: new THREE.Color() };
 
 function envAt(h: number) {
   let i = 0;
@@ -101,23 +104,20 @@ export function updateEnv(h: number) {
   moon.visible = !day;
   moon.material.opacity = night;
   moon.position.set(
-    camera.position.x + _dir.x * 380,
-    camera.position.y + _dir.y * 380,
-    camera.position.z + _dir.z * 380,
+    camera.position.x + _dir.x * 1900,
+    camera.position.y + _dir.y * 1900,
+    camera.position.z + _dir.z * 1900,
   );
   sky.position.copy(camera.position);
   stars.position.copy(camera.position);
   litMat.color.setRGB(0.17 + 0.83 * win, 0.2 + 0.8 * win, 0.24 + 0.76 * win);
   bulbMat.color.setRGB(0.55 + 0.45 * night, 0.55 + 0.43 * night, 0.5 + 0.3 * night);
-  poolMat.color.setRGB(0.7 * night, 0.5 * night, 0.28 * night);
   for (const m of glowMats) m.emissiveIntensity = win * 0.55;
-  hillMat.color.copy(e.hor).lerp(e.top, 0.35).multiplyScalar(0.82);
-  waterTex.offset.x = (performance.now() * 0.00002) % 1;
-  const ps = h >= 5.3 && h < 9.6;
-  if (pasar.visible !== ps) {
-    pasar.visible = ps;
-    pasarCols.forEach(c => (c.on = ps));
-  }
+  env.night = night;
+  env.win = win;
+  env.hor.copy(e.hor);
+  env.top.copy(e.top);
+  for (const f of envHooks) f(h, night, win);
   // Indoors: the sky light is mostly blocked by walls and roof. With shadows the sun only comes in
   // through the openings; without them (low quality) it is turned right down.
   if (indoor > 0) {

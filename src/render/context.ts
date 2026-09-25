@@ -8,5 +8,5 @@ renderer.shadowMap.type = THREE.PCFSoftShadowMap;
 export const scene = new THREE.Scene();
 export const fog = new THREE.Fog(0xbfe3f5, 45, 140);
 scene.fog = fog;
-export const camera = new THREE.PerspectiveCamera(70, innerWidth / innerHeight, 0.1, 700);
+export const camera = new THREE.PerspectiveCamera(70, innerWidth / innerHeight, 0.15, 2600);
 camera.rotation.order = 'YXZ';

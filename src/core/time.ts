@@ -1,57 +1,53 @@
-/* Game clock. Base rate 1.2 game-minutes per real second (24 h ≈ 20 min);
-   holding T runs at 60×. At 26:00 Raka falls asleep and wakes at 06:00. */
+/* Game clock. Base rate 0.8 game-minutes per real second (24 h ≈ 30 min);
+   holding T runs at 60×. While Aldi rides the MRT the clock runs faster
+   (`S.clockScale`), so a ride takes about as long in game time as the real
+   journey would. At 26:00 Aldi falls asleep and wakes at 06:00. */
 import { $ } from './util';
 import { S } from './state';
 import { player, keys } from './player';
 import { toast } from '../ui/hud';
-import { sleepRestore } from '../game/stats';
 import { dateLabel } from '../game/calendar';
-import { bedug } from '../audio/audio';
+
+/** Game-minutes per real second. */
+export const RATE = 0.8;
+/** Holding T: time runs this much faster (game-minutes per real second)… */
+export const FAST = 60;
+/** …except aboard a train, where the ride (and the city streaming past) can only go so fast. */
+export const RIDE_FAST = 6;
+/** How much faster than normal the world runs this frame (the rail clock follows it). */
+export function timeWarp() {
+  if (!keys.has('KeyT')) return 1;
+  return player.ride ? RIDE_FAST : FAST / RATE;
+}
 
 /** [minute of day, toast title, toast body] */
 export const EVENTS: [number, string, string][] = [
-  [9.5 * 60, 'Pasar pagi is packing up', 'The vegetable stalls leave Jalan Sukamaju until tomorrow.'],
-  [11 * 60 + 55, 'Adzan Dzuhur', 'Heard from the musholla and the masjid across the kali.'],
-  [15 * 60 + 15, 'Adzan Ashar', 'The afternoon heat starts to ease.'],
-  [17 * 60 + 55, 'Adzan Maghrib', 'Street lamps flicker on along the gangs.'],
-  [19 * 60 + 5, 'Adzan Isya', 'Warkop Berkah fills up for the evening.'],
-  [22 * 60, 'The kampung is going quiet', 'The night watch gathers at the pos ronda.'],
-  [25 * 60 + 30, 'Raka is getting sleepy', 'He will doze off at 02:00 wherever he is.'],
+  [23 * 60, 'The last trains are running', 'The MRT stops for the night soon after midnight.'],
+  [25 * 60 + 30, 'Aldi is getting sleepy', 'At 02:00 Aldi will doze off wherever that is.'],
 ];
 
 export function advanceTime(dt: number) {
-  const scale = keys.has('KeyT') ? 60 : 1.2;
+  const scale = RATE * S.clockScale * timeWarp();
   const prev = S.time;
   S.time += dt * scale;
-  for (const [m, t, s] of EVENTS)
-    if (prev < m && S.time >= m) {
-      toast(t, s);
-      // The bedug sounds from the musholla before each call to prayer.
-      if (t.startsWith('Adzan')) bedug();
-    }
+  for (const [m, t, s] of EVENTS) if (prev < m && S.time >= m) toast(t, s);
   if (S.time >= 26 * 60 && !S.sleeping) sleep();
 }
 
-/** Where Raka wakes up: in bed in his room once the house can be walked into (set by interiors/rakahome). */
+/** Where Aldi wakes up (set by the home, once there is one). */
 const wake = {
-  place: () => {
-    player.x = 16.5;
-    player.z = 18.1;
-    player.yaw = 0;
-    player.pitch = 0;
-  },
+  place: () => {},
   after: () => {},
-  text: "Raka wakes up on the teras of his grandmother's house.",
+  text: 'A new day in Singapore.',
 };
 export function setWake(place: () => void, after: () => void, text: string) {
   Object.assign(wake, { place, after, text });
 }
 
-/** Sleep until 06:00: automatically at 02:00, or from home. Energy comes back with the hours slept. */
+/** Sleep until 06:00: automatically at 02:00, or from home. */
 export function sleep() {
   if (S.sleeping) return;
   S.sleeping = true;
-  sleepRestore(S.time);
   const f = $('fade');
   f.textContent = 'Zzz…';
   f.classList.add('on');
@@ -65,7 +61,7 @@ export function sleep() {
     setTimeout(() => {
       f.classList.remove('on');
       S.sleeping = false;
-      toast(`Selamat pagi. ${dateLabel(S.day)}`, wake.text);
+      toast(`Good morning. ${dateLabel(S.day)}`, wake.text);
       wake.after();
     }, 400);
   }, 1400);

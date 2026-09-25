@@ -5,9 +5,9 @@ import * as THREE from 'three';
 import { scene } from '../render/context';
 import { addCol, type Collider } from '../core/collision';
 import { player } from '../core/player';
-import type { Frame } from '../world/layout';
+import type { Frame } from '../core/util';
 import { sfx } from '../audio/audio';
-import { people } from '../npc/npcs';
+import { circles } from '../core/collision';
 import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js';
 
 const doorMat = new THREE.MeshLambertMaterial({ vertexColors: true });
@@ -82,8 +82,7 @@ export class Door {
     // Neighbours coming or going open it for themselves (guests for teh).
     const d = Math.hypot(player.x - this.x, player.z - this.z);
     let visitor = false;
-    for (const r of people)
-      if (!r.hidden && r.state === 'walk' && Math.abs(r.x - this.x) + Math.abs(r.z - this.z) < 1.8) visitor = true;
+    for (const r of circles) if (Math.abs(r.x - this.x) + Math.abs(r.z - this.z) < 1.8) visitor = true;
     if (visitor && this.target === 0 && !this.locked()) {
       this.target = 1;
       if (d < 25) sfx('doorOpen');

@@ -1,11 +1,11 @@
+/* The HUD: clock, date, where Aldi is, and toasts. */
 import { $ } from '../core/util';
 import { S } from '../core/state';
 import { player } from '../core/player';
-import { zoneAt } from '../world/layout';
-import { stats } from '../game/stats';
-import { rupiah } from '../game/items';
 import { dateLabel } from '../game/calendar';
 import { sfx, type Sfx } from '../audio/audio';
+import { placeName, regionAt, townAt } from '../city/geo';
+import { rideLabel, stationAt } from '../city/trains';
 
 /** Non-blocking notification; at most three are shown. */
 export function toast(title: string, sub?: string, sound: Sfx | null = 'toast') {
@@ -25,16 +25,16 @@ export function toast(title: string, sub?: string, sound: Sfx | null = 'toast') 
 
 const pad = (n: number) => String(Math.floor(n)).padStart(2, '0');
 let lastMin = -1;
-let vitals = '';
+let lastEyebrow = '';
+/** Where Aldi is, in words: aboard a train, on a platform, in a room, or a place on the island. */
+export function whereLabel() {
+  const r = rideLabel();
+  if (r) return r;
+  const st = stationAt(player.x, player.z, player.y);
+  if (st) return `${st.st.name} MRT`;
+  return S.room || placeName(player.x, player.z);
+}
 export function updateHUD() {
-  const v = `${Math.round(stats.energy)}|${Math.round(stats.mood)}|${stats.money}`;
-  if (v !== vitals) {
-    vitals = v;
-    $('energybar').style.width = `${stats.energy}%`;
-    $('energybar').classList.toggle('low', stats.energy <= 15);
-    $('moodbar').style.width = `${stats.mood}%`;
-    $('money').textContent = rupiah(stats.money);
-  }
   const m = Math.floor(S.time);
   if (m !== lastMin) {
     lastMin = m;
@@ -43,7 +43,7 @@ export function updateHUD() {
     $('day').textContent = dateLabel(S.day);
     $('daymark').style.left = (h / 24) * 100 + '%';
   }
-  const z = S.room || zoneAt(player.x, player.z);
+  const z = whereLabel();
   if (z !== S.lastZone) {
     S.lastZone = z;
     const el = $('locname');
@@ -52,5 +52,11 @@ export function updateHUD() {
       el.textContent = z;
       el.style.opacity = '1';
     }, 180);
+  }
+  const t = townAt(player.x, player.z);
+  const eb = `Singapore · ${t ? t.region : regionAt(player.x, player.z)}`;
+  if (eb !== lastEyebrow) {
+    lastEyebrow = eb;
+    $('eyebrow').textContent = eb;
   }
 }

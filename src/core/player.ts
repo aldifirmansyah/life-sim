@@ -1,15 +1,28 @@
 /* First-person player: WASD / joystick movement with smoothing, circle-vs-box
-   collision, and the camera (eye height 1.7 m, optional head bob). */
+   collision, standing on floors (platforms, stairs) or the ground, riding a
+   vehicle, and the camera (eye height 1.7 m above the feet, optional head bob). */
 import { SETTINGS } from './settings';
 import { collide, collideCircles } from './collision';
+import { groundAt } from './levels';
 import { camera } from '../render/context';
 import { S } from './state';
 
+/** Something carrying the player (a train car): it moves the player itself from the wanted velocity. */
+export interface Ride {
+  step(dt: number, vx: number, vz: number): void;
+  /** Name for the HUD ("EW Line to Tuas Link"). */
+  label(): string;
+}
 export const player = {
   x: 0,
-  z: 55.5,
+  z: 0,
+  /** Feet height: 0 on the ground, higher on platforms and floors. */
+  y: 0,
+  vy: 0,
   vx: 0,
   vz: 0,
+  /** The vehicle the player is aboard, or null. */
+  ride: null as Ride | null,
   yaw: 0,
   pitch: 0,
   bob: 0,
@@ -72,12 +85,26 @@ export function updatePlayer(dt: number) {
   const k = 1 - Math.exp(-dt * 12);
   player.vx += (tx - player.vx) * k;
   player.vz += (tz - player.vz) * k;
-  const steps = 2;
-  for (let i = 0; i < steps; i++) {
-    player.x += (player.vx * dt) / steps;
-    player.z += (player.vz * dt) / steps;
-    collideCircles(player);
-    collide(player);
+  if (player.ride) {
+    player.ride.step(dt, player.vx, player.vz);
+  } else {
+    const steps = 2;
+    for (let i = 0; i < steps; i++) {
+      player.x += (player.vx * dt) / steps;
+      player.z += (player.vz * dt) / steps;
+      collideCircles(player);
+      collide(player, 0.32, player.y);
+    }
+    // Stand on the floor under the feet: step up stairs smoothly, fall off edges.
+    const g = groundAt(player.x, player.z, player.y);
+    if (g >= player.y - 0.02) {
+      player.y += (g - player.y) * Math.min(1, dt * 16);
+      player.vy = 0;
+    } else {
+      player.vy -= 18 * dt;
+      player.y = Math.max(g, player.y + player.vy * dt);
+      if (player.y === g) player.vy = 0;
+    }
   }
   player.speed = Math.hypot(player.vx, player.vz);
   player.bob += dt * player.speed * 2.1;
@@ -85,6 +112,6 @@ export function updatePlayer(dt: number) {
 
 export function applyCamera() {
   const b = SETTINGS.bob ? Math.sin(player.bob * 2) * 0.035 * Math.min(1, player.speed / 3.5) : 0;
-  camera.position.set(player.x, player.eye + b, player.z);
+  camera.position.set(player.x, player.y + player.eye + b, player.z);
   camera.rotation.set(player.pitch, player.yaw, 0);
 }

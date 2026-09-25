@@ -11,7 +11,7 @@ import { S } from '../core/state';
 import { player } from '../core/player';
 import { setIndoorLight } from '../render/lighting';
 import { setIndoor, sfx } from '../audio/audio';
-import type { Frame } from '../world/layout';
+import type { Frame } from '../core/util';
 
 export interface Room {
   name: string;

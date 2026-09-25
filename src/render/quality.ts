@@ -1,6 +1,6 @@
-/* Graphics quality: pixel ratio, shadow map size and fog distance. */
+/* Graphics quality: pixel ratio and shadow map size (the fog and load radius are the city's: city/stream). */
 import { SETTINGS } from '../core/settings';
-import { renderer, fog, camera } from './context';
+import { renderer, camera } from './context';
 import { sun } from './lighting';
 
 export function applyQuality() {
@@ -14,8 +14,6 @@ export function applyQuality() {
       sun.shadow.map = null;
     }
   }
-  fog.far = [95, 140, 170][q];
-  fog.near = [30, 45, 60][q];
   document
     .querySelectorAll<HTMLElement>('#qseg button')
     .forEach(b => b.setAttribute('aria-checked', String(+b.dataset.q! === q)));

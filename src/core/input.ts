@@ -5,13 +5,11 @@ import { SETTINGS, saveSettings } from './settings';
 import { player, keys, joy, look } from './player';
 import { canvas } from '../render/context';
 import { show, tryLock, pause, openMap, closeMap } from '../ui/overlays';
-import { toggleGraph } from '../npc/debug';
-import { dialogKey } from '../ui/dialogue';
 import { panelKey } from '../ui/panel';
 import { gameKey } from '../ui/minigame';
-import { interact } from '../game/interact';
-import { skipAction } from '../game/actions';
-import { openPhone, closePhone } from '../ui/contacts';
+
+/** What E does in the world (set by the game). */
+export const actions = { interact: () => {}, skip: () => {} };
 
 export function initInput() {
   document.addEventListener('pointerlockchange', () => {
@@ -55,27 +53,18 @@ export function initInput() {
     }
     // Paying, sitting, eating: Esc skips to the end, everything else waits.
     if (S.acting) {
-      if (e.code === 'Escape') skipAction();
+      if (e.code === 'Escape') actions.skip();
       e.preventDefault();
       return;
     }
     if (S.game) return gameKey(e);
-    if (S.dialog) return dialogKey(e);
     if (S.panel) return panelKey(e);
-    if (S.phone) {
-      if (e.code === 'Tab' || e.code === 'Escape') {
-        e.preventDefault();
-        closePhone();
-      }
-      return;
-    }
     if (e.code === 'Tab') {
       e.preventDefault();
-      if (!S.paused && !S.map) openPhone();
       return;
     }
     if (e.code === 'KeyE' && inWorld()) {
-      interact();
+      actions.interact();
       return;
     }
     if (e.code === 'KeyM') {
@@ -89,10 +78,6 @@ export function initInput() {
       } else if (!S.paused && !S.locked) {
         pause();
       }
-      return;
-    }
-    if (e.code === 'KeyG' && SETTINGS.debug) {
-      toggleGraph();
       return;
     }
     if (e.code === 'KeyH') {

@@ -1,4 +1,4 @@
-/* Sky dome, stars, moon and the distant hills. */
+/* Sky dome, stars and moon. */
 import * as THREE from 'three';
 import { scene } from './context';
 
@@ -10,7 +10,7 @@ export const skyU = {
   sunVis: { value: 0 },
 };
 export const sky = new THREE.Mesh(
-  new THREE.SphereGeometry(500, 32, 16),
+  new THREE.SphereGeometry(2400, 32, 16),
   new THREE.ShaderMaterial({
     uniforms: skyU,
     side: THREE.BackSide,
@@ -31,7 +31,7 @@ const starGeo = new THREE.BufferGeometry();
     const u = Math.random() * Math.PI * 2,
       v = Math.random() * 0.9 + 0.08;
     const r = Math.sqrt(1 - v * v);
-    p.push(Math.cos(u) * r * 420, v * 420, Math.sin(u) * r * 420);
+    p.push(Math.cos(u) * r * 2000, v * 2000, Math.sin(u) * r * 2000);
   }
   starGeo.setAttribute('position', new THREE.Float32BufferAttribute(p, 3));
 }
@@ -48,19 +48,7 @@ export const stars = new THREE.Points(starGeo, starMat);
 stars.renderOrder = -9;
 scene.add(stars);
 export const moon = new THREE.Mesh(
-  new THREE.SphereGeometry(7, 16, 12),
+  new THREE.SphereGeometry(35, 16, 12),
   new THREE.MeshBasicMaterial({ color: 0xf6f0da, fog: false, transparent: true }),
 );
 scene.add(moon);
-export const hillMat = new THREE.MeshBasicMaterial({ color: 0x7d8fa8, fog: false });
-for (const [x, z, r, h] of [
-  [90, -520, 260, 170],
-  [-230, -470, 170, 75],
-  [-40, -640, 320, 115],
-  [300, -430, 140, 60],
-]) {
-  const m = new THREE.Mesh(new THREE.ConeGeometry(r, h, 9), hillMat);
-  m.position.set(x, h / 2 - 6, z);
-  m.rotation.y = Math.random();
-  scene.add(m);
-}

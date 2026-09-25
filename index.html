@@ -3,7 +3,7 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
-    <title>Kampung Sukamaju</title>
+    <title>Singapore Life</title>
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
@@ -14,22 +14,22 @@
   </head>
   <body>
     <div id="app">
-      <canvas id="c" tabindex="-1" aria-label="First-person view of Kampung Sukamaju"></canvas>
+      <canvas id="c" tabindex="-1" aria-label="First-person view of Singapore"></canvas>
 
       <div id="hud" hidden>
-        <div id="loc"><span class="eyebrow">RT 04 / RW 07</span><span id="locname">Jalan Sukamaju</span></div>
+        <div id="loc"><span class="eyebrow" id="eyebrow">Singapore</span><span id="locname">Changi Airport</span></div>
         <div id="clock">
           <div id="time">06:30</div>
-          <div id="day">Senin, 3 Agustus</div>
+          <div id="day">Sunday, 26 July</div>
           <div class="dayline"><i id="daymark"></i></div>
-          <div class="vitals">
+          <div class="vitals" hidden>
             <div class="vital" title="Energy">
               <span aria-hidden="true">⚡</span><b><i id="energybar"></i></b>
             </div>
             <div class="vital" title="Mood">
               <span aria-hidden="true">☺</span><b><i id="moodbar"></i></b>
             </div>
-            <div id="money">Rp 150.000</div>
+            <div id="money"></div>
           </div>
           <div id="phonebadge" hidden><span aria-hidden="true">💬</span> <b>0</b> new · <kbd>Tab</kbd></div>
         </div>
@@ -39,8 +39,7 @@
         <div id="hint">
           <span><kbd>W</kbd><kbd>A</kbd><kbd>S</kbd><kbd>D</kbd> walk</span>
           <span><kbd>Shift</kbd> run</span>
-          <span><kbd>E</kbd> talk / use</span>
-          <span><kbd>Tab</kbd> phone</span>
+          <span><kbd>E</kbd> use</span>
           <span><kbd>M</kbd> map</span>
           <span><kbd>T</kbd> hold to fast-forward</span>
           <span><kbd>F3</kbd> performance</span>
@@ -54,23 +53,21 @@
         <pre id="debug" hidden></pre>
         <div id="joy" hidden><div id="knob"></div></div>
         <div class="touchbtns" id="touchbtns" hidden>
-          <button id="ttalk" type="button" hidden>Talk</button><button id="tphone" type="button">Contacts</button
-          ><button id="tmap" type="button">Map</button><button id="tpause" type="button">Pause</button>
+          <button id="ttalk" type="button" hidden>Use</button><button id="tmap" type="button">Map</button><button id="tpause" type="button">Pause</button>
         </div>
       </div>
 
       <section id="start" class="overlay start" hidden>
         <div class="panel">
-          <p class="eyebrow">Kampung Sukamaju · RT 04 / RW 07</p>
-          <h1>Kampung</h1>
+          <p class="eyebrow">Singapore · a new life</p>
+          <h1>Singapore</h1>
           <p class="lede">
-            Raka is back in the kampung he left at ten, moving into his late grandmother's house on Gang Mawar. An ojek
-            drops him at the gapura with one suitcase, and Pak RT is waiting.
+            Aldi lands at Changi with one suitcase and a new job as a software engineer at Chopee on Science Park Drive.
+            The whole island is out there, and the MRT is right outside the airport.
           </p>
           <div class="actions">
             <button id="cont" class="primary" type="button" hidden>Continue</button>
-            <button id="go" class="primary" type="button">Masuk kampung</button>
-            <label class="skip"><input id="skipintro" type="checkbox" /> Skip the introduction</label>
+            <button id="go" class="primary" type="button">Start</button>
           </div>
           <p id="continfo" class="build" hidden></p>
           <dl class="keys" id="keys">
@@ -87,20 +84,12 @@
               <dd>Look around</dd>
             </div>
             <div>
-              <dt><kbd>E</kbd></dt>
-              <dd>Talk to neighbours, shop, use things</dd>
-            </div>
-            <div>
-              <dt><kbd>Tab</kbd></dt>
-              <dd>Phone: contacts, bag, skills</dd>
-            </div>
-            <div>
               <dt><kbd>M</kbd></dt>
-              <dd>Map of the kampung</dd>
+              <dd>Map of the island</dd>
             </div>
             <div>
               <dt><kbd>T</kbd></dt>
-              <dd>Hold to fast-forward time</dd>
+              <dd>Hold to fast-forward time (and the trains)</dd>
             </div>
             <div>
               <dt><kbd>Esc</kbd></dt>
@@ -113,7 +102,7 @@
       <section id="pause" class="overlay pause" hidden>
         <div class="panel">
           <p class="eyebrow">Paused</p>
-          <h2>Istirahat dulu</h2>
+          <h2>Take a break lah</h2>
           <div class="actions">
             <button id="resume" class="primary" type="button">Resume</button>
             <button id="openmap" class="ghost" type="button">Open map</button>
@@ -165,12 +154,12 @@
         <div class="mappanel">
           <header>
             <div>
-              <p class="eyebrow">Peta kampung</p>
-              <h2>Kampung Sukamaju</h2>
+              <p class="eyebrow">Map</p>
+              <h2>Singapore</h2>
             </div>
             <button id="closemap" class="ghost" type="button">Close <kbd>M</kbd></button>
           </header>
-          <canvas id="mapc" width="760" height="809"></canvas>
+          <canvas id="mapc" width="1080" height="560"></canvas>
         </div>
       </section>
 
@@ -254,7 +243,7 @@
       </section>
 
       <div id="fade"></div>
-      <div id="loading">Kampung…</div>
+      <div id="loading">Singapore…</div>
     </div>
 
     <script type="module" src="/src/main.ts"></script>

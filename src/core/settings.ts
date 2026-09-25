@@ -25,13 +25,13 @@ export const SETTINGS: Settings = {
   textSpeed: 1,
 };
 try {
-  Object.assign(SETTINGS, JSON.parse(localStorage.getItem('kampung-settings') || '{}'));
+  Object.assign(SETTINGS, JSON.parse(localStorage.getItem('sg-settings') || '{}'));
 } catch (e) {
   /* storage unavailable */
 }
 export const saveSettings = () => {
   try {
-    localStorage.setItem('kampung-settings', JSON.stringify(SETTINGS));
+    localStorage.setItem('sg-settings', JSON.stringify(SETTINGS));
   } catch (e) {
     /* storage unavailable */
   }

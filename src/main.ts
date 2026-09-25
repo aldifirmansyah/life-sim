@@ -1,12 +1,12 @@
-/* Kampung — entry point. Builds the world, wires up input and UI, and runs the frame loop.
-   Import order matters a little: three.js assigns material ids in creation order, which
-   breaks draw-order ties, so the scene objects are created in the prototype's order. */
+/* Singapore — entry point. Generates the island, wires up input and UI, and runs
+   the frame loop. The city is generated once as data (city/gen.ts) and streamed
+   in around Aldi (city/stream.ts); the MRT runs on its own rail clock
+   (city/trains.ts). */
 import { $, REDUCED } from './core/util';
 import { renderer, scene, camera } from './render/context';
-import { ALL_BATCHES } from './render/batch';
 import './render/sky';
 import { updateEnv, prewarm } from './render/lighting';
-import { signs } from './render/signs';
+import { buildSigns } from './render/signs';
 import { applyQuality, resize } from './render/quality';
 import { cols } from './core/collision';
 import { SETTINGS } from './core/settings';
@@ -14,118 +14,54 @@ import { S, inWorld } from './core/state';
 import { player, updatePlayer, applyCamera } from './core/player';
 import { advanceTime } from './core/time';
 import { initInput } from './core/input';
-import { buildBlocks } from './world/houses';
-import { landmarks } from './world/landmarks';
-import { blockTrees } from './world/trees';
-import { streets, buildCables } from './world/streets';
-import { boundaries } from './world/boundaries';
-import { pasarPagi } from './world/pasar';
-import { ground } from './world/ground';
-import { initWorldNav, initResidents, updateResidents, graphStats, npcStats, residents, crowd } from './npc/npcs';
-import { updateNpcDebug } from './npc/debug';
-import { updateLife } from './social/life';
-import { updatePhone, onPhoneChange, plate, inviteToDinner } from './social/phone';
-import { buildPlate, showPlate } from './game/plate';
-import { saveGame, loadGame, clearSave, saveInfo } from './game/save';
-import { beginNewGame, initTutorial, updateTutorial, updateMarker } from './game/tutorial';
-import { dateLabel } from './game/calendar';
-import { openDialogue } from './ui/dialogue';
-import { buildFestival } from './world/festival';
-import { updateAudio } from './audio/audio';
-import { buildRain, updateWeather } from './game/weather';
-import { initEvents, updateEvents } from './game/events';
-import { registerPastimes } from './ui/pastimes';
-import { buildHouseProps, updateHouse } from './game/house';
-import { buildArcProps } from './world/arcprops';
-import { initArcs, updateArcs } from './social/arcs';
-import { updateBubbles } from './ui/bubbles';
-import { updateGame } from './ui/minigame';
-import { dailyDecay } from './social/social';
-import { updateDialogue } from './ui/dialogue';
-import { updateInteraction, interact } from './game/interact';
-import { updateStats } from './game/stats';
-import { buildGarden, gardenNewDay } from './game/garden';
-import { placeVendorStools, vendorCount, initVendors, updateVendors } from './npc/vendors';
-import { RESIDENTS } from './npc/roster';
-import { initActions, updateActions } from './game/actions';
-import { registerActivities } from './ui/activities';
-import { buildWarungInterior } from './interiors/warung';
-import { buildWarkopInterior, registerWarkop, updateWarkop } from './interiors/warkop';
-import { buildMushollaInterior, registerMusholla } from './interiors/musholla';
-import { buildBalaiInterior, registerBalai } from './interiors/balai';
-import { carveHomes, buildHomeInteriors, updateHomes } from './interiors/homes';
-import { registerWarungShop, updateWarungShop } from './interiors/warungshop';
-import { initShoppers, updateShoppers, SHOPPER_SLOTS } from './npc/shoppers';
-import { buildRakaInterior } from './interiors/raka';
 import { updateInteriors } from './interiors/interior';
-import { registerHome, updateHome } from './interiors/rakahome';
-import { bindPhone } from './ui/contacts';
+import { updateAudio } from './audio/audio';
+import { updateGame } from './ui/minigame';
 import { toast, updateHUD } from './ui/hud';
 import { show, play, bindOverlayButtons, bindSettingsUI } from './ui/overlays';
+import { saveGame, loadGame, deleteSave, saveInfo } from './game/save';
+import { dateLabel } from './game/calendar';
+import { generateCity } from './city/gen';
+import { buildMrt } from './city/mrtbuild';
+import { initStream, updateStream, applyCityFog, liveChunks, pools } from './city/stream';
+import { updateTrains } from './city/trains';
+import { CGL, PLAT_OUT, STAIR_LEN } from './city/mrtdata';
+import { roadCloseness } from './city/roads';
+import { landAt, polyEdgeDist, ISLANDS } from './city/geo';
 
 /* ================= input & UI ================= */
 addEventListener('resize', resize);
 bindOverlayButtons();
 initInput();
 bindSettingsUI();
-bindPhone();
-$('ttalk').onclick = interact;
 
-/* ================= build world =================
-   Every step draws from the seeded RNG; keep this order or the layout changes. */
-buildBlocks();
-landmarks();
-blockTrees();
-streets();
-boundaries();
-pasarPagi();
-ground();
-// NPC places and the waypoint graph; homes without a teras bench get stools, so this comes before the batches are built.
-initWorldNav();
-// Residents' homes are hollowed out now that it's known which houses they are (before the batches are built).
-carveHomes();
-// Raka's planters go into the static batches too.
-buildGarden();
-// Stools for the pasar stall-keepers.
-placeVendorStools();
-ALL_BATCHES.forEach(b => b.build());
-buildCables();
-// Spare crowd slots after the residents: the pasar stall-keepers, then the warung's shift customers.
-initResidents(vendorCount() + SHOPPER_SLOTS);
-initVendors(crowd, RESIDENTS.length);
-initShoppers(crowd, RESIDENTS.length + vendorCount());
-initActions();
-buildPlate();
-buildFestival();
-buildRain();
-buildHouseProps();
-buildArcProps();
-// Walk-in interiors (no R() calls; built after the world so they sit inside the hollow shells).
-buildRakaInterior();
-const warung = buildWarungInterior();
-buildWarkopInterior();
-buildMushollaInterior();
-buildBalaiInterior();
-buildHomeInteriors();
-onPhoneChange(() => showPlate(plate?.state === 'waiting'));
-registerActivities();
-registerHome();
-registerWarungShop(warung);
-registerWarkop();
-registerMusholla();
-registerBalai();
-initEvents();
-initTutorial();
-registerPastimes();
-initArcs(inviteToDinner);
-graphStats();
+/* ================= build the island ================= */
+const tGen = performance.now();
+generateCity();
+buildMrt();
+initStream();
+const genMs = performance.now() - tGen;
+
+/** A new game: Aldi comes out of Changi Airport by the MRT station, early on day 1. */
+function newGame() {
+  const st = CGL.stations[CGL.stations.length - 1];
+  const qx = -st.dz,
+    qz = st.dx;
+  const d = PLAT_OUT + STAIR_LEN + 5;
+  player.x = st.x + qx * d;
+  player.z = st.z + qz * d;
+  player.y = 0;
+  // Face the station.
+  player.yaw = Math.atan2(qx, qz);
+  player.pitch = 0.05;
+  S.day = 1;
+  S.time = 7 * 60 + 30;
+}
 
 /* ================= loop ================= */
-let decayDay = S.day;
 let last = performance.now(),
   fpsA = 60,
   dbgT = 0;
-/** Smoothed CPU time per frame: game update, and three.js building the frame (render submit). */
 let updMs = 0,
   drawMs = 0;
 /** With the overlay on: smoothed ms per part of the update, to see which system costs what. */
@@ -146,63 +82,24 @@ function loop(now: number) {
     updatePlayer(dt);
     advanceTime(dt);
   } else if (!S.started && !REDUCED) {
-    player.yaw = Math.sin(now * 0.00011) * 0.32;
-    player.pitch = 0.04 + Math.sin(now * 0.00007) * 0.03;
+    player.yaw += dt * 0.03;
+    player.pitch = 0.02 + Math.sin(now * 0.00007) * 0.03;
   }
-  // NPCs hold still while paused; on the start screen they idle in place.
-  // NPCs keep living while Raka talks or eats; they hold still while the game is paused.
-  const living = !S.started || S.dialog || S.acting || inWorld();
-  updateResidents(living ? dt : 0);
-  lap('move+npcs');
-  if (S.started && living) {
-    updateLife(dt);
-    updatePhone(dt);
-    updateEvents(dt);
-    updateHouse(dt);
-    updateArcs(dt);
-    updateTutorial(dt, r => void openDialogue(r));
-  }
-  lap('social');
-  updateVendors();
-  updateShoppers(S.paused ? 0 : dt);
-  lap('extras');
+  lap('player');
+  updateTrains(dt);
+  lap('trains');
+  updateStream(player.x, player.z);
+  lap('stream');
   applyCamera();
   updateInteriors(dt);
-  lap('interiors');
-  if (S.started) updateHome(dt);
-  if (S.started) updateBubbles();
-  lap('bubbles');
-  updateMarker();
-  if (S.started) updateWeather(dt);
-  soundscape();
+  const water =
+    landAt(player.x, player.z) === 'sea' ? 1 : Math.max(0, 1 - polyEdgeDist(ISLANDS.main, player.x, player.z) / 40);
+  updateAudio({ road: roadCloseness(player.x, player.z), water });
   updateEnv((S.time / 60) % 24);
   lap('env+sound');
   if (S.started) updateHUD();
-  updateNpcDebug(dt);
-  updateDialogue(dt);
-  updateInteraction();
-  lap('hud+interact');
-  if (S.started) {
-    updateWarungShop();
-    updateWarkop(dt);
-    updateHomes(dt);
-  }
-  updateActions();
   updateGame();
-  lap('shops+actions');
-  if (inWorld()) updateStats(dt);
-  // Friendships Raka has neglected for a week fade a little each new day.
-  if (S.day !== decayDay) {
-    decayDay = S.day;
-    // Autosave at the end of each day (spec §2).
-    if (S.started && saveGame()) setTimeout(() => toast('Game saved', dateLabel(S.day)), 2500);
-    dailyDecay(
-      residents.map(r => r.npc),
-      S.day,
-    );
-    gardenNewDay(S.day);
-  }
-  lap('rest');
+  lap('hud');
   const t1 = performance.now();
   renderer.render(scene, camera);
   const t2 = performance.now();
@@ -212,16 +109,18 @@ function loop(now: number) {
   if (SETTINGS.debug && (dbgT += dt) > 0.25) {
     dbgT = 0;
     const i = renderer.info.render;
+    const inst = Object.values(pools)
+      .map(p => p.live)
+      .reduce((a, b) => a + b, 0);
     $('debug').textContent =
       `fps      ${fpsA.toFixed(0)}\ndraws    ${i.calls}\ntris     ${(i.triangles / 1000).toFixed(1)}k\njs       ${updMs.toFixed(2)} update · ${drawMs.toFixed(2)} render ms\n` +
-      `colliders ${cols.length}\npos      ${player.x.toFixed(1)}, ${player.z.toFixed(1)}\nquality  ${['low', 'medium', 'high'][SETTINGS.quality]}\n` +
-      `npcs     ${npcStats.near} near · ${npcStats.mid} mid · ${npcStats.far} far\n         ${npcStats.hidden} indoors/away · ${npcStats.walking} walking\n` +
-      `npc sim  ${npcStats.ms.toFixed(2)} ms\n` +
       `parts    ${[...parts]
         .sort((a, b) => b[1] - a[1])
         .slice(0, 4)
         .map(([k, v]) => `${k} ${v.toFixed(2)}`)
-        .join(' · ')}\ngraph    ${npcStats.nodes} nodes · ${npcStats.edges} edges\nG        waypoint graph`;
+        .join(' · ')}\n` +
+      `chunks   ${liveChunks()} loaded · ${inst} instances\ncolliders ${cols.length}\n` +
+      `pos      ${player.x.toFixed(1)}, ${player.y.toFixed(1)}, ${player.z.toFixed(1)}\nquality  ${['low', 'medium', 'high'][SETTINGS.quality]}\ngen      ${genMs.toFixed(0)} ms`;
   }
   requestAnimationFrame(loop);
 }
@@ -236,16 +135,18 @@ async function start() {
   } catch (e) {
     /* draw with fallbacks */
   }
-  signs();
+  buildSigns();
   applyQuality();
+  applyCityFog();
+  // Behind the start screen: the new-game spot, or where the saved game left off.
+  if (!(saveInfo() && loadGame())) newGame();
+  updateStream(player.x, player.z, 0, true);
   prewarm();
   $('loading').remove();
   show('start', true);
-  // A saved game can be continued.
   const info = saveInfo();
   if (info) {
     $('cont').hidden = false;
-    $('cont').textContent = 'Continue';
     $('continfo').hidden = false;
     $('continfo').textContent = `Saved game: ${info.label}`;
     $('go').textContent = 'New game';
@@ -255,20 +156,6 @@ async function start() {
   requestAnimationFrame(loop);
 }
 
-/* ================= sound ================= */
-
-const chatSpots: [number, number][] = [];
-/** What the world sounds need to know this frame: the bakso cart, the ronda, chats nearby. */
-function soundscape() {
-  const hour = (S.time / 60) % 24;
-  const joko = residents.find(r => r.npc.id === 'joko')!;
-  const cartOut = joko.state === 'at' && joko.slot.poi.id === 'bakso' && !joko.hidden;
-  const ronda = (hour >= 22 || hour < 2) && residents.some(r => r.state === 'at' && r.slot.poi.id === 'ronda');
-  chatSpots.length = 0;
-  for (const r of residents) if (r.chat && r.dist < 10) chatSpots.push([r.x, r.z]);
-  updateAudio({ bakso: cartOut ? [-5.4, 43.85] : null, ronda, chats: chatSpots });
-}
-
 /* ================= new game, continue, saving ================= */
 
 let started = false;
@@ -276,27 +163,37 @@ $('go').addEventListener('click', () => {
   if (started) return;
   if (saveInfo() && !confirm('Start a new game? Your saved game will be replaced.')) return;
   started = true;
-  clearSave();
-  beginNewGame($<HTMLInputElement>('skipintro').checked);
+  deleteSave();
+  newGame();
+  updateStream(player.x, player.z, 0, true);
   play();
+  toast(
+    'Welcome to Singapore',
+    'Changi Airport, Sunday morning. The MRT is right here: climb the stairs to the platform.',
+  );
 });
 $('cont').addEventListener('click', () => {
   if (started) return;
   started = true;
   if (!loadGame()) {
     toast('Could not load the saved game', 'Starting a new one instead.');
-    beginNewGame(false);
+    newGame();
   } else toast(`Welcome back. ${dateLabel(S.day)}`, 'Your game has been loaded.');
+  updateStream(player.x, player.z, 0, true);
   play();
 });
 $('savenow').addEventListener('click', () => {
-  $('savemsg').textContent = saveGame() ? `Saved: ${dateLabel(S.day)}` : 'Could not save (storage unavailable).';
+  $('savemsg').textContent = saveGame()
+    ? `Saved: ${dateLabel(S.day)}`
+    : player.ride
+      ? 'You can save once you are off the train.'
+      : 'Could not save (storage unavailable).';
 });
 let discarding = false;
 $('newgame').addEventListener('click', () => {
-  if (!confirm('Start over from the first morning? Your saved game will be deleted.')) return;
+  if (!confirm('Start over from arrival day? Your saved game will be deleted.')) return;
   discarding = true;
-  clearSave();
+  deleteSave();
   location.reload();
 });
 // Save when the tab is hidden or closed, and every couple of minutes.
@@ -305,74 +202,35 @@ document.addEventListener('visibilitychange', () => document.hidden && !discardi
 setInterval(() => inWorld() && saveGame(), 120000);
 start();
 
-// Dev-only handle for headless checks (scripts drive time and read NPC state through it).
+// Dev-only handle for headless checks.
 if (import.meta.env.DEV) {
   Promise.all([
-    import('./npc/npcs'),
-    import('./npc/navgraph'),
-    import('./npc/places'),
+    import('./city/geo'),
+    import('./city/gen'),
+    import('./city/stream'),
+    import('./city/trains'),
+    import('./city/mrtdata'),
     import('./core/collision'),
-    import('./game/stats'),
-    import('./game/garden'),
-    import('./world/landmarks'),
-    import('./social/social'),
-    import('./social/plans'),
-    import('./social/phone'),
-    import('./social/arcs'),
-    import('./game/events'),
-    import('./game/house'),
-    import('./game/jobs'),
-    import('./social/reputation'),
-    import('./dialogue/lines.json'),
-    import('./game/interact'),
-    import('./game/save'),
-    import('./game/tutorial'),
-  ]).then(
-    ([
-      npcs,
-      nav,
-      places,
+    import('./core/levels'),
+    import('./city/mrtbuild'),
+    import('./core/settings'),
+    import('./render/quality'),
+  ]).then(([geo, gen, stream, trains, mrt, collision, levels, mrtbuild, settings, quality]) => {
+    (window as unknown as Record<string, unknown>).__sg = {
+      S,
+      player,
+      geo,
+      gen,
+      stream,
+      trains,
+      mrt,
       collision,
-      stats,
-      garden,
-      landmarks,
-      social,
-      plans,
-      phone,
-      arcs,
-      events,
-      house,
-      jobs,
-      reputation,
-      lines,
-      interact,
-      save,
-      tutorial,
-    ]) => {
-      (window as unknown as Record<string, unknown>).__kampung = {
-        S,
-        player,
-        npcs,
-        nav,
-        places,
-        collision,
-        stats,
-        garden,
-        landmarks,
-        social,
-        plans,
-        phone,
-        arcs,
-        events,
-        house,
-        jobs,
-        reputation,
-        lines: lines.default,
-        interact,
-        save,
-        tutorial,
-        renderer,
-      };
-    },
-  );
+      levels,
+      mrtbuild,
+      settings,
+      quality,
+      renderer,
+      parts,
+    };
+  });
 }

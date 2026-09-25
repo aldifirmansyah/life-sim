@@ -197,7 +197,15 @@ let stepDist = 0,
   lastX = 0,
   lastZ = 0;
 
-export function updateAudio(extra: { bakso?: [number, number] | null; chats?: [number, number][]; ronda?: boolean }) {
+/** What the world sounds need to know this frame: how close the roads and the water are (0..1), and
+    optional placed sources. */
+export function updateAudio(extra: {
+  road?: number;
+  water?: number;
+  bakso?: [number, number] | null;
+  chats?: [number, number][];
+  ronda?: boolean;
+}) {
   if (!ctx) return;
   applyVolumeLazy();
   const t = now();
@@ -207,11 +215,10 @@ export function updateAudio(extra: { bakso?: [number, number] | null; chats?: [n
   const live = S.started && !S.paused;
   const day = hour >= 5.5 && hour < 18.5;
   const k = 0.05;
-  // Beds: the main road behind the gapura, the kali, rain.
-  const road = Math.max(0, 1 - Math.max(0, 62 - player.z) / 40);
+  // Beds: traffic near the roads, water by the sea and the rivers, rain.
+  const road = extra.road ?? 0;
   traffic.g.gain.setTargetAtTime(live ? 0.05 + road * 0.22 * (day ? 1 : 0.5) : 0, t, k * 10);
-  const kali = Math.max(0, 1 - Math.max(0, player.z + 56) / 25);
-  water.g.gain.setTargetAtTime(live ? kali * 0.12 : 0, t, k * 10);
+  water.g.gain.setTargetAtTime(live ? (extra.water ?? 0) * 0.12 : 0, t, k * 10);
   rain.g.gain.setTargetAtTime(live ? rainLevel * 0.35 : 0, t, 0.5);
   if (!live) return;
   // Birds by day (busiest at dawn and dusk), not in the rain.
@@ -232,24 +239,18 @@ export function updateAudio(extra: { bakso?: [number, number] | null; chats?: [n
   // Roosters around sunrise.
   if (hour >= 5.8 && hour < 7.2 && t > next.rooster) {
     next.rooster = t + 12 + Math.random() * 25;
-    rooster(t, -20 + Math.random() * 60, -20 + Math.random() * 60);
+    rooster(t, player.x - 30 + Math.random() * 60, player.z - 30 + Math.random() * 60);
   }
-  // Motorbikes pass on the jalan, fewer at night.
+  // Motorbikes pass on the roads nearby, fewer at night.
   if (t > next.bike) {
-    next.bike = t + (day ? 14 : 35) + Math.random() * 25;
-    if (Math.abs(player.x) < 25) motorbike(t);
+    next.bike = t + (day ? 10 : 30) + Math.random() * 20;
+    if (road > 0.3) motorbike(t);
   }
   // Mas Joko's bowl, while his cart is out.
   if (extra.bakso && t > baksoNext) {
     baksoNext = t + 9 + Math.random() * 8;
     const src = at(extra.bakso[0], extra.bakso[1], 45);
     if (src) for (let i = 0; i < 3; i++) ting(src, t + i * 0.22);
-  }
-  // The ronda's kentongan, now and then through the night.
-  if (extra.ronda && t > kentonganNext) {
-    kentonganNext = t + 45 + Math.random() * 60;
-    const src = at(-5.5, 41, 90);
-    if (src) for (let i = 0; i < 4; i++) kentongan(src, t + i * 0.34);
   }
   // Murmur from neighbours chatting nearby.
   if (extra.chats?.length && t > next.murmur) {
@@ -286,8 +287,7 @@ export function updateAudio(extra: { bakso?: [number, number] | null; chats?: [n
   lastZ = player.z;
   void dt;
 }
-let baksoNext = 0,
-  kentonganNext = 0;
+let baksoNext = 0;
 
 /* ================= the radio ================= */
 
@@ -428,16 +428,11 @@ function ting(out: AudioNode, t: number) {
   ])
     tone(out, 'sine', f, null, t, 0.002, 0.5, v);
 }
-function kentongan(out: AudioNode, t: number) {
-  // A hollow wooden slit drum.
-  hiss(out, 'bandpass', 820, 12, t, 0.002, 0.18, 0.5);
-  tone(out, 'triangle', 410, 380, t, 0.002, 0.15, 0.2);
-}
-/** The bedug before the adzan: a few deep beats from the musholla, then a roll. */
-export function bedug() {
+/** The bedug before the adzan: a few deep beats from a mosque at (x, z), then a roll. */
+export function bedug(x: number, z: number) {
   if (!ctx) return;
   const t = now();
-  const src = at(9, -17, 160, amb);
+  const src = at(x, z, 160, amb);
   if (!src) return;
   const beats = [0, 0.9, 1.8, 2.5, 3.0, 3.35, 3.65, 3.9, 4.1, 4.3];
   for (const b of beats) {
@@ -465,7 +460,8 @@ export type Sfx =
   | 'doorOpen'
   | 'doorClose'
   | 'sandal'
-  | 'knock';
+  | 'knock'
+  | 'chime';
 /** A short UI or action sound. `pitch` shifts dialogue blips per speaker. */
 export function sfx(kind: Sfx, pitch = 1) {
   if (!ctx || !S.started) return;
@@ -533,6 +529,15 @@ export function sfx(kind: Sfx, pitch = 1) {
     case 'sandal':
       hiss(fx, 'bandpass', 1400, 1.5, t, 0.003, 0.05, 0.12);
       hiss(fx, 'bandpass', 1300, 1.5, t + 0.2, 0.003, 0.05, 0.12);
+      break;
+    case 'chime':
+      // The MRT's three-note chime before an announcement.
+      for (const [i, f] of [
+        [0, 784],
+        [1, 659],
+        [2, 523],
+      ])
+        tone(ui, 'sine', f, null, t + i * 0.28, 0.01, 0.5, 0.16);
       break;
   }
 }

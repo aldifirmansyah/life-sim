@@ -1,128 +1,50 @@
-/* Save and load (spec §2: localStorage, a single slot, autosave at the end of
-   each in-game day). Every module with game state has its own save/load pair;
-   this file gathers them into one versioned JSON blob. Residents' positions
-   aren't saved: they are placed from their schedules on load, and today's
-   event plans are made again. */
+/* Save and load (one slot in localStorage). For now: where Aldi is, the day and
+   the time. Each module with game state will add a saveX()/loadX() pair here as
+   it arrives (see docs/singapore-plan.md). A version mismatch is ignored. */
 import { S } from '../core/state';
 import { player } from '../core/player';
-import { residents, resync } from '../npc/npcs';
-import { saveStats, loadStats } from './stats';
-import { saveGarden, loadGarden } from './garden';
-import { saveEvents, loadEvents } from './events';
-import { saveHouse, loadHouse } from './house';
-import { saveJobs, loadJobs } from './jobs';
-import { saveSocial, loadSocial } from '../social/social';
-import { savePlans, loadPlans } from '../social/plans';
-import { savePhone, loadPhone } from '../social/phone';
-import { saveRep, loadRep } from '../social/reputation';
-import { saveArcs, loadArcs } from '../social/arcs';
-import { saveMinah, loadMinah } from '../social/minah';
-import { saveWarung, loadWarung } from '../interiors/warungshop';
-import { saveMusholla, loadMusholla } from '../interiors/musholla';
-import { saveBalai, loadBalai } from '../interiors/balai';
-import { saveHome, loadHome } from '../interiors/rakahome';
-import { saveTutorial, loadTutorial } from './tutorial';
 import { dateLabel } from './calendar';
 
-const KEY = 'kampung-save';
+const KEY = 'sg-save';
 const VERSION = 1;
 
-function snapshot() {
-  const npcs = residents.map(r => r.npc);
-  return {
+export function saveGame(): boolean {
+  // Not while riding: a saved game resumes on solid ground.
+  if (player.ride || !S.started) return false;
+  const d = {
     v: VERSION,
-    savedAt: Date.now(),
     day: S.day,
     time: S.time,
-    player: { x: player.x, z: player.z, yaw: player.yaw, pitch: player.pitch },
-    stats: saveStats(),
-    garden: saveGarden(),
-    social: saveSocial(npcs),
-    plans: savePlans(),
-    phone: savePhone(),
-    events: saveEvents(),
-    house: saveHouse(),
-    jobs: saveJobs(),
-    rep: saveRep(),
-    arcs: saveArcs(),
-    minah: saveMinah(),
-    warung: saveWarung(),
-    musholla: saveMusholla(),
-    balai: saveBalai(),
-    home: saveHome(),
-    tutorial: saveTutorial(),
+    p: { x: player.x, z: player.z, y: player.y, yaw: player.yaw },
   };
-}
-type Save = ReturnType<typeof snapshot>;
-
-function read(): Save | null {
   try {
-    const raw = localStorage.getItem(KEY);
-    if (!raw) return null;
-    const d = JSON.parse(raw) as Save;
+    localStorage.setItem(KEY, JSON.stringify(d));
+    return true;
+  } catch (e) {
+    return false;
+  }
+}
+function read() {
+  try {
+    const d = JSON.parse(localStorage.getItem(KEY) || 'null');
     return d && d.v === VERSION ? d : null;
   } catch (e) {
     return null;
   }
 }
-
-/** What the start screen shows for Continue, or null when there's no save. */
 export function saveInfo() {
   const d = read();
-  if (!d) return null;
-  const hh = String(Math.floor(d.time / 60) % 24).padStart(2, '0'),
-    mm = String(Math.floor(d.time % 60)).padStart(2, '0');
-  return { label: `${dateLabel(d.day)}, ${hh}:${mm}`, day: d.day };
+  return d ? { label: dateLabel(d.day) } : null;
 }
-
-/** Write the save. Returns false if storage isn't available (private mode, full). */
-export function saveGame() {
-  if (!S.started) return false;
-  try {
-    localStorage.setItem(KEY, JSON.stringify(snapshot()));
-    return true;
-  } catch (e) {
-    return false;
-  }
-}
-
-/** Load the save into the running (freshly built) game. */
-export function loadGame() {
+export function loadGame(): boolean {
   const d = read();
   if (!d) return false;
-  try {
-    S.day = d.day;
-    S.time = d.time;
-    Object.assign(player, d.player);
-    loadStats(d.stats);
-    loadGarden(d.garden);
-    loadSocial(
-      d.social,
-      residents.map(r => r.npc),
-    );
-    loadRep(d.rep);
-    loadMinah(d.minah);
-    loadArcs(d.arcs);
-    loadHouse(d.house);
-    loadJobs(d.jobs);
-    loadPhone(d.phone);
-    loadEvents(d.events);
-    loadWarung(d.warung ?? (d as { activities?: { shiftDay?: number } }).activities);
-    loadHome(d.home);
-    loadMusholla(d.musholla);
-    loadBalai(d.balai);
-    loadTutorial(d.tutorial);
-    // Plans last: they lay blocks over schedules for the (now loaded) day.
-    loadPlans(d.plans);
-    resync();
-    return true;
-  } catch (e) {
-    console.error('Could not load the save', e);
-    return false;
-  }
+  S.day = d.day;
+  S.time = d.time;
+  Object.assign(player, { x: d.p.x, z: d.p.z, y: d.p.y, yaw: d.p.yaw, pitch: 0 });
+  return true;
 }
-
-export function clearSave() {
+export function deleteSave() {
   try {
     localStorage.removeItem(KEY);
   } catch (e) {
