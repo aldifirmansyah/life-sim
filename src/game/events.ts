@@ -173,7 +173,7 @@ export function buildEvents() {
     },
   });
   goalLines.push(() => {
-    const next = EVENTS.find(e => e.day >= S.day && e.day - S.day <= 6);
+    const next = EVENTS.filter(e => e.day >= S.day && e.day - S.day <= 6).sort((a, b) => a.day - b.day)[0];
     if (!next) return null;
     return `${next.day === S.day ? 'Today' : shortDate(next.day)}: ${next.name}${next.where ? ` (${next.where})` : ''}`;
   });
@@ -335,7 +335,7 @@ function buildGetai() {
     x,
     y: 1.5,
     z: z - 5,
-    reach: 12,
+    reach: 18,
     size: 6,
     label: () => (ghostShow() && !done.includes(`getai${S.day}`) ? 'Watch the getai show' : null),
     run: () => {
@@ -545,7 +545,7 @@ export function updateEvents(dt: number) {
 
 /** The phone's Calendar: the next month. */
 export function calendarApp() {
-  const next = EVENTS.filter(e => e.day >= S.day && e.day - S.day <= 45);
+  const next = EVENTS.filter(e => e.day >= S.day && e.day - S.day <= 45).sort((a, b) => a.day - b.day);
   openPanel({
     title: 'Calendar',
     sub: `Today: ${shortDate(S.day)}`,
