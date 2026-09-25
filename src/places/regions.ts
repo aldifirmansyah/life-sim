@@ -651,7 +651,7 @@ function buildNorth() {
       x - 22,
       z - 8,
       '#a0522d',
-      'The orangutans, from Borneo and Sumatra. One stares at Aldi like a long-lost cousin. "Orang hutan" means person of the forest, Aldi tells the kid next to him.',
+      'The orangutans, from Borneo and Sumatra. One stares at Aldi like a long-lost cousin. "Orang hutan" means person of the forest, Aldi tells a kid at the railing.',
     ],
     ['elephants', x, z - 8, '#8e969c', 'Asian elephants, bathing and splashing the front row. The front row loves it.'],
     ['tigers', x + 22, z - 8, '#f4f1ea', 'White tigers pacing by the moat. Beautiful and a bit scary.'],

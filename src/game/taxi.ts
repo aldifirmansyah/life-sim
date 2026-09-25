@@ -129,13 +129,33 @@ export function buildTaxis() {
   stands();
   bodyMat = new THREE.MeshLambertMaterial({ color: 0x2f6fb3 });
   car = new THREE.Group();
-  car.add(new THREE.Mesh(carBody(), bodyMat), new THREE.Mesh(carCabin(), new THREE.MeshLambertMaterial({ color: 0x1d2b36 })));
+  car.add(
+    new THREE.Mesh(carBody(), bodyMat),
+    new THREE.Mesh(carCabin(), new THREE.MeshLambertMaterial({ color: 0x1d2b36 })),
+  );
   car.visible = false;
   scene.add(car);
   const p = new PropSet('taxi-stands');
   for (const s of STANDS) {
     p.post(s.x, s.z, 0, 2.6, 0.07, '#8e969c');
-    sign({ text: 'TAXI', sub: s.name, w: 1.6, h: 0.6, bg: '#f2c14e', fg: '#1d2b36', subfg: '#1d2b36', border: '#1d2b36', font: 'ui' }, s.x, 2.5, s.z, 0, { both: true });
+    sign(
+      {
+        text: 'TAXI',
+        sub: s.name,
+        w: 1.6,
+        h: 0.6,
+        bg: '#f2c14e',
+        fg: '#1d2b36',
+        subfg: '#1d2b36',
+        border: '#1d2b36',
+        font: 'ui',
+      },
+      s.x,
+      2.5,
+      s.z,
+      0,
+      { both: true },
+    );
     register({
       x: s.x,
       y: 1.6,
@@ -159,7 +179,10 @@ export function buildTaxis() {
     y: 1.2,
     reach: 3.5,
     size: 1.5,
-    label: () => (trip.phase === 'waiting' && !player.ride ? `Get in (${trip.kind === 'nab' ? `Nab · ${trip.plate}` : 'taxi'})` : null),
+    label: () =>
+      trip.phase === 'waiting' && !player.ride
+        ? `Get in (${trip.kind === 'nab' ? `Nab · ${trip.plate}` : 'taxi'})`
+        : null,
     run: getIn,
   });
 }
@@ -228,7 +251,11 @@ function call(kind: 'taxi' | 'nab', dest: Dest) {
     trip.z = here.z;
     trip.phase = 'waiting';
   }
-  toast(kind === 'nab' ? `Nab: ${trip.plate} is coming` : 'A taxi is coming', kind === 'nab' ? 'A green car. It will stop at the road nearest you.' : 'It will pull up at the stand.', 'msg');
+  toast(
+    kind === 'nab' ? `Nab: ${trip.plate} is coming` : 'A taxi is coming',
+    kind === 'nab' ? 'A green car. It will stop at the road nearest you.' : 'It will pull up at the stand.',
+    'msg',
+  );
 }
 function startPath(path: [number, number][], phase: Phase) {
   trip.path = path;
@@ -252,7 +279,11 @@ function getIn() {
   player.ride = seat();
   player.yaw = trip.ry - Math.PI / 2 + 0.3;
   sfx('tap');
-  toast(trip.kind === 'nab' ? `Nab to ${d.name}` : `Taxi to ${d.name}`, `About ${sgd(trip.fare)}. E to stop early.`, null);
+  toast(
+    trip.kind === 'nab' ? `Nab to ${d.name}` : `Taxi to ${d.name}`,
+    `About ${sgd(trip.fare)}. E to stop early.`,
+    null,
+  );
 }
 function seat(): Ride {
   return {
@@ -352,6 +383,7 @@ export function updateTaxis(dt: number) {
     } else place();
   }
   if (trip.phase === 'riding') S.clockScale = 0.3;
-  if (trip.phase === 'coming' || trip.phase === 'waiting') markTo(trip.kind === 'nab' ? `Nab · ${trip.plate}` : 'Taxi', [trip.x, 1.2, trip.z]);
+  if (trip.phase === 'coming' || trip.phase === 'waiting')
+    markTo(trip.kind === 'nab' ? `Nab · ${trip.plate}` : 'Taxi', [trip.x, 1.2, trip.z]);
 }
 export const taxiDebug = { trip };

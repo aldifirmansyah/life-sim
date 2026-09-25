@@ -84,7 +84,7 @@ function wanted() {
 }
 
 let seed = 7;
-const rnd = () => ((seed = (seed * 16807) % 2147483647) / 2147483647);
+const rnd = () => (seed = (seed * 16807) % 2147483647) / 2147483647;
 function spawn(c: Car) {
   const a = rnd() * Math.PI * 2,
     r = 60 + rnd() * 200;

@@ -65,7 +65,7 @@ export const GETAI = { x: -1013, z: 200 };
 
 /* Step 9: the East, Sentosa and the North. */
 /** Katong's Peranakan shophouses (laksa, kueh), facing north. */
-export const KATONG_ROW = { x0: 862, x1: 898, z0: 403, z1: 411 };
+export const KATONG_ROW = { x0: 870, x1: 906, z0: 403, z1: 411 };
 /** East Coast Lagoon Food Village, and the beach by it (the bike kiosk, the sea). */
 export const LAGOON = { x: 986, z: 492, w: 30, d: 22 };
 export const BEACH = { x: 1050, z: 535 };
