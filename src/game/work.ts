@@ -397,6 +397,7 @@ function renderGoals() {
     el.appendChild(s);
     return;
   }
+  if (!job.sprint) return;
   el.innerHTML = `<b>Chopee · Sprint ${job.sprint}</b>`;
   const lines = [
     `Tickets: ${pointsDone()} / ${pointsAll()} points (review ${shortDate(job.review)}, 3pm)`,
