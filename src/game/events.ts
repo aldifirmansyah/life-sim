@@ -94,7 +94,7 @@ export function eventsOn(day: number): CommunityEvent[] {
       start: h(19, 30),
       end: h(20, 30),
       place: 'Musholla',
-      blurb: 'Ustadz Hasan’s weekly gathering. All welcome.',
+      blurb: 'Ustadz Hasan’s weekly gathering. All welcome: press E at the musholla door.',
     });
   return out;
 }
@@ -496,14 +496,13 @@ export function initEvents() {
   onPhoneDay(phoneDay);
   const at = (p: [number, number], reach: number, label: () => string | null, run: () => void) =>
     interactables.push({ x: p[0], z: p[1], reach, label, run });
-  const musholla = poiById.get('musholla')!.slots.find(s => s.tag === 'porch')!;
+  // At the musholla door, where everyone goes in.
+  const door = poiById.get('musholla')!.slots.find(s => s.tag === 'inside')!;
   at(
-    [musholla.x, musholla.z + 1.4],
-    3,
+    [door.x - 0.2, door.z],
+    3.2,
     () =>
-      isPengajian(S.day) && S.time >= h(19, 15) && S.time < h(20, 15) && !did('pengajian')
-        ? 'Join the pengajian'
-        : null,
+      isPengajian(S.day) && S.time >= h(19) && S.time < h(20, 20) && !did('pengajian') ? 'Join the pengajian' : null,
     joinPengajian,
   );
   at(
@@ -531,6 +530,41 @@ export function initEvents() {
 
 let acc = 0;
 let kerjaChecked = -1;
+
+/** A heads-up toast as each event starts, saying where to press E. */
+const reminded = new Set<string>();
+function reminders() {
+  const say = (id: string, at: number, title: string, sub: string) => {
+    const key = `${id}:${S.day}`;
+    if (S.time >= at && S.time < at + 45 && !reminded.has(key) && !did(id)) {
+      reminded.add(key);
+      toast(title, sub);
+    }
+  };
+  if (isKerjaBakti(S.day))
+    say(
+      'kerja',
+      h(6, 45),
+      'Kerja bakti is starting',
+      'Find the litter piles along the gangs and press E to sweep. Six is your share.',
+    );
+  if (isPengajian(S.day))
+    say(
+      'pengajian',
+      h(19),
+      'Pengajian at the musholla',
+      'Ustadz Hasan’s gathering starts at 19:30. Press E at the musholla door to join.',
+    );
+  if (isArisan(S.day) && social(byId('ratna').npc).met && byId('ratna').npc.playerRelationship.friendship >= 10)
+    say('arisan', h(14, 45), 'Arisan at the balai', 'Press E at the front of the balai warga to join (Rp 20.000).');
+  if (isFestival(S.day))
+    say(
+      'upacara',
+      h(7, 10),
+      'Upacara at the lapangan',
+      'Stand with the kampung at 07:30: press E by the flag pole on the lapangan.',
+    );
+}
 /** Once a second: plan the day's events, show decorations, close out kerja bakti. */
 export function updateEvents(dt: number) {
   acc += dt;
@@ -545,6 +579,7 @@ export function updateEvents(dt: number) {
   agustus.show(festivalSeason(S.day));
   festival.show(festivalBuild(S.day));
   pileMesh.visible = kerjaOn();
+  reminders();
   if (isKerjaBakti(S.day) && S.time >= h(9) && kerjaChecked !== S.day) {
     kerjaChecked = S.day;
     kerjaOver();
