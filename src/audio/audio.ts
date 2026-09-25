@@ -31,8 +31,21 @@ export function startAudio() {
   }
   master = ctx.createGain();
   master.connect(ctx.destination);
-  amb = bus();
+  // Ambience goes through a filter that muffles the outdoors when Raka is inside.
+  muffle = ctx.createBiquadFilter();
+  muffle.type = 'lowpass';
+  muffle.frequency.value = 18000;
+  muffle.connect(master);
+  // A short synthetic room echo for effects indoors.
+  room = ctx.createConvolver();
+  room.buffer = roomImpulse(ctx);
+  roomSend = ctx.createGain();
+  roomSend.gain.value = 0;
+  roomSend.connect(room).connect(master);
+  amb = ctx.createGain();
+  amb.connect(muffle);
   fx = bus();
+  fx.connect(roomSend);
   ui = bus();
   // Two seconds of white noise, reused by every noisy sound.
   noise = ctx.createBuffer(1, ctx.sampleRate * 2, ctx.sampleRate);
@@ -40,6 +53,24 @@ export function startAudio() {
   for (let i = 0; i < d.length; i++) d[i] = Math.random() * 2 - 1;
   beds();
   applyVolume();
+}
+let muffle: BiquadFilterNode, room: ConvolverNode, roomSend: GainNode;
+/** A small room: half a second of decaying noise. */
+function roomImpulse(c: AudioContext) {
+  const len = Math.floor(c.sampleRate * 0.45);
+  const b = c.createBuffer(2, len, c.sampleRate);
+  for (let ch = 0; ch < 2; ch++) {
+    const d = b.getChannelData(ch);
+    for (let i = 0; i < len; i++) d[i] = (Math.random() * 2 - 1) * Math.pow(1 - i / len, 3) * 0.5;
+  }
+  return b;
+}
+/** 0 outside … 1 inside: muffles the outdoors and adds a little room echo. */
+export function setIndoor(v: number) {
+  if (!ctx) return;
+  const t = ctx.currentTime;
+  muffle.frequency.setTargetAtTime(18000 - v * 17000, t, 0.25);
+  roomSend.gain.setTargetAtTime(v * 0.35, t, 0.25);
 }
 function bus() {
   const g = ctx!.createGain();
@@ -375,7 +406,10 @@ export type Sfx =
   | 'tick'
   | 'splash'
   | 'sweep'
-  | 'blip';
+  | 'blip'
+  | 'doorOpen'
+  | 'doorClose'
+  | 'sandal';
 /** A short UI or action sound. `pitch` shifts dialogue blips per speaker. */
 export function sfx(kind: Sfx, pitch = 1) {
   if (!ctx || !S.started) return;
@@ -422,6 +456,20 @@ export function sfx(kind: Sfx, pitch = 1) {
       break;
     case 'blip':
       tone(ui, 'sine', 420 * pitch, null, t, 0.002, 0.04, 0.035);
+      break;
+    case 'doorOpen':
+      // A latch click and a creaking hinge.
+      hiss(fx, 'bandpass', 2600, 6, t, 0.002, 0.04, 0.2);
+      tone(fx, 'sawtooth', 190, 260, t + 0.05, 0.05, 0.45, 0.025);
+      break;
+    case 'doorClose':
+      tone(fx, 'sine', 110, 60, t, 0.003, 0.18, 0.35);
+      hiss(fx, 'lowpass', 900, 0.8, t, 0.002, 0.1, 0.25);
+      hiss(fx, 'bandpass', 2600, 6, t + 0.06, 0.002, 0.03, 0.15);
+      break;
+    case 'sandal':
+      hiss(fx, 'bandpass', 1400, 1.5, t, 0.003, 0.05, 0.12);
+      hiss(fx, 'bandpass', 1300, 1.5, t + 0.2, 0.003, 0.05, 0.12);
       break;
   }
 }

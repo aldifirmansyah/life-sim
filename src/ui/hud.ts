@@ -43,7 +43,7 @@ export function updateHUD() {
     $('day').textContent = dateLabel(S.day);
     $('daymark').style.left = (h / 24) * 100 + '%';
   }
-  const z = zoneAt(player.x, player.z);
+  const z = S.room || zoneAt(player.x, player.z);
   if (z !== S.lastZone) {
     S.lastZone = z;
     const el = $('locname');

@@ -9,7 +9,7 @@ import { vendorAt, serveAt, vendorSpot } from '../npc/vendors';
 import { buyToBag, buyAndConsume, findSeat } from '../game/actions';
 import { poiById, groups } from '../npc/places';
 import * as social from '../social/social';
-import { rakaHouse } from '../world/landmarks';
+import { homeTable, NAME as HOME } from '../interiors/raka';
 import { interactables } from '../game/interact';
 import { item, rupiah, STOCK, EAT_HERE, RECIPES, type Item } from '../game/items';
 import * as st from '../game/stats';
@@ -542,10 +542,18 @@ export function registerActivities() {
     label: () => (present('joko', 'bakso', 'vendor') ? 'Buy bakso' : null),
     run: () => openShop('bakso'),
   });
-  // Raka's front door.
-  const h = rakaHouse;
-  const [dx, dz] = h.F(h.dx, h.fz + 0.2);
-  interactables.push({ x: dx, z: dz, reach: 2.2, label: () => 'Rumah Raka', run: () => homeMenu() });
+  // Home: for now on the table with the laptop in the ruang tamu (interiors/raka.ts).
+  const [hx, hz] = homeTable();
+  interactables.push({
+    x: hx,
+    z: hz,
+    y: 0.95,
+    size: 0.45,
+    reach: 1.8,
+    inside: HOME,
+    label: () => 'Home: work, cook, rest…',
+    run: () => homeMenu(),
+  });
   // Food a neighbour left by the door.
   interactables.push({
     x: platePos[0],

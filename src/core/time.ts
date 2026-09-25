@@ -32,6 +32,12 @@ export function advanceTime(dt: number) {
   if (S.time >= 26 * 60 && !S.sleeping) sleep();
 }
 
+/** Where Raka wakes up (his room once the house can be walked into; set by interiors/raka). */
+const wake = { x: 16.5, z: 18.1, yaw: 0, text: "Raka wakes up on the teras of his grandmother's house." };
+export function setWake(x: number, z: number, yaw: number, text: string) {
+  Object.assign(wake, { x, z, yaw, text });
+}
+
 /** Sleep until 06:00: automatically at 02:00, or from home. Energy comes back with the hours slept. */
 export function sleep() {
   if (S.sleeping) return;
@@ -43,15 +49,15 @@ export function sleep() {
   setTimeout(() => {
     S.day++;
     S.time = 6 * 60;
-    player.x = 16.5;
-    player.z = 18.1;
-    player.yaw = 0;
+    player.x = wake.x;
+    player.z = wake.z;
+    player.yaw = wake.yaw;
     player.pitch = 0;
     player.vx = player.vz = 0;
     setTimeout(() => {
       f.classList.remove('on');
       S.sleeping = false;
-      toast(`Selamat pagi. ${dateLabel(S.day)}`, "Raka wakes up on the teras of his grandmother's house.");
+      toast(`Selamat pagi. ${dateLabel(S.day)}`, wake.text);
     }, 400);
   }, 1400);
 }

@@ -193,6 +193,7 @@ export function landmarks() {
       plants: 5,
       noBike: true,
       teras: '#a86c57',
+      hollow: true,
     },
   });
   rakaHouse = rk;

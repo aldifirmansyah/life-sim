@@ -53,7 +53,7 @@ function boardMenu() {
       run: () => {
         st.spend(item('gitar').price);
         st.add('gitar');
-        toast('A guitar!', 'Mas Rizky’s old gitar. Play it at home (your front door) or at the pos ronda at night.');
+        toast('A guitar!', 'Mas Rizky’s old gitar. Play it at home or at the pos ronda at night.');
         boardMenu();
       },
     });

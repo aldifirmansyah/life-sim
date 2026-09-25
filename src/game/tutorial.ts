@@ -150,13 +150,13 @@ export function updateTutorial(dt: number, openTalk: (r: Resident) => void) {
       tip(
         'tired',
         'You’re getting tired',
-        'Eat something (Tab → Bag), have a kopi at the warkop, or rest at home (E at your front door).',
+        'Eat something (Tab → Bag), have a kopi at the warkop, or rest at home (go inside; the laptop table has the home menu).',
       );
     if (S.time >= h(21))
       tip(
         'night',
         'It’s getting late',
-        'Sleep at home (E at your front door) after 20:00. At 02:00 Raka falls asleep wherever he is.',
+        'Sleep at home (inside, at the laptop table) after 20:00. At 02:00 Raka falls asleep wherever he is.',
       );
     if (S.day >= 2 && S.time >= h(9))
       tip(

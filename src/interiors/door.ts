@@ -1,0 +1,84 @@
+/* A real door: a leaf on a hinge that swings inward when Raka opens it (E), with
+   a collider while it's shut. It closes itself a few seconds after he's gone
+   through. */
+import * as THREE from 'three';
+import { scene } from '../render/context';
+import { addCol, type Collider } from '../core/collision';
+import { player } from '../core/player';
+import type { Frame } from '../world/layout';
+import { sfx } from '../audio/audio';
+
+export class Door {
+  pivot = new THREE.Group();
+  /** 0 shut … 1 open. */
+  open = 0;
+  target = 0;
+  col: Collider;
+  /** Centre of the doorway, world. */
+  x: number;
+  z: number;
+  private idle = 0;
+  private baseRy = 0;
+  constructor(
+    F: Frame,
+    th: number,
+    dx: number,
+    fz: number,
+    color: string,
+    public locked = () => false,
+  ) {
+    // Hinged on the left edge (seen from outside), swinging in.
+    const [hx, hz] = F(dx - 0.475, fz - 0.06);
+    this.pivot.position.set(hx, 0, hz);
+    this.pivot.rotation.y = th;
+    this.baseRy = th;
+    const leaf = new THREE.Mesh(new THREE.BoxGeometry(0.95, 2.14, 0.05), new THREE.MeshLambertMaterial({ color }));
+    leaf.position.set(0.475, 1.07, 0);
+    leaf.castShadow = leaf.receiveShadow = true;
+    const knob = new THREE.Mesh(
+      new THREE.SphereGeometry(0.035, 8, 6),
+      new THREE.MeshLambertMaterial({ color: '#c9a44a' }),
+    );
+    knob.position.set(0.85, 1.0, 0.05);
+    const knobIn = knob.clone();
+    knobIn.position.z = -0.05;
+    // A carved panel on each face, for a bit of depth.
+    const panel = new THREE.Mesh(
+      new THREE.BoxGeometry(0.62, 1.5, 0.02),
+      new THREE.MeshLambertMaterial({ color: new THREE.Color(color).multiplyScalar(0.8) }),
+    );
+    panel.position.set(0.475, 1.12, 0.03);
+    const panelIn = panel.clone();
+    panelIn.position.z = -0.03;
+    this.pivot.add(leaf, knob, knobIn, panel, panelIn);
+    scene.add(this.pivot);
+    [this.x, this.z] = F(dx, fz - 0.06);
+    const a = F(dx - 0.5, fz - 0.12),
+      b = F(dx + 0.5, fz);
+    this.col = addCol(a[0], b[0], a[1], b[1]);
+  }
+  toggle() {
+    // Not shut on Raka while he's standing in the doorway.
+    if (this.target > 0.5 && Math.hypot(player.x - this.x, player.z - this.z) < 0.55) return;
+    this.target = this.target > 0.5 ? 0 : 1;
+    sfx(this.target ? 'doorOpen' : 'doorClose');
+  }
+  update(dt: number) {
+    const k = Math.min(1, dt * 3.2);
+    this.open += (this.target - this.open) * k;
+    if (Math.abs(this.target - this.open) < 0.002) this.open = this.target;
+    // Swings inward (toward local −z), about 95°.
+    this.pivot.rotation.y = this.baseRy + this.open * 1.66;
+    this.col.on = this.open < 0.25;
+    // Shuts itself once Raka has gone a few metres from it.
+    const d = Math.hypot(player.x - this.x, player.z - this.z);
+    if (this.target === 1 && d > 2.6) {
+      this.idle += dt;
+      if (this.idle > 4) {
+        this.target = 0;
+        this.idle = 0;
+        if (d < 25) sfx('doorClose');
+      }
+    } else this.idle = 0;
+  }
+}

@@ -19,6 +19,10 @@ export const S = {
   acting: false,
   locked: false,
   lastZone: '',
+  /** The room Raka is in ("Rumah Raka · Dapur"), or '' outdoors. */
+  room: '',
+  /** The interior Raka is inside (its name), or '' outdoors. */
+  inside: '',
 };
 export const DAYS = ['Minggu', 'Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu'];
 

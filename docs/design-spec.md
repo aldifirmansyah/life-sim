@@ -67,9 +67,9 @@ The narrow gangs are a gift for both atmosphere and performance: they naturally 
 | Ojek base | Corner where ojek drivers wait; kampung entrance/exit (NPC spawn/despawn point) |
 | Small river bank / irrigation canal | Fishing, evening walks, kids playing |
 | Shared vegetable plots / pots along gang | Gardening activity |
-| Residential houses (exteriors) | NPC homes; neighbours sit on their front terraces (*teras*) and chat with passers-by |
+| Residential houses | NPC homes, entered only as a guest (knock, and wait to be invited in); neighbours sit on their front terraces (*teras*) and chat with passers-by |
 
-Interiors are separate small scenes loaded on entry (fade transition) to keep the outdoor scene light.
+Interiors are built in place, at real size, inside hollow buildings: Raka walks through a real door with no loading or fade, and the furniture is only drawn near the building. Residents' houses can be entered too, but only by knocking or calling out at the door (*kulonuwun*, *assalamualaikum*) while the owner is home and invites him in. See `docs/interiors-plan.md`.
 
 **Ambient life:** roosters in the morning, adzan from a distant mosque five times a day (also a natural time cue), motorbikes crawling through the main lane, cats everywhere, kids running in the gangs after school, cart vendors' calls and bells.
 

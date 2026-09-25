@@ -49,6 +49,8 @@ import { placeVendorStools, vendorCount, initVendors, updateVendors } from './np
 import { RESIDENTS } from './npc/roster';
 import { initActions, updateActions } from './game/actions';
 import { registerActivities, updateActivities } from './ui/activities';
+import { buildRakaInterior } from './interiors/raka';
+import { updateInteriors } from './interiors/interior';
 import { bindPhone } from './ui/contacts';
 import { toast, updateHUD } from './ui/hud';
 import { show, play, bindOverlayButtons, bindSettingsUI } from './ui/overlays';
@@ -86,6 +88,8 @@ buildFestival();
 buildRain();
 buildHouseProps();
 buildArcProps();
+// Walk-in interiors (no R() calls; built after the world so they sit inside the hollow shells).
+buildRakaInterior();
 onPhoneChange(() => showPlate(plate?.state === 'waiting'));
 registerActivities();
 initEvents();
@@ -127,6 +131,7 @@ function loop(now: number) {
   }
   updateVendors();
   applyCamera();
+  updateInteriors(dt);
   if (S.started) updateBubbles();
   updateMarker();
   if (S.started) updateWeather(dt);

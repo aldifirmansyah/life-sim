@@ -63,6 +63,8 @@ export interface HouseSpec {
   plants?: number;
   noBike?: boolean;
   teras?: string;
+  /** A walk-in house: real walls with a doorway and window openings instead of a solid block (no extra R() calls). */
+  hollow?: boolean;
 }
 interface HouseArgs {
   cx: number;
@@ -102,8 +104,11 @@ export function buildHouse({ cx, cz, th, w, d, sb, sp = {} }: HouseArgs) {
   const wall = sp.wall || pick(WALLS);
   const trim = pick(TRIMS);
   const fz = d / 2;
-  put(solid, 0, H / 2, 0, w, H, d, wall);
-  put(solid, 0, 0.22, 0, w + 0.05, 0.44, d + 0.05, dark(wall, 0.68));
+  const hollow = !!sp.hollow;
+  if (!hollow) {
+    put(solid, 0, H / 2, 0, w, H, d, wall);
+    put(solid, 0, 0.22, 0, w + 0.05, 0.44, d + 0.05, dark(wall, 0.68));
+  }
   if (two) put(solid, 0, 3.05, 0, w + 0.08, 0.16, d + 0.08, '#f3efe6');
   // roof
   let roofC = sp.roof || pick(ROOFS);
@@ -139,9 +144,20 @@ export function buildHouse({ cx, cz, th, w, d, sb, sp = {} }: HouseArgs) {
   const slots = w >= 5.8 ? [-w * 0.3, 0, w * 0.3] : [-w * 0.22, w * 0.22];
   const di = Math.floor(R() * slots.length);
   const dx = slots[di];
-  put(solid, dx, 1.07, fz + 0.035, 0.95, 2.14, 0.07, sp.door || pick(DOORS));
+  const doorC = sp.door || pick(DOORS);
+  // A walk-in house's door leaf is animated (interiors/door.ts), so it isn't part of the batch.
+  if (!hollow) put(solid, dx, 1.07, fz + 0.035, 0.95, 2.14, 0.07, doorC);
   put(solid, dx, 2.42, fz + 0.03, 1.0, 0.22, 0.06, dark(wall, 0.8));
   const win = (x: number, y: number) => {
+    if (hollow) {
+      // A real opening: a frame, iron teralis bars, and the shutters swung open against the wall.
+      put(solid, x, y + 0.55, fz + 0.02, 1.34, 0.12, 0.16, trim);
+      put(solid, x, y - 0.55, fz + 0.02, 1.34, 0.12, 0.2, trim);
+      for (const o of [-0.61, 0.61]) put(solid, x + o, y, fz + 0.02, 0.12, 1.22, 0.16, trim);
+      for (const o of [-0.27, 0, 0.27]) put(cyl, x + o, y, fz - 0.02, 0.012, 0.98, 0.012, '#2a2a2c');
+      if (sp.shutters) for (const o of [-0.95, 0.95]) put(solid, x + o, y, fz + 0.04, 0.52, 1.06, 0.04, '#7a5a3a');
+      return;
+    }
     put(solid, x, y, fz + 0.02, 1.34, 1.22, 0.04, trim);
     if (sp.shutters) {
       put(solid, x - 0.28, y, fz + 0.05, 0.52, 1.06, 0.05, '#7a5a3a');
@@ -229,8 +245,40 @@ export function buildHouse({ cx, cz, th, w, d, sb, sp = {} }: HouseArgs) {
     put(solid, w / 2 + 0.26, 3.42, fz + sb - 0.25, 0.9, 0.25, 0.02, '#f5f3ee');
   }
   // collider
-  colL(-w / 2, w / 2, -d / 2, d / 2);
-  return { F, H, fz, dx, sb, th, w, d, bench };
+  if (!hollow) colL(-w / 2, w / 2, -d / 2, d / 2);
+  else {
+    // Walls with a doorway and window openings; the plinth band outside only.
+    const T = 0.12;
+    const band = dark(wall, 0.68);
+    put(solid, 0, H / 2, -d / 2 + T / 2, w, H, T, wall);
+    put(solid, 0, 0.22, -d / 2 - 0.015, w + 0.05, 0.44, 0.03, band);
+    colL(-w / 2, w / 2, -d / 2, -d / 2 + T);
+    for (const sx of [-1, 1]) {
+      put(solid, sx * (w / 2 - T / 2), H / 2, 0, T, H, d, wall);
+      put(solid, sx * (w / 2 + 0.015), 0.22, 0, 0.03, 0.44, d + 0.05, band);
+      colL(sx * (w / 2 - T), sx * (w / 2), -d / 2, d / 2);
+    }
+    const holes = [{ x0: dx - 0.5, x1: dx + 0.5, y0: 0, y1: 2.2 }];
+    slots.forEach((x, i) => i !== di && holes.push({ x0: x - 0.55, x1: x + 0.55, y0: 1.06, y1: 2.04 }));
+    holes.sort((a, b) => a.x0 - b.x0);
+    let x = -w / 2 + T;
+    const fzw = fz - T / 2;
+    for (const o of holes) {
+      if (o.x0 > x) put(solid, (x + o.x0) / 2, H / 2, fzw, o.x0 - x, H, T, wall);
+      if (o.y0 > 0) put(solid, (o.x0 + o.x1) / 2, o.y0 / 2, fzw, o.x1 - o.x0, o.y0, T, wall);
+      put(solid, (o.x0 + o.x1) / 2, (o.y1 + H) / 2, fzw, o.x1 - o.x0, H - o.y1, T, wall);
+      x = o.x1;
+    }
+    if (w / 2 - T > x) put(solid, (x + w / 2 - T) / 2, H / 2, fzw, w / 2 - T - x, H, T, wall);
+    for (const [a, b] of [
+      [-w / 2, dx - 0.5],
+      [dx + 0.5, w / 2],
+    ]) {
+      put(solid, (a + b) / 2, 0.22, fz + 0.015, b - a, 0.44, 0.03, band);
+      colL(a, b, fz - T, fz);
+    }
+  }
+  return { F, H, fz, dx, sb, th, w, d, bench, hollow, wall, doorC };
 }
 
 /** Back-row house inside a block. (Currently never fits; see CLAUDE.md known gaps.) */

@@ -118,6 +118,12 @@ export function updateEnv(h: number) {
     pasar.visible = ps;
     pasarCols.forEach(c => (c.on = ps));
   }
+  // Indoors: the sky light is mostly blocked by walls and roof. With shadows the sun only comes in
+  // through the openings; without them (low quality) it is turned right down.
+  if (indoor > 0) {
+    hemi.intensity *= 1 - 0.55 * indoor;
+    if (!sun.castShadow) sun.intensity *= 1 - 0.8 * indoor;
+  }
   // Rain clouds: a grey sky, soft light, no hard shadows.
   if (overcast > 0) {
     const k = overcast;
@@ -132,6 +138,9 @@ export function updateEnv(h: number) {
   }
 }
 
+/** 0..1: how far Raka is inside a building (set by interiors). */
+export let indoor = 0;
+export const setIndoorLight = (v: number) => (indoor = v);
 /** 0..1: how overcast it is (set by the weather). */
 export let overcast = 0;
 export const setOvercast = (v: number) => (overcast = v);

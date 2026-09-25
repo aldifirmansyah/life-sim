@@ -15,6 +15,8 @@ export const player = {
   speed: 0,
   /** Moving at a run this frame. */
   running: false,
+  /** Inside a building (set by interiors). */
+  indoor: false,
   /** Set by game/stats from energy and Fitness. */
   canRun: true,
   runSpeed: 6,
@@ -52,9 +54,10 @@ export function updatePlayer(dt: number) {
     fx /= len;
     fz /= len;
   }
-  run = run && player.canRun;
+  // No running indoors, and a slower, careful pace.
+  run = run && player.canRun && !player.indoor;
   player.running = run && len > 0.1;
-  const sp = run ? player.runSpeed : player.walkSpeed;
+  const sp = run ? player.runSpeed : player.indoor ? 2.1 : player.walkSpeed;
   const sy = Math.sin(player.yaw),
     cy = Math.cos(player.yaw);
   const tx = (fx * cy - fz * sy) * sp,

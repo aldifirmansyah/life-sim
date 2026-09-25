@@ -3,6 +3,7 @@
    hisses. Neighbours caught out in the open (the lapangan, the kali, the pasar,
    the bridge…) run for shelter under the warung, the pos ronda or the warkop,
    or go home, which bunches people together for a chat. */
+import { player } from '../core/player';
 import * as THREE from 'three';
 import { mulberry32 } from '../core/util';
 import { S } from '../core/state';
@@ -140,7 +141,8 @@ export function updateWeather(dt: number) {
   uniforms.level.value = level;
   uniforms.time.value += dt;
   uniforms.cam.value.copy(camera.position);
-  mesh.visible = level > 0.02;
+  // No streaks inside a house (the rain box follows the camera); the sound carries on, muffled.
+  mesh.visible = level > 0.02 && !player.indoor;
   const r = showerOn(S.day);
   if (r && S.time >= r.start && S.time < r.end && announced !== S.day) {
     announced = S.day;
