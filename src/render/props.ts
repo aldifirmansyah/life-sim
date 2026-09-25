@@ -78,6 +78,11 @@ export class PropSet {
   get visible() {
     return this.group.visible;
   }
+  /** Remove a set for good (one that is rebuilt when something changes). Its colliders must be off already. */
+  dispose() {
+    scene.remove(this.group);
+    for (const b of [this.solid, this.cyl, this.cone, this.cloth, this.roof, this.glow]) b.mesh?.dispose();
+  }
   show(on: boolean) {
     if (this.group.visible === on) return;
     this.group.visible = on;

@@ -78,13 +78,14 @@ export const OUTINGS: Outing[] = [
   },
   {
     id: 'teh',
-    name: 'Teh on Raka’s teras',
+    name: 'Teh at Raka’s',
     short: 'teh at yours',
-    location: 'raka.teras',
+    // Once the ruang tamu is done, guests come inside and sit in the armchairs.
+    location: () => (perks.guests ? 'raka.tamu' : 'raka.teras'),
     activity: 'chat',
     times: [h(16), h(20)],
     minutes: 60,
-    place: 'your teras',
+    place: 'your house',
   },
 ];
 // Close friends invite Raka to dinner at their house (a relationship milestone).

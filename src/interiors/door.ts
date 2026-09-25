@@ -7,6 +7,7 @@ import { addCol, type Collider } from '../core/collision';
 import { player } from '../core/player';
 import type { Frame } from '../world/layout';
 import { sfx } from '../audio/audio';
+import { people } from '../npc/npcs';
 
 export class Door {
   pivot = new THREE.Group();
@@ -70,9 +71,17 @@ export class Door {
     // Swings inward (toward local −z), about 95°.
     this.pivot.rotation.y = this.baseRy + this.open * 1.66;
     this.col.on = this.open < 0.25;
-    // Shuts itself once Raka has gone a few metres from it.
+    // Neighbours coming or going open it for themselves (guests for teh).
     const d = Math.hypot(player.x - this.x, player.z - this.z);
-    if (this.target === 1 && d > 2.6) {
+    let visitor = false;
+    for (const r of people)
+      if (!r.hidden && r.state === 'walk' && Math.abs(r.x - this.x) + Math.abs(r.z - this.z) < 1.8) visitor = true;
+    if (visitor && this.target === 0 && !this.locked()) {
+      this.target = 1;
+      if (d < 25) sfx('doorOpen');
+    }
+    // Shuts itself once Raka (and anyone else) has gone a few metres from it.
+    if (this.target === 1 && d > 2.6 && !visitor) {
       this.idle += dt;
       if (this.idle > 4) {
         this.target = 0;

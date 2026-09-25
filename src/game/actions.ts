@@ -267,12 +267,153 @@ export function consumeFromBag(id: string, seat: Seat | null, done: () => void) 
 }
 
 /** Work with a tool in hand: sweep, cast a line, strum. Swings between two poses a few times. */
-export function useTool(id: string, a: HandPose, b: HandPose, strokes: number, stroke: number, done: () => void) {
+export function useTool(
+  id: string,
+  a: HandPose,
+  b: HandPose,
+  strokes: number,
+  stroke: number,
+  done: () => void,
+  onStroke?: (i: number) => void,
+) {
   const steps: Step[] = [move(0.35, 'R', POSES.hiddenR, a, { start: () => hands.hold(id, 'gift') })];
   for (let i = 0; i < strokes; i++) {
-    steps.push(move(stroke, 'R', a, b));
+    steps.push(move(stroke, 'R', a, b, { end: () => onStroke?.(i) }));
     steps.push(move(stroke, 'R', b, a));
   }
   steps.push(move(0.35, 'R', a, POSES.hiddenR));
   run(steps, done);
+}
+
+/* ================= at home ================= */
+
+/** Sit down, do something (which calls `standUp` when it's over), then get up. */
+export function sitFor(seat: Seat, during: (standUp: () => void) => void) {
+  run(sitSteps(seat), () => during(() => run(standSteps(seat))));
+}
+
+/** Walk to a spot and look at something (a stove, the bak), do it, then look up again. */
+export function standFor(at: [number, number], look: [number, number, number], during: (done: () => void) => void) {
+  let sx = 0,
+    sz = 0,
+    syaw = 0,
+    spitch = 0;
+  const dist = Math.hypot(at[0] - player.x, at[1] - player.z);
+  run(
+    [
+      {
+        dur: Math.min(1.2, 0.3 + dist * 0.3),
+        start: () => {
+          sx = player.x;
+          sz = player.z;
+          syaw = player.yaw;
+          spitch = player.pitch;
+        },
+        update: k => {
+          const e = ease(k);
+          player.x = sx + (at[0] - sx) * e;
+          player.z = sz + (at[1] - sz) * e;
+          const yaw = Math.atan2(-(look[0] - at[0]), -(look[2] - at[1]));
+          const pitch = Math.atan2(look[1] - player.eye, Math.hypot(look[0] - at[0], look[2] - at[1]));
+          player.yaw = lerpAngle(syaw, yaw, e);
+          player.pitch = spitch + (pitch - spitch) * e;
+        },
+      },
+    ],
+    () =>
+      during(() =>
+        run([{ dur: 0.4, start: () => (spitch = player.pitch), update: k => (player.pitch = spitch * (1 - ease(k))) }]),
+      ),
+  );
+}
+
+/** A bed: where Raka lies (head end, eye height, the way he faces lying down) and where he gets in and out. */
+export interface Bed {
+  x: number;
+  z: number;
+  eye: number;
+  yaw: number;
+  side: [number, number];
+}
+/** Lying on his back, looking at the ceiling. */
+function lyingPose(b: Bed, k = 1) {
+  player.eye = 1.7 + (b.eye - 1.7) * k;
+  player.pitch = 1.25 * k;
+}
+/** Lie down on the bed; `during` calls `getUp` when it's over. */
+export function lieFor(b: Bed, during: (getUp: () => void) => void) {
+  let sx = 0,
+    sz = 0,
+    syaw = 0;
+  run(
+    [
+      {
+        dur: Math.min(1.2, 0.3 + Math.hypot(b.side[0] - player.x, b.side[1] - player.z) * 0.3),
+        start: () => {
+          sx = player.x;
+          sz = player.z;
+          syaw = player.yaw;
+        },
+        update: k => {
+          const e = ease(k);
+          player.x = sx + (b.side[0] - sx) * e;
+          player.z = sz + (b.side[1] - sz) * e;
+          player.yaw = lerpAngle(syaw, Math.atan2(-(b.x - b.side[0]), -(b.z - b.side[1])), e);
+          player.pitch = -0.35 * e;
+        },
+      },
+      {
+        dur: 1.1,
+        start: () => (syaw = player.yaw),
+        update: k => {
+          const e = ease(k);
+          player.x = b.side[0] + (b.x - b.side[0]) * e;
+          player.z = b.side[1] + (b.z - b.side[1]) * e;
+          player.yaw = lerpAngle(syaw, b.yaw, e);
+          player.eye = 1.7 + (b.eye - 1.7) * e;
+          player.pitch = -0.35 + (1.25 + 0.35) * e;
+        },
+      },
+      wait(0.5),
+    ],
+    () => during(() => getUp(b)),
+  );
+}
+/** Put Raka in bed, lying down (waking up in the morning). */
+export function placeInBed(b: Bed) {
+  player.x = b.x;
+  player.z = b.z;
+  player.yaw = b.yaw;
+  lyingPose(b);
+}
+/** Sit up, swing the legs over and stand by the bed. */
+export function getUp(b: Bed) {
+  let syaw = 0;
+  run([
+    wait(0.6),
+    {
+      dur: 0.9,
+      update: k => {
+        const e = ease(k);
+        player.pitch = 1.25 * (1 - e) - 0.2 * e;
+        player.eye = b.eye + (1.05 - b.eye) * e;
+      },
+    },
+    {
+      dur: 0.9,
+      start: () => (syaw = player.yaw),
+      update: k => {
+        const e = ease(k);
+        player.x = b.x + (b.side[0] - b.x) * e;
+        player.z = b.z + (b.side[1] - b.z) * e;
+        player.yaw = lerpAngle(syaw, Math.atan2(-(b.side[0] - b.x), -(b.side[1] - b.z)), e);
+        player.eye = 1.05 + (1.7 - 1.05) * e;
+        player.pitch = -0.2 * (1 - e);
+      },
+      end: () => {
+        player.eye = 1.7;
+        player.pitch = 0;
+      },
+    },
+  ]);
 }

@@ -258,6 +258,8 @@ export function updateAudio(extra: { bakso?: [number, number] | null; chats?: [n
     const src = at(x, z, 10);
     if (src) hiss(src, 'bandpass', 400 + Math.random() * 500, 4, t, 0.05, 0.25 + Math.random() * 0.2, 0.18);
   }
+  // Mbah Minah's old radio, if it's on.
+  if (radio) radioTick(t);
   // Footsteps.
   if (inWorld()) {
     const moved = Math.hypot(player.x - lastX, player.z - lastZ);
@@ -276,6 +278,43 @@ export function updateAudio(extra: { bakso?: [number, number] | null; chats?: [n
 }
 let baksoNext = 0,
   kentonganNext = 0;
+
+/* ================= the radio ================= */
+
+/** Where the radio is playing, or null when it's off. */
+let radio: [number, number] | null = null;
+let radioNext = 0,
+  radioStep = 0;
+export function setRadio(at: [number, number] | null) {
+  radio = at;
+  if (at && ctx) radioNext = now();
+}
+// An old keroncong-ish tune on a small speaker: a D major pentatonic melody over I–IV–V–I, bass on the beat,
+// the "cak–cuk" strums on the off-beats.
+const SCALE = [293.7, 329.6, 370, 440, 493.9, 587.3];
+const MELODY = [0, 2, 3, 4, 3, 2, 0, -1, 1, 2, 4, 5, 4, 3, 2, -1, 4, 5, 4, 3, 2, 3, 1, -1, 0, 1, 2, 1, 0, -1, 0, -1];
+const ROOTS = [73.4, 98, 110, 73.4];
+function radioTick(t: number) {
+  const [rx, rz] = radio!;
+  while (radioNext < t + 0.3) {
+    const s = radioStep++;
+    const t0 = Math.max(radioNext, t + 0.02);
+    radioNext = t0 + 0.27;
+    const src = at(rx, rz, 16);
+    if (!src) continue;
+    // A tinny little speaker.
+    const f = ctx!.createBiquadFilter();
+    f.type = 'bandpass';
+    f.frequency.value = 1300;
+    f.Q.value = 0.6;
+    f.connect(src);
+    const root = ROOTS[Math.floor(s / 8) % 4];
+    if (s % 4 === 0) tone(f, 'triangle', root * 2, null, t0, 0.01, 0.35, 0.22);
+    if (s % 2 === 1) tone(f, 'square', root * 4 * [1, 1.25, 1.5][s % 3], null, t0, 0.004, 0.07, 0.035);
+    const m = MELODY[s % MELODY.length];
+    if (m >= 0) tone(f, 'triangle', SCALE[m] * (Math.floor(s / 32) % 2 ? 1 : 2), null, t0, 0.01, 0.24, 0.08);
+  }
+}
 let volKey = '';
 function applyVolumeLazy() {
   const k = `${SETTINGS.volume}|${SETTINGS.ambience}|${SETTINGS.effects}|${S.started}|${S.paused}`;

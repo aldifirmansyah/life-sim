@@ -3,13 +3,11 @@
    gives energy and mood, and trains a skill. */
 import { $ } from '../core/util';
 import { S } from '../core/state';
-import { sleep } from '../core/time';
 import { residents, serve as serveResident, type Resident } from '../npc/npcs';
 import { vendorAt, serveAt, vendorSpot } from '../npc/vendors';
 import { buyToBag, buyAndConsume, findSeat } from '../game/actions';
 import { poiById, groups } from '../npc/places';
 import * as social from '../social/social';
-import { homeTable, NAME as HOME } from '../interiors/raka';
 import { interactables } from '../game/interact';
 import { item, rupiah, STOCK, EAT_HERE, RECIPES, type Item } from '../game/items';
 import * as st from '../game/stats';
@@ -17,15 +15,12 @@ import { pots, CROPS, isReady, refreshGarden, type Pot } from '../game/garden';
 import { openPanel, closePanel, setPanelFooter, type Row } from './panel';
 import { toast } from './hud';
 import { emit } from '../game/bus';
-import { playGuitar } from './pastimes';
 import { repute } from '../social/reputation';
 import { ROOMS, restored, job as houseJob, canBook, book } from '../game/house';
 import { plate, takePlate } from '../social/phone';
 import { platePos, showPlate } from '../game/plate';
 
 const hour = () => (S.time / 60) % 24;
-const clockText = (t: number) =>
-  `${String(Math.floor((t / 60) % 24)).padStart(2, '0')}:${String(Math.floor(t % 60)).padStart(2, '0')}`;
 
 /** A resident standing at a given slot right now (shopkeepers must be there to sell). */
 function present(id: string, poi: string, tag: string): Resident | null {
@@ -196,47 +191,12 @@ const JOBS = [
   'a poster for a mosque’s Ramadan bazaar',
 ];
 
-function homeMenu(note?: string) {
-  const h = hour();
-  const lateNight = S.time >= 20 * 60;
-  openPanel({
-    title: 'Rumah Raka',
-    sub: `Mbah Minah’s house · ${clockText(S.time)}`,
-    body: note,
-    rows: [
-      { label: 'Freelance work on the laptop…', run: freelanceMenu },
-      { label: 'Restore the house…', note: `${restored.size} of ${ROOMS.length} rooms`, run: () => restoreMenu() },
-      ...(st.count('gitar')
-        ? [{ label: 'Play the guitar on the teras', note: '30 min · Music', run: () => playGuitar('the teras') }]
-        : []),
-      { label: 'Cook something…', run: cookMenu },
-      {
-        label: 'Rest for an hour',
-        note: '+15 energy',
-        run: () =>
-          passTime(60, 'An hour later…', () => {
-            st.addEnergy(15);
-            st.addMood(2);
-          }),
-      },
-      lateNight
-        ? { label: 'Sleep', note: 'until 06:00', run: () => (closePanel(), sleep()) }
-        : {
-            label: 'Take a nap',
-            note: '2 hours · +25 energy',
-            disabled: h < 11 ? 'too early for a nap' : undefined,
-            run: () =>
-              passTime(120, 'Zzz…', () => {
-                st.addEnergy(25);
-                st.addMood(3);
-              }),
-          },
-    ],
-  });
-}
+/** How a home activity passes the time: by default a fade; at home, sitting at the desk or standing at the stove. */
+export type Pass = (minutes: number, text: string, done: () => void) => void;
+const fade: Pass = (m, t, d) => passTime(m, t, d);
 
 /** Restoring Mbah Minah's house with Pak Karyo, one room at a time. */
-function restoreMenu(note?: string) {
+export function restoreMenu(note?: string) {
   const blocked = canBook();
   openPanel({
     title: 'Restore the house',
@@ -261,11 +221,11 @@ function restoreMenu(note?: string) {
           );
       },
     })),
-    back: () => homeMenu(),
   });
 }
 
-function freelanceMenu() {
+/** Design work on the laptop. `pass` sits Raka at his desk while the hours go by. */
+export function freelanceMenu(pass: Pass = fade) {
   const late = hour() >= 23 || hour() < 6;
   const opt = (hours: number, base: number): Row => {
     // A proper desk (house restoration) pays better.
@@ -277,7 +237,7 @@ function freelanceMenu() {
       disabled: late ? 'too late for clients' : st.stats.energy < cost + 5 ? 'too tired' : undefined,
       run: () => {
         const job = JOBS[Math.floor(Math.random() * JOBS.length)];
-        passTime(hours * 60, `Working on ${job}…`, () => {
+        pass(hours * 60, `Working on ${job}…`, () => {
           st.earn(pay);
           emit('freelance');
           st.addEnergy(-cost);
@@ -292,11 +252,11 @@ function freelanceMenu() {
     sub: 'Design jobs from clients in the city',
     body: 'Longer sessions pay a little better, but they wear you out.',
     rows: [opt(1, 35000), opt(2, 75000), opt(4, 160000)],
-    back: () => homeMenu(),
   });
 }
 
-function cookMenu(note?: string) {
+/** Cooking at the stove. `pass` keeps Raka at the stove while it cooks. */
+export function cookMenu(pass: Pass = fade, note?: string) {
   const lvl = st.level('cooking');
   const rows: Row[] = RECIPES.map(r => {
     const dish = item(r.id);
@@ -310,7 +270,7 @@ function cookMenu(note?: string) {
       label: `${dish.name} (×${r.portions})`,
       note: `${needs} · ${r.minutes} min`,
       disabled: lvl < r.level ? `Cooking level ${r.level}` : missing.length ? `need ${missing.join(', ')}` : undefined,
-      run: () => cook(r.id),
+      run: () => cook(r.id, pass),
     };
   });
   openPanel({
@@ -319,18 +279,17 @@ function cookMenu(note?: string) {
     body:
       note ?? 'Home cooking makes a good meal, and an even better gift. Neighbours love it when you share (berbagi).',
     rows,
-    back: () => homeMenu(),
   });
 }
 
-function cook(id: string) {
+function cook(id: string, pass: Pass) {
   const r = RECIPES.find(r => r.id === id)!;
   for (const [ing, n] of Object.entries(r.needs)) st.take(ing, n);
   const lvl = st.level('cooking');
   const bonus = st.perks.kitchen ? 1 : 0;
   const q = Math.max(1, Math.min(5, Math.round(1 + bonus + (lvl - 1) * 0.45 + Math.random() * 1.6)));
   const portions = r.portions + bonus;
-  passTime(r.minutes, `Cooking ${item(id).name.toLowerCase()}…`, () => {
+  pass(r.minutes, `Cooking ${item(id).name.toLowerCase()}…`, () => {
     st.add(id, portions, q);
     emit('cook', `${id}:${q}`);
     st.practise('cooking', 8 + q * 3);
@@ -541,18 +500,6 @@ export function registerActivities() {
     reach: 2.4,
     label: () => (present('joko', 'bakso', 'vendor') ? 'Buy bakso' : null),
     run: () => openShop('bakso'),
-  });
-  // Home: for now on the table with the laptop in the ruang tamu (interiors/raka.ts).
-  const [hx, hz] = homeTable();
-  interactables.push({
-    x: hx,
-    z: hz,
-    y: 0.95,
-    size: 0.45,
-    reach: 1.8,
-    inside: HOME,
-    label: () => 'Home: work, cook, rest…',
-    run: () => homeMenu(),
   });
   // Food a neighbour left by the door.
   interactables.push({

@@ -26,11 +26,15 @@ export interface Interior {
   name: string;
   rooms: Room[];
   props: PropSet;
+  /** A second set that changes with the story (Raka's rooms as they're restored). */
+  extra?: () => PropSet | null;
   door: Door;
   /** Ceiling lamp, world. */
   lamp: [number, number, number];
   /** Whether the lamp is on (at night it always is while Raka is near). */
   lampOn: () => boolean;
+  /** 0..1: an old dim bulb, or a good one. */
+  lampPower?: () => number;
   /** Raka comes in (after the sandals) and goes out. */
   onEnter?: () => void;
   onExit?: () => void;
@@ -77,6 +81,7 @@ export function updateInteriors(dt: number) {
     const d = Math.hypot(player.x - it.lamp[0], player.z - it.lamp[2]);
     // The furniture is only drawn near the house (through the windows and door) and inside.
     it.props.show(d < 32);
+    it.extra?.()?.show(d < 32);
     if (d < nearD) {
       nearD = d;
       near = it;
@@ -118,7 +123,7 @@ export function updateInteriors(dt: number) {
     bulb.position.set(it.lamp[0], it.lamp[1], it.lamp[2]);
   }
   bulb.visible = !!it;
-  lamp.intensity = on ? (night ? 4.5 : 2.2) : 0;
+  lamp.intensity = on ? (night ? 4.5 : 2.2) * (it?.lampPower?.() ?? 1) : 0;
   bulbMat.color.set(on ? 0xfff0c8 : 0x77736a);
 }
 

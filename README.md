@@ -36,11 +36,11 @@ A new game starts on the morning Raka arrives: Pak RT is waiting at the gapura. 
 ## Keys
 
 - `WASD` walk, `Shift` run, mouse to look.
-- `E` talk to the neighbour you're looking at, or use what's in front of you: the warung, pasar stalls, the warkop, the bakso cart, doors, the home table inside your house, your garden planters. In menus, number keys (or click) choose and `Esc` goes back.
+- `E` talk to the neighbour you're looking at, or use what's in front of you: the warung, pasar stalls, the warkop, the bakso cart, doors, the things in your house (laptop, stove, bed, kursi, bak mandi, radio, lemari), your garden planters. In menus, number keys (or click) choose and `Esc` goes back.
 - `Tab` phone: Chats (the Warga RT 04 group, private messages, invitations and your plans), Contacts (everyone you've met, what you know about them), Bag (eat or drink), Skills, and a Glossary.
 - Neighbours on their teras call out as you pass: go over and talk. Use Invite… in a conversation to make plans, then turn up.
 - The phone's Journal lists what's coming up (kerja bakti on Sundays, pengajian on Thursdays, the arisan, 17 Agustus on day 15), the neighbours' stories (look for ✦), Mbah Minah's memories, and your reputation.
-- Walk into Mbah Minah's house (E opens the door). Restore it from the home table inside (Restore the house…), with Pak Karyo's help.
+- Walk into Mbah Minah's house (E opens the door). Plan the repairs on the calendar by the door, with Pak Karyo's help.
 - The notice board at the balai has odd jobs and a guitar for sale. The pos ronda at night, the kali (with a pancing from the warung) and the lapangan in the afternoon all have something to do.
 - Hold `Shift` for 200 m or more to go for a jog.
 - `M` map, `Esc` pause and settings, `H` hide the key hints.

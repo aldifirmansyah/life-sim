@@ -18,6 +18,7 @@ import { saveRep, loadRep } from '../social/reputation';
 import { saveArcs, loadArcs } from '../social/arcs';
 import { saveMinah, loadMinah } from '../social/minah';
 import { saveActivities, loadActivities } from '../ui/activities';
+import { saveHome, loadHome } from '../interiors/rakahome';
 import { saveTutorial, loadTutorial } from './tutorial';
 import { dateLabel } from './calendar';
 
@@ -44,6 +45,7 @@ function snapshot() {
     arcs: saveArcs(),
     minah: saveMinah(),
     activities: saveActivities(),
+    home: saveHome(),
     tutorial: saveTutorial(),
   };
 }
@@ -102,6 +104,7 @@ export function loadGame() {
     loadPhone(d.phone);
     loadEvents(d.events);
     loadActivities(d.activities);
+    loadHome(d.home);
     loadTutorial(d.tutorial);
     // Plans last: they lay blocks over schedules for the (now loaded) day.
     loadPlans(d.plans);

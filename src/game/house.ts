@@ -147,16 +147,18 @@ export function buildHouseProps() {
   put(teras, h.dx + 0.75, 2.35, h.fz + 0.12, 0.12, 0.25, 0.12, '#2a2a2a');
   const [lx, lz] = h.F(h.dx + 0.75, h.fz + 0.14);
   teras.light(lx, 2.18, lz, 0.1, '#ffe2a0');
-  // Front room: curtains in the windows.
-  const rt = (sets.ruangtamu = new PropSet('rumah-ruangtamu'));
-  for (const wx of [-h.w * 0.3, h.w * 0.3]) put(rt, wx, 1.55, h.fz + 0.03, 1.0, 1.0, 0.02, '#e8c9a0', rt.cloth);
+  // The front room's curtains hang inside now (interiors/raka.ts).
   // Roof: new terracotta tiles over the old.
   const atap = (sets.atap = new PropSet('rumah-atap'));
   put(atap, 0, 3.22, 0, h.w + 0.8, Math.min(1.7, h.d * 0.22) + 0.03, h.d + 1.0, '#c9582f', atap.roof);
   for (const s of Object.values(sets)) s.build();
 }
+const listeners: (() => void)[] = [];
+/** Called whenever a room is restored (or a save is loaded): the inside of the house follows. */
+export const onHouseChange = (fn: () => void) => listeners.push(fn);
 function refresh() {
   for (const [id, s] of Object.entries(sets)) s.show(restored.has(id));
+  for (const fn of listeners) fn();
 }
 
 /* ================= the job ================= */

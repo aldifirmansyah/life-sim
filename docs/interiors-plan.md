@@ -23,6 +23,8 @@ Agreed with the user after Phase 7. The spec (§4) is updated to match.
 - Saves already store Raka's position, so loading inside puts him back inside.
 
 ## Steps (a check with the user after each)
+
+Steps 1 and 2 are done.
 1. **Foundation + Raka's house shell.**
    - Hollow shell, door, rooms (ruang tamu, kamar, dapur, kamar mandi), tiled floor, plafon, lamp, indoor light and sound, sandals, slower walk, room names.
    - The home menu moves to a table inside.

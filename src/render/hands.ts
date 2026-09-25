@@ -100,6 +100,7 @@ const LOOKS: Record<string, Look> = {
   gitar: { shape: 'box', c1: '#8a5a33', c2: '#2a1a10' },
   paket: { shape: 'box', c1: '#b89a62', c2: '#c9a86a' },
   ikan: { shape: 'fruit', c1: '#9fb0b8', long: true },
+  gayung: { shape: 'cup', c1: '#3b7dd8', c2: '#9fd0e8' },
 };
 const lookFor = (id: string, cat: string): Look =>
   LOOKS[id] ??
@@ -215,6 +216,9 @@ export const POSES = {
   castA: { x: 0.2, y: -0.05, z: -0.35, tilt: -0.4 },
   castB: { x: 0.16, y: -0.2, z: -0.7, tilt: 0.3 },
   holdL: { x: -0.2, y: -0.28, z: -0.5, tilt: 0 },
+  // Mandi: dip the gayung in the bak, pour it over your head.
+  dipR: { x: 0.14, y: -0.5, z: -0.62, tilt: 0.5 },
+  pourR: { x: 0.08, y: 0.12, z: -0.2, tilt: -1.6 },
 };
 
 export class Hands {

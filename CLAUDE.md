@@ -38,7 +38,7 @@ The game lives in `src/` and builds with Vite (`npm run dev`, `npm run build`). 
 - `render/hands.ts`: Raka's first-person hands and the items he holds. `npc/vendors.ts`: pasar stall-keepers. `npc/ambient.ts`: passers-by. `ui/bubbles.ts`: speech bubbles. `game/plate.ts`: food left at Raka's door.
 - Phase 6: `game/calendar` (dates, event days), `game/bus` (event bus), `game/events` (community events), `game/house` (restoration), `game/jobs` (notice-board odd jobs), `game/gains` (befriend a group and word the toast: "Mood +6 · Reputation +2 · Ustadz Hasan ♥ +3"), `social/reputation`, `social/arcs` (story arcs and milestones), `social/minah` (Mbah Minah's memories), `ui/minigame` (lomba, futsal, fishing), `ui/pastimes` (board, ronda, fishing, guitar, futsal), `render/props` (toggleable prop sets), `world/festival` (17 Agustus decorations and props), `world/arcprops` (what finished arcs change).
 - Phase 7: `game/save` (save/load), `game/tutorial` (first morning, goals, tips, marker), `game/weather` (rain), `audio/audio` (synthesised sound).
-- Interiors (after Phase 7, `docs/interiors-plan.md`): `interiors/interior` (registry, room detection, indoor light and sound), `interiors/door` (hinged doors), `interiors/raka` (inside Raka's house).
+- Interiors (after Phase 7, `docs/interiors-plan.md`): `interiors/interior` (registry, room detection, indoor light and sound), `interiors/door` (hinged doors), `interiors/raka` (inside Raka's house: shell, furniture, room states), `interiors/rakalayout` (where everything stands, shared with NPC seats), `interiors/rakahome` (what the things in the house do).
 - `npc/`: `types` (the spec §8.2 NPC model), `roster` (the 24 residents and their ties), `schedule` (authoring helpers), `appearance` (character generator), `characters` (instanced renderer and poses), `places` (POIs, slots, homes), `navgraph` (lanes, A*, paths), `npcs` (runtime), `debug`.
 
 **Determinism.** The layout comes from `mulberry32(20260924)`. The build order in `main.ts` (blocks → landmarks → block trees → streets → boundaries → pasar → ground) and the order of `R()` calls inside each builder must not change, or the kampung changes. `Math.random` is only used for cosmetic noise (textures, stars, hill rotation, sign grain). NPC code never calls `R()`: it has its own `mulberry32(7331)` and a `hash(a, b)` for per-day jitter.
@@ -86,7 +86,7 @@ Colours are per-instance. The current view draws about 22–35 calls and about 6
 **Activities and economy** (spec §6–7).
 - **Stats** (`game/stats.ts`). Energy and mood run 0–100, money is in rupiah (start Rp 150.000). Being awake costs 1.2 energy per game-hour, mood drifts toward 50, and running costs energy by distance (less with Fitness). At ≤12 energy Raka can't run; at 0 he walks slower. Sleep restores 14 energy per hour slept (`sleepRestore`), and so does eating. Skills (Cooking, Fitness, Gardening, Charisma, Music) run 1–10 with XP thresholds in `LEVELS`, and `practise()` toasts level-ups. The HUD shows energy and mood bars and money under the clock.
 - **Items** (`game/items.ts`). 44 items in 8 categories: drink, snack, meal, ingredient, produce, seed, dish, gift. `PREFS` gives each resident's loved and disliked items; `giftReaction()` adds derived likes (home cooking, food lovers, kids and snacks, gardeners and seeds, elders and produce). `STOCK` sets what each vendor sells, and `EAT_HERE` marks what's eaten on the spot. `RECIPES` lists 6 dishes, with Cooking-level gates.
-- **Interaction** (`game/interact.ts`). E picks whichever is nearest the centre of view: a resident (talk) or an `Interactable` with a reach and a `label()` that returns null when it's unavailable. Things registered in `ui/activities.ts`: the warung counter (while Bu Sri or Dimas is there), each pasar pagi stall (while the pasar is up), Warkop Berkah (Pak Slamet), the bakso cart (Mas Joko), the home table inside Raka's house, his front door, and the 3 garden planters. Interactables can have a height `y` and a `size` (aimed at in 3D, pitch included) and an `inside` scope (an interior's name, `'*'` for anywhere, or outdoors only).
+- **Interaction** (`game/interact.ts`). E picks whichever is nearest the centre of view: a resident (talk) or an `Interactable` with a reach and a `label()` that returns null when it's unavailable. Things registered in `ui/activities.ts`: the warung counter (while Bu Sri or Dimas is there), each pasar pagi stall (while the pasar is up), Warkop Berkah (Pak Slamet), the bakso cart (Mas Joko), the things inside Raka's house (`interiors/rakahome.ts`), his front door, and the 3 garden planters. Interactables can have a height `y` and a `size` (aimed at in 3D, pitch included) and an `inside` scope (an interior's name, `'*'` for anywhere, or outdoors only).
 - **Panel** (`ui/panel.ts`). A general menu in the dialogue card style: numbered rows (keys 1–8, 9 for the next page, Esc/0 back) and a footer with money, energy and mood. `S.panel` is a menu state.
 - **Activities.** Shops: buy into the bag, or eat on the spot at the warkop and bakso cart. Home: freelance work (1/2/4 h for Rp 35k/75k/160k at −8 energy per hour, 06:00–23:00), cook (ingredients → 2–3 portions, 1–5★ quality from Cooking level plus luck), rest 1 h (+15), nap 2 h (+25, after 11:00), sleep (after 20:00; reuses `core/time.sleep`). Warung shift: once a day, 07:00–20:00, while Bu Sri is there. It's a 45 s match-the-order mini-game paying Rp 25k plus Rp 2k tips per customer, with Charisma XP and friendship with Bu Sri. Garden (`game/garden.ts`): 3 planters on Gang Mawar in front of Raka's pagar. Plant a seedling, water once a day, and a plant grows a day only if it was watered the day before; chilli 4 days, tomato 5, kemangi 3. Harvest gives 2+ produce. Jogging: run ≥200 m and stop, and you get a toast, Fitness XP and a mood bonus (bigger before 09:30). Time-skipping activities fade the screen (`passTime`), and NPCs resync after long skips.
 - **Gifts** (in conversation, Give a gift…). One gift per resident per day, not counted against the daily friendship cap. Loved +8, liked +4, neutral +1, disliked −3. Home cooking (berbagi) adds +3, or +4 at 4★+. Reactions Raka has seen are shown in Contacts and in the gift list. Gifts leave memories that feed next-day greetings. The conversation menu is Chat…, Ask, Banter… (compliment, joke, tease), Give a gift…, Hear the gossip, Goodbye. Positive exchanges train Charisma, which slightly improves jokes and teasing.
@@ -140,14 +140,35 @@ Colours are per-instance. The current view draws about 22–35 calls and about 6
   - It eases in `setIndoorLight` (hemi −55%, and the sun −80% when there are no shadows) and `setIndoor` (a lowpass on the ambience, a small room convolver on effects).
   - One shared warm `PointLight` stays in the scene at intensity 0 when unused, so shaders don't recompile.
   - Rain streaks are hidden indoors. The sandal sound plays at the threshold, and a pair of sandals waits on the teras.
-- **Rumah Raka** (`interiors/raka.ts`), in local house coordinates: floor top 0.13, plafon 2.95.
-  - Ruang tamu across the front (z > 0.3). Kamar behind on the left (x < −0.2) with a batik curtain. Dapur behind on the right, with the kamar mandi in its back corner (x > 2, z < −1.5).
-  - For now, a meja with the laptop by the right wall carries the home menu ("Home: work, cook, rest…").
-  - Mornings start in the kamar (`setWake` in `core/time.ts`).
+- **Rumah Raka** (`interiors/raka.ts`, layout in `interiors/rakalayout.ts`), in local house coordinates: floor top 0.13, plafon 2.95.
+  - **Rooms.** Ruang tamu across the front (z > 0.3). Kamar behind on the left (x < −0.2) with a batik curtain. Dapur behind on the right, with the kamar mandi in its back corner (x > 2, z < −1.5).
+  - **Two prop sets.**
+    - The shell plus fixed furniture, with the colliders: kursi tamu (bench, two armchairs, table), bufet with radio, wall clock, calendar, dipan, nightstand, lemari, the dapur counter with the gas bottle and rice cooker, the dining table and stools, the bak, the kloset.
+    - A state set rebuilt by `onHouseChange` (in `game/house.ts`) whenever a room is restored or a save loads. It draws each restoration room as neglected or done:
+      - ruangtamu: dust sheets, dust and a cobweb, or cushions, taplak, rug, curtains and the 17 Agustus photo
+      - meja: a folding table and plastic stool, or a desk, chair, lamp, books and the ledger
+      - kamar: a thin stained kasur, sheeted lemari and boxes, or a mattress, batik sheets, guling, mirror, batik on the wall and the letters
+      - dapur: a rusty one-burner stove and soot, or a two-burner stove, splashback, jars, recipe tin and rak piring
+      - atap: leak stains, a bucket and a basin, or the coin tin
+      - teras: the guest book on the bufet
+  - The lamp is dim (`lampPower` 0.55) until the ruang tamu is done.
+- **Using the house** (`interiors/rakahome.ts`, E on things; interactables are scoped `inside: 'Rumah Raka'` and aimed in 3D):
+  - laptop: `freelanceMenu(atDesk)`, seated at the desk (`sitFor`)
+  - stove: `cookMenu(atStove)`, standing at it (`standFor`)
+  - bed: rest 1 h, nap 2 h, sleep after 20:00. Raka lies down with the camera on the plafon (`lieFor`); mornings start in bed and he gets up (`setWake(place, after, text)` in `core/time.ts`).
+  - kursi: sit and rest 1 h (the `raka.sofa` and `raka.tamu` POI slots)
+  - bak: mandi with the gayung (`useTool`, splash per pour), mood +5, or +8 within 5 h of a jog, futsal, kerja, shift or lomba; once per 3 h
+  - radio: `setRadio` in `audio.ts` plays a synthesised keroncong loop; +1 mood per 30 game-min at home, up to +4 a day
+  - lemari: storage (`lemari` map, saved as `home`)
+  - calendar: `restoreMenu()`
+  - keepsakes (each room's find): a panel with the text plus a line, +2 mood once a day
+  - guitar in the corner (when owned): `playGuitar`
+- **Teh guests.** Once the ruang tamu is restored (`perks.guests`), the teh outing goes to `raka.tamu`, the armchairs. Guests walk in through the front door; doors open for walking residents within 1.8 m.
 
 **Known gaps and issues**
 - The `infill` step, meant to add back-row houses inside blocks, places nothing: interiors are too narrow once the row houses are in. Trees fill those spaces instead.
-- Only Raka's house can be entered so far (interiors step 1 of 7). Its rooms are empty apart from the home table.
+- Only Raka's house can be entered so far (interiors steps 1–2 of 7 done).
+- Teh guests can arrive late when they live far away (walking takes game time).
 - Friends don't walk up to Raka in person; they call out, wave and text. Hajatan (story-triggered celebrations) and asking friends for favours aren't in. The adzan itself isn't voiced (only the bedug).
 - Audio is synthesised and simple; it has only been checked for errors in headless Chromium, not listened to.
 - The 1 Hz ticks (life, events, house, arcs, phone) add up the capped frame delta, so in headless Chromium at ~2 fps they run about 10× slow. Real hardware is fine; keep it in mind in test scripts.
