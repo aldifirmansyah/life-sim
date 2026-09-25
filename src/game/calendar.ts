@@ -57,6 +57,8 @@ export const festivalBuild = (day: number) => {
   return m === 7 && d >= 15 && d <= 18;
 };
 export const isKerjaBakti = (day: number) => day % 7 === 0;
+/** Nobar at the warkop: a Liga match on Wednesday and Saturday nights. */
+export const isMatchNight = (day: number) => day % 7 === 3 || day % 7 === 6;
 export const isPengajian = (day: number) => day % 7 === 4;
 /** Arisan: the second Saturday of the month. */
 export const isArisan = (day: number) => day % 7 === 6 && dateOf(day).d >= 8 && dateOf(day).d <= 14;

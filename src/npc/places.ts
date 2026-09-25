@@ -7,6 +7,7 @@ import { houses, type House } from '../world/houses';
 import { pasarCols } from '../world/pasar';
 import { rakaHouse } from '../world/landmarks';
 import * as RL from '../interiors/rakalayout';
+import { WK } from '../interiors/warkoplayout';
 
 export type P2 = [number, number];
 export type Pose = 'stand' | 'sit' | 'squat' | 'hidden';
@@ -135,8 +136,26 @@ function landmarkPois() {
   poi('warungHome', 'Rumah Bu Sri', 'warungHome', [[2.3, -0.3]], { inside: [door([5.35, -0.8])] });
 
   // The south bench is too tight to reach between the table and the wall, so only the north bench and stools are used.
+  // Warkop Berkah: the terrace, and the room behind it (interiors/warkop.ts) as a second place in the same group,
+  // whose entry runs in through the doorway so trips between the counter and the inside table stay indoors.
+  const K = WK;
+  poi('warkopIn', 'Warkop Berkah', 'warkop', [[-6.7, 16.9], [-6.6, 17.4], [-6.6, 19.3], [-7.8, 19.35], K.hub], {
+    owner: [
+      stand(K.owner, [K.owner[0], 20], {
+        via: [
+          [-7.5, 23.7],
+          [-7.3, 22.5],
+        ],
+      }),
+    ],
+    seat: [
+      ...K.seatsN.map(x => sit([x, K.benchN], [x, 23], 0.44, { approach: [x, 20.4] })),
+      ...K.seatsN.map(x => sit([x, K.benchS], [x, 19], 0.44, { approach: [x, 22.55], via: [[-7.5, 22.5]] })),
+    ],
+    serve: [stand(K.serveIn, [K.serveIn[0] - 2, K.serveIn[1]])],
+  });
   poi('warkop', 'Warkop Berkah', 'warkop', [[-6.7, 16.9]], {
-    owner: [stand([-6.1, 19.5], [-8.5, 18.6], { via: [[-6.3, 18.45]] })],
+    serve: [stand([-6.5, 18.6], [-8, 18.6], { via: [[-6.6, 17.4]] })],
     seat: [
       ...[-9.7, -8.5, -7.3].map(x => sit([x, 17.8], [x, 19], 0.44, { approach: [x, 17.1] })),
       sit([-6.3, 17.8], [-5.05, 18.45], 0.44, { approach: [-6.3, 17.2] }),

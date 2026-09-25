@@ -6,7 +6,7 @@ import { S } from '../core/state';
 import { residents, serve as serveResident, type Resident } from '../npc/npcs';
 import { vendorAt, serveAt, vendorSpot } from '../npc/vendors';
 import { buyToBag, buyAndConsume, findSeat } from '../game/actions';
-import { poiById, groups } from '../npc/places';
+import { groups } from '../npc/places';
 import * as social from '../social/social';
 import { interactables } from '../game/interact';
 import { item, rupiah, STOCK, EAT_HERE, RECIPES, type Item } from '../game/items';
@@ -22,7 +22,7 @@ import { platePos, showPlate } from '../game/plate';
 const hour = () => (S.time / 60) % 24;
 
 /** A resident standing at a given slot right now (shopkeepers must be there to sell). */
-function present(id: string, poi: string, tag: string): Resident | null {
+export function present(id: string, poi: string, tag: string): Resident | null {
   const r = residents.find(r => r.npc.id === id);
   return r && r.state === 'at' && !r.hidden && r.slot.poi.id === poi && r.slot.tag === tag ? r : null;
 }
@@ -65,7 +65,7 @@ function seller(
     case 'warung':
       return hand(present('sri', 'warung', 'owner') ?? present('dimas', 'warung', 'helper'));
     case 'warkop':
-      return hand(present('slamet', 'warkop', 'owner'));
+      return hand(present('slamet', 'warkopIn', 'owner'));
     case 'bakso':
       return hand(present('joko', 'bakso', 'vendor'));
     case 'pasar':
@@ -75,7 +75,7 @@ function seller(
   }
 }
 
-function openShop(v: Vendor, note?: string, back?: () => void, keepPage = false, stall = -1) {
+export function openShop(v: Vendor, note?: string, back?: () => void, keepPage = false, stall = -1) {
   const who = seller(v, stall);
   if (!who) {
     closePanel();
@@ -346,14 +346,6 @@ export function registerActivities() {
       run: () => openShop('pasar', undefined, undefined, false, stall),
     });
   }
-  const wk = poiById.get('warkop')!.slots.find(s => s.tag === 'owner')!;
-  interactables.push({
-    x: wk.x - 0.5,
-    z: wk.z - 0.6,
-    reach: 2.8,
-    label: () => (present('slamet', 'warkop', 'owner') ? 'Order at Warkop Berkah' : null),
-    run: () => openShop('warkop'),
-  });
   interactables.push({
     x: -5.4,
     z: 43.85,

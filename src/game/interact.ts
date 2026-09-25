@@ -9,7 +9,7 @@ import { openDialogue } from '../ui/dialogue';
 import { lineFor } from '../dialogue/provider';
 import { bubble, hasBubble } from '../ui/bubbles';
 import { addMood } from './stats';
-import { standUp } from './actions';
+import { standUp, seatedAction } from './actions';
 
 /** Passers-by have no relationship with Raka: a nod, a smile and a one-line greeting. */
 const greetedToday = new Map<number, number>();
@@ -75,7 +75,12 @@ export function updateInteraction() {
   target = null;
   if (inWorld() && S.seated) {
     const npc = talkTarget(player.yaw);
-    target = npc ? { npc } : { thing: standThing, label: 'Stand up' };
+    const act = seatedAction;
+    target = npc
+      ? { npc }
+      : act
+        ? { thing: { x: 0, z: 0, reach: 0, label: act.label, run: act.run }, label: act.label() }
+        : { thing: standThing, label: 'Stand up' };
   } else if (inWorld()) {
     let best = Infinity;
     const npc = talkTarget(player.yaw);

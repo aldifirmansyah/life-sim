@@ -18,7 +18,16 @@ import * as st from './stats';
 import { item, rupiah, ITEMS } from './items';
 import { emit } from './bus';
 import { sfx } from '../audio/audio';
-import { dateOf, isArisan, isFestival, isKerjaBakti, isPengajian, festivalSeason, festivalBuild } from './calendar';
+import {
+  dateOf,
+  isArisan,
+  isFestival,
+  isKerjaBakti,
+  isPengajian,
+  isMatchNight,
+  festivalSeason,
+  festivalBuild,
+} from './calendar';
 import { agustus, festival, LOMBA } from '../world/festival';
 import { social } from '../social/social';
 import { befriendAll, gainsText } from './gains';
@@ -163,6 +172,13 @@ function planDay() {
       plan(r, h(19, 30), h(20, 30), 'musholla.inside', 'pray');
       pengajianGoers.push(r.npc.id);
     }
+  // Nobar: the football fans watch the match at the warkop.
+  if (isMatchNight(S.day))
+    for (const r of residents) {
+      if (!r.npc.likes.includes('football') || r.npc.age < 13 || r.npc.id === 'slamet') continue;
+      if (awayAt(r, h(20, 30)) || ['ronda', 'pray', 'work'].includes(activityAt(r, h(20, 30)))) continue;
+      plan(r, h(19, 40), h(22), 'warkop.seat', 'chat');
+    }
   if (isArisan(S.day))
     for (const id of ARISAN) {
       const r = byId(id);
@@ -189,6 +205,7 @@ function phoneDay() {
   if (isKerjaBakti(d + 1)) schedulePost(h(19), 'bambang', 'kerja_remind');
   if (isKerjaBakti(d)) schedulePost(h(6, 20), 'bambang', 'kerja_today');
   if (isPengajian(d)) schedulePost(h(16), 'hasan', 'pengajian');
+  if (isMatchNight(d)) schedulePost(h(17, 30), 'slamet', 'nobar');
   if (isArisan(d)) {
     schedulePost(h(8), 'ratna', 'arisan');
     const ratna = byId('ratna');

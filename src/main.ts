@@ -50,6 +50,7 @@ import { RESIDENTS } from './npc/roster';
 import { initActions, updateActions } from './game/actions';
 import { registerActivities } from './ui/activities';
 import { buildWarungInterior } from './interiors/warung';
+import { buildWarkopInterior, registerWarkop, updateWarkop } from './interiors/warkop';
 import { registerWarungShop, updateWarungShop } from './interiors/warungshop';
 import { initShoppers, updateShoppers, SHOPPER_SLOTS } from './npc/shoppers';
 import { buildRakaInterior } from './interiors/raka';
@@ -97,10 +98,12 @@ buildArcProps();
 // Walk-in interiors (no R() calls; built after the world so they sit inside the hollow shells).
 buildRakaInterior();
 const warung = buildWarungInterior();
+buildWarkopInterior();
 onPhoneChange(() => showPlate(plate?.state === 'waiting'));
 registerActivities();
 registerHome();
 registerWarungShop(warung);
+registerWarkop();
 initEvents();
 initTutorial();
 registerPastimes();
@@ -152,7 +155,10 @@ function loop(now: number) {
   updateNpcDebug(dt);
   updateDialogue(dt);
   updateInteraction();
-  if (S.started) updateWarungShop();
+  if (S.started) {
+    updateWarungShop();
+    updateWarkop(dt);
+  }
   updateActions();
   updateGame();
   if (inWorld()) updateStats(dt);

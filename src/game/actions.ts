@@ -53,6 +53,7 @@ export function updateActions() {
     if (seated.slot?.claimedBy === PLAYER) seated.slot.claimedBy = -1;
     seated.taken = false;
     seated = null;
+    seatedAction = null;
   }
   if (!cur) return;
   const k = Math.min(1, (performance.now() - cur.t0) / 1000 / cur.step.dur);
@@ -245,6 +246,30 @@ function standSteps(seat: Seat): Step[] {
 
 /* ================= public sequences ================= */
 
+/** Someone brings something over (Pak Slamet with a kopi): turn to them, take it, then have it (or put it away). */
+export function receive(id: string, from: [number, number], serve: () => void, eat: boolean, done: () => void) {
+  let y0 = 0,
+    y1 = 0;
+  const steps: Step[] = [
+    {
+      dur: 0.4,
+      start: () => {
+        serve();
+        y0 = player.yaw;
+        y1 = Math.atan2(-(from[0] - player.x), -(from[1] - player.z));
+        hands.hold(null);
+      },
+      update: k => (player.yaw = lerpAngle(y0, y1, ease(k))),
+    },
+    move(0.3, 'R', POSES.hiddenR, POSES.reachR, { end: () => hands.hold(id, item(id).cat) }),
+    move(0.35, 'R', POSES.reachR, POSES.holdR),
+    wait(0.25),
+  ];
+  if (eat) steps.push(...consumeSteps(id));
+  else steps.push(move(0.35, 'R', POSES.holdR, POSES.hiddenR));
+  run(steps, done);
+}
+
 /** Take something off a shelf: turn to it, reach, and bring it back in the right hand. */
 export function takeFrom(id: string, at: [number, number, number], done: () => void) {
   let y0 = 0,
@@ -333,17 +358,21 @@ export function useTool(
 /** Where Raka is sitting, if he is. */
 let seated: Seat | null = null;
 export const seatedOn = () => seated;
-/** Sit down and stay there: look around freely; E (`standUp`) gets up again. */
-export function sitDown(seat: Seat) {
+/** What E does while seated, instead of just standing up (ordering at the warkop). */
+export let seatedAction: { label: () => string; run: () => void } | null = null;
+/** Sit down and stay there: look around freely; E (`standUp`, or `action` when given) gets up again. */
+export function sitDown(seat: Seat, action?: { label: () => string; run: () => void }) {
   run(sitSteps(seat), () => {
     seated = seat;
     S.seated = true;
+    seatedAction = action ?? null;
   });
 }
 export function standUp() {
   if (!seated) return;
   const s = seated;
   seated = null;
+  seatedAction = null;
   S.seated = false;
   run(standSteps(s));
 }

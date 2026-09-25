@@ -12,14 +12,12 @@
    - A rolling shutter over the entrance: up while the warung is open (or Raka
      is inside), down at night.
    What the things do is in interiors/warungshop.ts. */
-import * as THREE from 'three';
-import { scene } from '../render/context';
 import { PropSet } from '../render/props';
+import { Shutter } from './shutter';
 import { mat, type Batch } from '../render/batch';
-import { addCol, type Collider } from '../core/collision';
+import { addCol } from '../core/collision';
 import { player } from '../core/player';
 import { residents, todayBlocks } from '../npc/npcs';
-import { sfx } from '../audio/audio';
 import { interiors, type Interior } from './interior';
 
 export const WARUNG = 'Warung Bu Sri';
@@ -75,38 +73,6 @@ export function warungOpen() {
     const loc = todayBlocks(r)[r.block]?.location ?? '';
     return loc === 'warung.owner' || loc === 'warung.helper';
   });
-}
-
-/** The rolling shutter over the entrance: its own small mesh, so it's there from any distance at night. */
-class Shutter {
-  open = 1;
-  col: Collider;
-  mesh: THREE.Mesh;
-  constructor() {
-    this.col = addCol(ENTRANCE.x0, ENTRANCE.x1, -4.8, -4.68);
-    this.col.on = false;
-    const m = new THREE.MeshLambertMaterial({ color: '#a9aeb1' });
-    this.mesh = new THREE.Mesh(new THREE.BoxGeometry(1, 1, 1), m);
-    this.mesh.castShadow = this.mesh.receiveShadow = true;
-    const drum = new THREE.Mesh(
-      new THREE.BoxGeometry(ENTRANCE.x1 - ENTRANCE.x0 + 0.1, 0.24, 0.2),
-      new THREE.MeshLambertMaterial({ color: '#8b9296' }),
-    );
-    drum.position.set((ENTRANCE.x0 + ENTRANCE.x1) / 2, 2.44, -4.86);
-    scene.add(this.mesh, drum);
-  }
-  update(dt: number) {
-    const inside = player.x > W.x0 && player.x < W.x1 && player.z > -4.9 && player.z < W.z1;
-    const want = warungOpen() || inside ? 1 : 0;
-    if (this.open === 1 - want && Math.hypot(player.x - 6.55, player.z + 4.8) < 25)
-      sfx(want ? 'doorOpen' : 'doorClose');
-    this.open += Math.sign(want - this.open) * Math.min(Math.abs(want - this.open), dt * 0.8);
-    this.col.on = this.open < 0.6;
-    // The slats roll up into the drum over the entrance.
-    const h = 2.3 * (1 - this.open) + 0.02;
-    this.mesh.position.set((ENTRANCE.x0 + ENTRANCE.x1) / 2, 2.32 - h / 2, -4.84);
-    this.mesh.scale.set(ENTRANCE.x1 - ENTRANCE.x0, h, 0.03);
-  }
 }
 
 export function buildWarungInterior(): Interior {
@@ -288,7 +254,15 @@ export function buildWarungInterior(): Interior {
   P(9.3, 2.3, z1 - 0.015, 0.14, 0.02, 0.14, '#f4efe2', set.cyl, 0, Math.PI / 2);
 
   set.build();
-  const shutter = new Shutter();
+  const shutter = new Shutter(
+    ENTRANCE.x0,
+    ENTRANCE.x1,
+    -4.8,
+    -1,
+    2.3,
+    warungOpen,
+    () => player.x > W.x0 && player.x < W.x1 && player.z > -4.9 && player.z < W.z1,
+  );
 
   const it: Interior = {
     name: WARUNG,

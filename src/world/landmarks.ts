@@ -82,10 +82,35 @@ export function landmarks() {
   ] as [number, number, string][])
     C(x, z, 0, 0.45, 0.17, c);
 
-  /* Warkop Berkah */
-  B(-11.3, -6.2, 0, 3.0, 19.8, 24.3, '#e2b04a', { col: true });
-  B(-11.34, -6.16, 0, 0.45, 19.76, 24.34, '#9a7430');
-  B(-10.8, -6.7, 0.9, 2.2, 19.74, 19.8, '#ffcf8a', { b: lit });
+  /* Warkop Berkah: the room behind the terrace can be walked into (interiors/warkop.ts). No R() calls here. */
+  const kc = '#e2b04a',
+    kb = '#9a7430';
+  // Side and back walls, and the plinth band outside.
+  B(-11.3, -11.18, 0, 3.0, 19.8, 24.3, kc, { col: true });
+  B(-6.32, -6.2, 0, 3.0, 19.8, 24.3, kc, { col: true });
+  B(-11.18, -6.32, 0, 3.0, 24.18, 24.3, kc, { col: true });
+  B(-11.34, -11.3, 0, 0.45, 19.76, 24.34, kb);
+  B(-6.2, -6.16, 0, 0.45, 19.76, 24.34, kb);
+  B(-11.3, -6.2, 0, 0.45, 24.3, 24.34, kb);
+  // The front: a window onto the terrace, and the doorway (a folding shutter) at the east end.
+  const kz0 = 19.8,
+    kz1 = 19.92;
+  B(-11.18, -10.8, 0, 3.0, kz0, kz1, kc, { col: true });
+  B(-10.8, -8.8, 0, 0.9, kz0, kz1, kc, { col: true });
+  B(-10.8, -8.8, 2.0, 3.0, kz0, kz1, kc);
+  B(-8.8, -8.35, 0, 3.0, kz0, kz1, kc, { col: true });
+  B(-8.35, -7.25, 2.2, 3.0, kz0, kz1, kc);
+  B(-7.25, -6.32, 0, 3.0, kz0, kz1, kc, { col: true });
+  for (const [x0, x1] of [
+    [-11.34, -8.35],
+    [-7.25, -6.16],
+  ])
+    B(x0, x1, 0, 0.45, 19.76, kz0, kb);
+  B(-10.85, -8.75, 0.86, 0.93, 19.72, 19.95, '#e8e2d2');
+  B(-10.85, -8.75, 1.98, 2.05, 19.72, 19.95, '#e8e2d2');
+  for (let x = -10.6; x < -8.8; x += 0.25) C(x, 19.86, 0.9, 2.0, 0.012, '#2a2a2c');
+  // The name over the door, lit at night.
+  B(-8.45, -7.15, 2.26, 2.5, 19.74, 19.78, '#ffcf8a', { b: lit });
   B(-11.4, -3.2, 2.7, 2.76, 17.3, 19.8, '#9aa0a4');
   for (const [x, z] of [
     [-11.2, 17.45],
@@ -96,7 +121,8 @@ export function landmarks() {
     C(x, z, 0, 2.7, 0.07, '#6f6a62', { col: true });
   B(-10.2, -6.8, 0, 0.78, 18.3, 18.9, '#7a5236', { col: true });
   B(-10.2, -6.8, 0, 0.44, 17.62, 17.98, '#5d3f2a', { col: true });
-  B(-10.2, -6.8, 0, 0.44, 19.2, 19.55, '#5d3f2a');
+  // The south bench stops short of the doorway.
+  B(-10.2, -8.7, 0, 0.44, 19.2, 19.55, '#5d3f2a');
   B(-9.9, -9.1, 0.78, 1.12, 18.42, 18.8, '#e9dcb8');
   for (let x = -9.5; x < -7.2; x += 0.45) C(x, 18.6, 0.78, 0.9, 0.05, '#f4f1ea');
   B(-5.9, -4.2, 0, 0.72, 18.0, 18.9, '#8a6443', { col: true });
