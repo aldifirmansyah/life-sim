@@ -18,7 +18,7 @@ import { toast } from '../ui/hud';
 import { openPanel, closePanel, type Row } from '../ui/panel';
 import { startGame } from '../ui/minigame';
 import { passTime } from '../core/time';
-import { weekday, dateOf, shortDate, DAYS, isWeekend } from './calendar';
+import { weekday, dateOf, shortDate, DAYS, isWeekend, isHoliday } from './calendar';
 import { earn, addEnergy, addMood, tired, sgd } from './stats';
 import { arrivalDone } from './arrival';
 import { markTo } from './marker';
@@ -119,7 +119,11 @@ function newSprint(start: number) {
   }));
 }
 
-const isOfficeDay = (day: number) => job.pass && job.office.includes(weekday(day));
+const isOfficeDay = (day: number) => job.pass && job.office.includes(weekday(day)) && !isHoliday(day);
+/** A day off (17 Agustus at the embassy): no stand-up expected. */
+export function takeLeave(day: number) {
+  if (job.pass) job.settled = day;
+}
 const officeLabel = () => job.office.map(d => DAYS[d].slice(0, 3)).join(', ');
 
 /* ---------- onboarding (reception) ---------- */

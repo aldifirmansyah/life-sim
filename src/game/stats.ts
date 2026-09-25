@@ -14,6 +14,8 @@ export const wallet = {
   card: false,
 };
 export const vitals = { energy: 80, mood: 70 };
+/** Things Aldi owns for good (a batik shirt, …). */
+export const owned: string[] = [];
 /** Gifts and takeaways Aldi carries, by item id. */
 export const bag: Record<string, number> = {};
 /** What the items are called. */
@@ -92,13 +94,15 @@ export function drain(minutes: number) {
   showVitals();
 }
 
-export const saveStats = () => ({ ...wallet, ...vitals, bag: { ...bag } });
+export const saveStats = () => ({ ...wallet, ...vitals, bag: { ...bag }, owned: [...owned] });
 export function loadStats(
-  d: (Partial<typeof wallet> & Partial<typeof vitals> & { bag?: Record<string, number> }) | undefined,
+  d: (Partial<typeof wallet> & Partial<typeof vitals> & { bag?: Record<string, number>; owned?: string[] }) | undefined,
 ) {
   for (const k of Object.keys(bag)) delete bag[k];
+  owned.length = 0;
   if (d) {
     Object.assign(bag, d.bag ?? {});
+    owned.push(...(d.owned ?? []));
     wallet.money = d.money ?? wallet.money;
     wallet.sim = d.sim ?? wallet.sim;
     wallet.card = d.card ?? wallet.card;
@@ -113,6 +117,7 @@ export function resetStats() {
   Object.assign(wallet, { money: 500, sim: false, card: false });
   Object.assign(vitals, { energy: 80, mood: 70 });
   for (const k of Object.keys(bag)) delete bag[k];
+  owned.length = 0;
   showMoney();
   showVitals();
 }

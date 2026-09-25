@@ -9,13 +9,15 @@ import { register } from '../game/interact';
 import { openPanel, closePanel } from '../ui/panel';
 import { toast } from '../ui/hud';
 import { passTime } from '../core/time';
-import { spend, sgd, addEnergy, addMood, addItem } from '../game/stats';
+import { spend, sgd, addEnergy, addMood, addItem, owned } from '../game/stats';
 
 export interface Ware {
   name: string;
   price: number;
   /** A gift for the bag (item id). */
   gift?: string;
+  /** Owned for good (and not sold again). */
+  own?: string;
   /** Eaten or enjoyed there: minutes it takes, energy and mood. */
   minutes?: number;
   energy?: number;
@@ -38,13 +40,19 @@ export function shopPanel(s: Shop) {
     body: s.hello,
     keepPage: true,
     rows: [
-      ...s.wares.map(w => ({ label: w.name, note: sgd(w.price), run: () => buy(s, w) })),
+      ...s.wares.map(w => ({
+        label: w.name,
+        note: w.own && owned.includes(w.own) ? 'got it' : sgd(w.price),
+        disabled: w.own && owned.includes(w.own) ? 'Already yours' : undefined,
+        run: () => buy(s, w),
+      })),
       { label: 'Just looking', run: () => closePanel() },
     ],
   });
 }
 function buy(s: Shop, w: Ware) {
   if (!spend(w.price)) return toast('Not enough money', `${w.name} is ${sgd(w.price)}.`);
+  if (w.own) owned.push(w.own);
   if (w.gift) {
     addItem(w.gift);
     toast(`${w.name}`, 'In the bag. A good gift for someone.', null);

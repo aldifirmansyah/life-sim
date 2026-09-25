@@ -56,3 +56,9 @@ export const HAJI_LANE = { x0: 335, x1: 365, z0: 52, z1: 60 };
 export const CT_MARKET = { x0: 42, x1: 78, z0: 548, z1: 556 };
 /** Lucky Place on Orchard Road: the ground floor walk-in (the Indonesian shops), the mall above streamed. */
 export const LUCKY = { x0: -7, x1: 23, z0: -5, z1: 21, h: 5 };
+
+/* Step 8: the calendar's places. */
+/** The Indonesian embassy off Orchard (Chatsworth Road): the compound for 17 Agustus. */
+export const EMBASSY = { x: -170, z: 60, w: 30, d: 24 };
+/** The getai stage by Blk 420, in Hungry Ghost month. */
+export const GETAI = { x: -1013, z: 200 };

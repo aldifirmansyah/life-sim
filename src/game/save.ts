@@ -11,6 +11,7 @@ import { saveWork, loadWork } from './work';
 import { saveHomes, loadHomes } from '../places/homes';
 import { savePeople, loadPeople } from '../npc/people';
 import { saveCentre, loadCentre } from '../places/centre';
+import { saveEvents, loadEvents } from './events';
 
 const KEY = 'sg-save';
 const VERSION = 3;
@@ -30,6 +31,7 @@ export function saveGame(): boolean {
     homes: saveHomes(),
     people: savePeople(),
     faith: saveCentre(),
+    events: saveEvents(),
   };
   try {
     localStorage.setItem(KEY, JSON.stringify(d));
@@ -63,6 +65,7 @@ export function loadGame(): boolean {
   loadHomes(d.homes);
   loadPeople(d.people);
   loadCentre(d.faith);
+  loadEvents(d.events);
   return true;
 }
 export function deleteSave() {

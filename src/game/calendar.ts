@@ -45,3 +45,7 @@ export const shortDate = (day: number) => {
   const { d, month } = dateOf(day);
   return `${DAYS[weekday(day)].slice(0, 3)} ${d} ${month.slice(0, 3)}`;
 };
+
+/** Public holidays (no stand-ups): National Day's Monday in lieu, Deepavali's, Christmas, New Year. */
+export const HOLIDAYS = [16, 107, 153, 160];
+export const isHoliday = (day: number) => HOLIDAYS.includes(day);

@@ -400,6 +400,7 @@ function buildMarkets() {
             name: 'A batik shirt for Aldi',
             price: 45,
             mood: 8,
+            own: 'batik',
             note: 'For 17 Agustus at the embassy. Aldi looks sharp.',
           },
         ],

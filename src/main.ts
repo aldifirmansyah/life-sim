@@ -40,6 +40,8 @@ import { buildPeople, updatePeople, contacts, loadPeople, birthdaysToday } from 
 import { buildCrowds, updateCrowds } from './npc/crowds';
 import { buildCentre, loadCentre } from './places/centre';
 import { updateNear } from './places/shops';
+import { buildEvents, updateEvents, calendarApp, loadEvents } from './game/events';
+import { buildWeather, updateWeather } from './game/weather';
 import { properName } from './social/social';
 import { showMoney, showVitals, resetStats, drain, addEnergy, addMood } from './game/stats';
 import { buildChangi, updateChangi, ARRIVAL } from './places/changi';
@@ -74,10 +76,13 @@ buildClementi();
 buildCbd();
 buildHomes();
 buildCentre();
+buildEvents();
+buildWeather();
 apps.push({ label: 'HomeLah', note: 'rooms for rent', run: homeApp });
 buildPeople();
 buildCrowds();
 apps.push({ label: 'Contacts', note: 'people you know', run: contacts });
+apps.push({ label: 'Calendar', note: "what's on", run: calendarApp });
 buildBuses();
 initStream();
 const genMs = performance.now() - tGen;
@@ -99,6 +104,7 @@ function newGame() {
   loadHomes(undefined);
   loadPeople(undefined);
   loadCentre(undefined);
+  loadEvents(undefined);
 }
 
 /** Energy runs down with the hours awake; a night's sleep fills it up. */
@@ -159,6 +165,7 @@ function loop(now: number) {
   updateChangi(dt);
   updateCbd();
   updateNear(player.x, player.z);
+  updateEvents(dt);
   updateFares();
   updateInteraction();
   if (S.started) {
@@ -173,6 +180,7 @@ function loop(now: number) {
     landAt(player.x, player.z) === 'sea' ? 1 : Math.max(0, 1 - polyEdgeDist(ISLANDS.main, player.x, player.z) / 40);
   updateAudio({ road: roadCloseness(player.x, player.z), water });
   updateEnv((S.time / 60) % 24);
+  updateWeather(dt);
   lap('env+sound');
   if (S.started) updateHUD();
   updateGame();
@@ -310,6 +318,8 @@ if (import.meta.env.DEV) {
     import('./places/homes'),
     import('./npc/people'),
     import('./places/centre'),
+    import('./game/events'),
+    import('./game/weather'),
   ]).then(
     ([
       geo,
@@ -334,6 +344,8 @@ if (import.meta.env.DEV) {
       homes,
       people,
       centre,
+      events,
+      weather,
     ]) => {
       (window as unknown as Record<string, unknown>).__sg = {
         S,
@@ -360,6 +372,8 @@ if (import.meta.env.DEV) {
         homes,
         people,
         centre,
+        events,
+        weather,
         renderer,
         parts,
       };

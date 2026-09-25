@@ -24,6 +24,8 @@ import {
   HAJI_LANE,
   CT_MARKET,
   LUCKY,
+  EMBASSY,
+  GETAI,
 } from '../places/sites';
 
 export const CHUNK = 128;
@@ -702,6 +704,9 @@ function landmarks() {
     reserve(x, z, 24);
     landmarkSign('Masjid Sultan', 'Kampong Glam', x, 8, z + d / 2 + 3.2, 0, '#2f5d3a', '#e8d9a8');
   }
+  // The embassy's compound and the getai field keep their ground clear.
+  reserve(EMBASSY.x, EMBASSY.z, 20);
+  reserve(GETAI.x, GETAI.z, 11);
   // The other walk-in places of the centre keep their ground clear.
   for (const k of [TEKKA, TB_MARKET]) reserve(k.x, k.z, 22);
   for (const r of [HAJI_LANE, CT_MARKET]) reserve((r.x0 + r.x1) / 2, (r.z0 + r.z1) / 2, (r.x1 - r.x0) / 2 + 3);

@@ -42,6 +42,7 @@ import {
   stageRank,
 } from '../social/social';
 import { provider, PERSONAL } from '../dialogue/template';
+import { eventSpot } from '../game/events';
 import type { LineKind } from '../dialogue/types';
 import {
   CHOPEE_HQ,
@@ -56,6 +57,8 @@ import {
   CT_MARKET,
   HAJI_LANE,
   TB_MARKET,
+  EMBASSY,
+  GETAI,
 } from '../places/sites';
 
 /** Slots in the shared crowd: named people first, then the passers-by (npc/crowds.ts). */
@@ -228,6 +231,19 @@ function buildSpots() {
   add('c.tea', { x: CT_MARKET.x0 + 8.2, y: 0, z: CT_MARKET.z0 - 1.3, ry: -Math.PI / 2, where: 'Chinatown' });
   add('h.batik', { x: HAJI_LANE.x0 + 6.8, y: 0, z: HAJI_LANE.z1 + 1.3, ry: -Math.PI / 2, where: 'Haji Lane' });
   const tb = TB_MARKET;
+  // Event days: the embassy's courtyard, the lanterns at the void deck, the getai's chairs.
+  for (let i = 0; i < 4; i++) {
+    add(`emb.${i}`, { x: EMBASSY.x - 4.5 + i * 3, y: 0, z: EMBASSY.z + 6, ry: Math.PI, where: 'Indonesian embassy' });
+    add(`b.lantern.${i}`, {
+      x: B.x - 9 + i * 2.2,
+      y: 0,
+      z: B.z + B.d / 2 + 1.5,
+      ry: Math.PI,
+      where: 'Blk 420 void deck',
+    });
+  }
+  for (let i = 0; i < 2; i++)
+    add(`g.seat.${i}`, { x: GETAI.x - 1.2 + i * 2.4, y: 0, z: GETAI.z, ry: Math.PI, sit: 0.45, where: 'The getai' });
   add('tb.bakery', {
     x: tb.x - tb.w / 2 + (tb.w / 4) * 2.5,
     y: 0,
@@ -1111,6 +1127,7 @@ function spotNow(p: Person): Spot | null {
     const [h, m] = from.split(':').map(Number);
     if (t >= h * 60 + m) key = k;
   }
+  key = eventSpot(p.npc.id, S.day, t) ?? key;
   return key === 'away' ? null : (spots[key] ?? null);
 }
 
