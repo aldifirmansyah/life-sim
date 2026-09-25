@@ -16,6 +16,8 @@ import * as st from '../game/stats';
 import { item, giftReaction, rupiah } from '../game/items';
 import { toast } from './hud';
 import { tryLock } from './overlays';
+import { sfx } from '../audio/audio';
+import { SETTINGS } from '../core/settings';
 import { answeredCallout } from '../social/life';
 import * as arcs from '../social/arcs';
 import { tutorialScene, startWalk, startGoals } from '../game/tutorial';
@@ -30,7 +32,8 @@ const stories = (npc: NPC) => lines[`npc.${npc.id}.story`] ?? [];
 
 /** Game-minutes each exchange takes. */
 const EXCHANGE_MIN = 3;
-const CPS = 55; // typewriter characters per second
+/** Typewriter characters per second, by the text speed setting. */
+const cps = () => [28, 55, 110, 100000][SETTINGS.textSpeed] ?? 55;
 
 interface Choice {
   label: string;
@@ -50,7 +53,10 @@ interface Conversation {
 }
 let conv: Conversation | null = null;
 /** The line being typed out; it runs on wall-clock time, not the (capped) frame delta. */
-let typing: { full: string; start: number; done: () => void } | null = null;
+let typing: { full: string; start: number; done: () => void; last: number } | null = null;
+/** Voice pitch for dialogue blips: children high, women higher than men, elders lower. */
+const voice = (n: NPC) =>
+  (n.age < 13 ? 1.8 : n.age < 18 ? 1.4 : n.gender === 'f' ? 1.25 : 0.9) * (n.age >= 60 ? 0.9 : 1);
 
 /* ================= camera and typing ================= */
 
@@ -69,7 +75,11 @@ export function updateDialogue(dt: number) {
     player.yaw += d * k;
     player.pitch += (pitch - player.pitch) * k;
     if (typing) {
-      const shown = ((performance.now() - typing.start) / 1000) * CPS;
+      const shown = ((performance.now() - typing.start) / 1000) * cps();
+      // A soft blip every few letters, pitched for the speaker.
+      if (Math.floor(shown / 3) > Math.floor(typing.last / 3) && shown < typing.full.length)
+        sfx('blip', voice(conv.npc));
+      typing.last = shown;
       reveal(typing.full, Math.floor(shown));
       if (shown >= typing.full.length) finishTyping();
     }
@@ -102,7 +112,7 @@ async function say(c: Conversation, part: Partial<DialogueContext> & Pick<Dialog
   reveal(line.text, 0);
   c.r.speaking = true;
   await new Promise<void>(done => {
-    typing = { full: line.text, start: performance.now(), done };
+    typing = { full: line.text, start: performance.now(), done, last: 0 };
   });
   c.r.speaking = false;
   // A beat before the choices come back, so the reply lands first.
@@ -171,6 +181,7 @@ function choose(i: number) {
   if (!c || c.busy) return;
   const ch = c.choices[i];
   if (!ch) return;
+  sfx('click');
   c.busy = true;
   // Show what Raka said, and clear the old reply straight away instead of leaving it up until the new one starts.
   if (ch.echo) {

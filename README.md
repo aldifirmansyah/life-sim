@@ -29,6 +29,10 @@ cd prototype && python3 -m http.server 5174
 # then open http://localhost:5174
 ```
 
+## Playing
+
+A new game starts on the morning Raka arrives: Pak RT is waiting at the gapura. Tick "Skip the introduction" on the start screen to start at your house instead. The game autosaves at the end of each day (and every couple of minutes); Continue picks up where you left off. Esc opens the pause menu with Save, New game and the settings (graphics, sensitivity, volume, text speed).
+
 ## Keys
 
 - `WASD` walk, `Shift` run, mouse to look.
@@ -59,6 +63,7 @@ src/
   ui/                hud (clock, location, toasts), map, overlays (start, pause, settings), dialogue, contacts, portrait, panel, activities
   dialogue/          DialogueProvider interface, TemplateDialogueProvider, lines.json
   social/            friendship rules, NPC–NPC chats and call-outs, plans, phone messages, reputation, story arcs, Mbah Minah
-  game/              items, stats and bag, interaction, garden, actions, calendar, events, house restoration, odd jobs
+  game/              items, stats and bag, interaction, garden, actions, calendar, events, house restoration, odd jobs, save, tutorial, weather
+  audio/             synthesised sound (Web Audio)
   npc/               residents and passers-by: data model, roster, schedules, character generator + renderer, places, waypoint graph, runtime, debug view
 ```

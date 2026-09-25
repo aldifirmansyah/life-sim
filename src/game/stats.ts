@@ -1,6 +1,7 @@
 /* Raka's stats (spec §6): energy, mood, money, skills and the bag. No hunger:
    eating is a boost, not a need. */
 import { emit } from './bus';
+import { sfx } from '../audio/audio';
 import { S } from '../core/state';
 import { player } from '../core/player';
 import { toast } from '../ui/hud';
@@ -41,7 +42,7 @@ export function practise(s: Skill, xp: number) {
   const before = level(s);
   skillXp[s] += xp;
   const after = level(s);
-  if (after > before) toast(`${SKILL_NAMES[s]} is now level ${after}`, 'Practice pays off.');
+  if (after > before) toast(`${SKILL_NAMES[s]} is now level ${after}`, 'Practice pays off.', 'level');
 }
 
 export const clamp100 = (v: number) => Math.max(0, Math.min(100, v));
@@ -53,6 +54,7 @@ export function addMood(d: number) {
 }
 export function earn(n: number) {
   stats.money += n;
+  if (n > 0) sfx('coin');
 }
 export function canAfford(n: number) {
   return stats.money >= n;
@@ -60,6 +62,7 @@ export function canAfford(n: number) {
 export function spend(n: number) {
   if (stats.money < n) return false;
   stats.money -= n;
+  if (n > 0) sfx('coin');
   return true;
 }
 

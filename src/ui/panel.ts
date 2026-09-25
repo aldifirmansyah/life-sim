@@ -4,6 +4,7 @@ import { $ } from '../core/util';
 import { S } from '../core/state';
 import { keys } from '../core/player';
 import { tryLock } from './overlays';
+import { sfx } from '../audio/audio';
 
 export interface Row {
   label: string;
@@ -85,7 +86,10 @@ function render() {
     b.querySelector('kbd')!.textContent = key;
     b.querySelector('.pl')!.textContent = r.label;
     b.querySelector('.pn')!.textContent = r.disabled ?? r.note ?? '';
-    b.onclick = () => r.run();
+    b.onclick = () => {
+      sfx('click');
+      r.run();
+    };
     li.appendChild(b);
     ol.appendChild(li);
   };
@@ -105,6 +109,7 @@ export function panelKey(e: KeyboardEvent) {
   if (!spec) return;
   e.preventDefault();
   if (e.code === 'Escape' || e.code === 'Digit0' || e.code === 'Numpad0') {
+    sfx('back');
     if (spec.back) spec.back();
     else closePanel();
     return;

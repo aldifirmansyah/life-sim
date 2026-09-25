@@ -17,6 +17,7 @@ import { POSES } from '../render/hands';
 import * as st from './stats';
 import { item, rupiah, ITEMS } from './items';
 import { emit } from './bus';
+import { sfx } from '../audio/audio';
 import { dateOf, isArisan, isFestival, isKerjaBakti, isPengajian, festivalSeason, festivalBuild } from './calendar';
 import { agustus, festival, LOMBA } from '../world/festival';
 import { social } from '../social/social';
@@ -256,6 +257,9 @@ function pileMatrix(p: Pile) {
 const kerjaOn = () => isKerjaBakti(S.day) && S.time >= h(6, 45) && S.time < h(9);
 
 function sweep(p: Pile) {
+  sfx('sweep');
+  setTimeout(() => sfx('sweep'), 520);
+  setTimeout(() => sfx('sweep'), 1040);
   useTool('sapu', POSES.sweepA, POSES.sweepB, 3, 0.26, () => {
     swept.add(p.i);
     pileMesh.setMatrixAt(p.i, ZERO);

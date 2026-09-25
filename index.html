@@ -137,6 +137,25 @@
             <div class="set">
               <label class="lbl" for="dbg">Performance overlay</label><input id="dbg" type="checkbox" />
             </div>
+            <div class="set">
+              <label class="lbl" for="vol">Volume</label><input id="vol" type="range" min="0" max="1" step="0.05" />
+            </div>
+            <div class="set">
+              <label class="lbl" for="volamb">Ambience</label
+              ><input id="volamb" type="range" min="0" max="1" step="0.05" />
+            </div>
+            <div class="set">
+              <label class="lbl" for="volfx">Effects</label><input id="volfx" type="range" min="0" max="1" step="0.05" />
+            </div>
+            <div class="set">
+              <span class="lbl" id="tslbl">Text speed</span>
+              <div class="seg" role="radiogroup" aria-labelledby="tslbl" id="tseg">
+                <button type="button" role="radio" data-t="0">Slow</button
+                ><button type="button" role="radio" data-t="1">Normal</button
+                ><button type="button" role="radio" data-t="2">Fast</button
+                ><button type="button" role="radio" data-t="3">Instant</button>
+              </div>
+            </div>
           </div>
         </div>
       </section>

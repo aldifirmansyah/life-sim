@@ -31,6 +31,8 @@ import { beginNewGame, initTutorial, updateTutorial, updateMarker } from './game
 import { dateLabel } from './game/calendar';
 import { openDialogue } from './ui/dialogue';
 import { buildFestival } from './world/festival';
+import { updateAudio } from './audio/audio';
+import { buildRain, updateWeather } from './game/weather';
 import { initEvents, updateEvents } from './game/events';
 import { registerPastimes } from './ui/pastimes';
 import { buildHouseProps, updateHouse } from './game/house';
@@ -81,6 +83,7 @@ initVendors(crowd, RESIDENTS.length);
 initActions();
 buildPlate();
 buildFestival();
+buildRain();
 buildHouseProps();
 buildArcProps();
 onPhoneChange(() => showPlate(plate?.state === 'waiting'));
@@ -126,6 +129,8 @@ function loop(now: number) {
   applyCamera();
   if (S.started) updateBubbles();
   updateMarker();
+  if (S.started) updateWeather(dt);
+  soundscape();
   updateEnv((S.time / 60) % 24);
   if (S.started) updateHUD();
   updateNpcDebug(dt);
@@ -190,6 +195,20 @@ async function start() {
     $('cont').focus();
   } else $('go').focus();
   requestAnimationFrame(loop);
+}
+
+/* ================= sound ================= */
+
+const chatSpots: [number, number][] = [];
+/** What the world sounds need to know this frame: the bakso cart, the ronda, chats nearby. */
+function soundscape() {
+  const hour = (S.time / 60) % 24;
+  const joko = residents.find(r => r.npc.id === 'joko')!;
+  const cartOut = joko.state === 'at' && joko.slot.poi.id === 'bakso' && !joko.hidden;
+  const ronda = (hour >= 22 || hour < 2) && residents.some(r => r.state === 'at' && r.slot.poi.id === 'ronda');
+  chatSpots.length = 0;
+  for (const r of residents) if (r.chat && r.dist < 10) chatSpots.push([r.x, r.z]);
+  updateAudio({ bakso: cartOut ? [-5.4, 43.85] : null, ronda, chats: chatSpots });
 }
 
 /* ================= new game, continue, saving ================= */

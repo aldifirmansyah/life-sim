@@ -7,6 +7,7 @@ import { canvas } from '../render/context';
 import { applyQuality } from '../render/quality';
 import { resetAmbients } from '../npc/npcs';
 import { drawMap } from './map';
+import { startAudio, applyVolume } from '../audio/audio';
 
 export function show(id: string, on: boolean) {
   $(id).hidden = !on;
@@ -22,6 +23,7 @@ export function tryLock() {
 }
 
 export function play() {
+  startAudio();
   S.started = true;
   S.paused = false;
   S.map = false;
@@ -89,6 +91,31 @@ export function bindSettingsUI() {
     SETTINGS.bob = bob.checked;
     saveSettings();
   };
+  for (const [id, key] of [
+    ['vol', 'volume'],
+    ['volamb', 'ambience'],
+    ['volfx', 'effects'],
+  ] as const) {
+    const el = $<HTMLInputElement>(id);
+    el.value = String(SETTINGS[key]);
+    el.oninput = () => {
+      SETTINGS[key] = +el.value;
+      saveSettings();
+      applyVolume();
+    };
+  }
+  const tseg = document.querySelectorAll<HTMLElement>('#tseg button');
+  const markText = () =>
+    tseg.forEach(b => b.setAttribute('aria-checked', String(+b.dataset.t! === SETTINGS.textSpeed)));
+  tseg.forEach(
+    b =>
+      (b.onclick = () => {
+        SETTINGS.textSpeed = +b.dataset.t!;
+        saveSettings();
+        markText();
+      }),
+  );
+  markText();
   dbg.checked = SETTINGS.debug;
   show('debug', SETTINGS.debug);
   dbg.onchange = () => {

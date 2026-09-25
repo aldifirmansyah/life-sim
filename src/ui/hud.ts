@@ -5,9 +5,11 @@ import { zoneAt } from '../world/layout';
 import { stats } from '../game/stats';
 import { rupiah } from '../game/items';
 import { dateLabel } from '../game/calendar';
+import { sfx, type Sfx } from '../audio/audio';
 
 /** Non-blocking notification; at most three are shown. */
-export function toast(title: string, sub?: string) {
+export function toast(title: string, sub?: string, sound: Sfx | null = 'toast') {
+  if (sound) sfx(sound);
   const el = document.createElement('div');
   el.className = 'toast';
   el.innerHTML = `<b></b>${sub ? '<span></span>' : ''}`;

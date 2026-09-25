@@ -76,7 +76,7 @@ export function post(threadId: string, from: string, text: string, offer?: numbe
   if (from !== 'raka' && !(S.phone && viewing === threadId)) {
     t.unread++;
     const who = from === 'system' ? '' : `${byId(from)?.npc.name ?? ''}: `;
-    toast(`💬 ${t.title}`, who + (text.length > 90 ? text.slice(0, 88) + '…' : text));
+    toast(`💬 ${t.title}`, who + (text.length > 90 ? text.slice(0, 88) + '…' : text), 'msg');
   }
   changed();
 }
@@ -194,6 +194,8 @@ async function groupPost(r: Resident, outcome: string, detail?: string, other?: 
 function hourly() {
   if (S.time < h(8) || S.time > h(20, 30)) return;
   if (appointments.some(a => a.state === 'offered')) return;
+  // At most one invitation from friends a day, so the phone doesn't nag.
+  if ([...invitedRaka.values()].includes(S.day)) return;
   if (Math.random() > 0.14) return;
   const friends = residents.filter(
     r =>

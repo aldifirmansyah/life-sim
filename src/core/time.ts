@@ -6,6 +6,7 @@ import { player, keys } from './player';
 import { toast } from '../ui/hud';
 import { sleepRestore } from '../game/stats';
 import { dateLabel } from '../game/calendar';
+import { bedug } from '../audio/audio';
 
 /** [minute of day, toast title, toast body] */
 export const EVENTS: [number, string, string][] = [
@@ -22,7 +23,12 @@ export function advanceTime(dt: number) {
   const scale = keys.has('KeyT') ? 60 : 1.2;
   const prev = S.time;
   S.time += dt * scale;
-  for (const [m, t, s] of EVENTS) if (prev < m && S.time >= m) toast(t, s);
+  for (const [m, t, s] of EVENTS)
+    if (prev < m && S.time >= m) {
+      toast(t, s);
+      // The bedug sounds from the musholla before each call to prayer.
+      if (t.startsWith('Adzan')) bedug();
+    }
   if (S.time >= 26 * 60 && !S.sleeping) sleep();
 }
 

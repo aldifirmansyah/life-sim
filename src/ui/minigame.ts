@@ -8,6 +8,7 @@ import { $, TOUCH } from '../core/util';
 import { S } from '../core/state';
 import { keys } from '../core/player';
 import { tryLock } from './overlays';
+import { sfx } from '../audio/audio';
 
 export interface RaceSpec {
   kind: 'race';
@@ -141,14 +142,19 @@ function press(k: string) {
   if (s.kind === 'race') {
     if (t < stumble) return;
     if (s.input === 'mash') {
-      if (k === 'M') you += s.step;
+      if (k === 'M') {
+        you += s.step;
+        sfx('tick');
+      }
     } else if (k === 'L' || k === 'R') {
       if (k === last) {
         // Same foot twice: you trip in the sack.
         stumble = t + 0.6;
         msg = 'Whoa! You stumble in the sack.';
+        sfx('bad');
       } else {
         you += s.step;
+        sfx('tick');
         msg = '';
       }
       last = k;
@@ -161,8 +167,10 @@ function press(k: string) {
     if (Math.abs(m - 0.5) <= s.zone / 2) {
       hits++;
       flash = t;
+      sfx('good');
       msg = s.tries ? 'Goal!' : 'Up you go!';
     } else {
+      sfx('bad');
       if (s.slip) hits = Math.max(0, hits - 1);
       msg = s.tries ? 'Saved by the keeper.' : 'You slip back down.';
     }
@@ -171,6 +179,7 @@ function press(k: string) {
     if (state === 'bite') {
       caught++;
       msg = 'Got one!';
+      sfx('splash');
       endRound();
     } else if (state === 'wait') {
       msg = 'Too soon. The fish swims off.';
@@ -209,6 +218,7 @@ export function updateGame() {
     if (state === 'wait' && t >= waitUntil) {
       state = 'bite';
       biteAt = t;
+      sfx('tick');
       msg = '!';
     } else if (state === 'bite' && t - biteAt > s.window) {
       msg = 'Too slow. It got away.';
@@ -259,6 +269,7 @@ function end(quit = false) {
   if (s.kind === 'race') {
     const place = 1 + rivals.filter(v => v > you).length;
     const won = !quit && place === 1;
+    if (won) sfx('cheer');
     msg = quit
       ? 'You drop out.'
       : won
@@ -268,6 +279,7 @@ function end(quit = false) {
     setTimeout(() => (close(), s.done({ won, place, progress: you })), 1100);
   } else if (s.kind === 'timing') {
     const won = !quit && hits >= s.goal;
+    if (won) sfx('cheer');
     msg = quit
       ? 'You give up.'
       : won

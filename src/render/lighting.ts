@@ -118,4 +118,21 @@ export function updateEnv(h: number) {
     pasar.visible = ps;
     pasarCols.forEach(c => (c.on = ps));
   }
+  // Rain clouds: a grey sky, soft light, no hard shadows.
+  if (overcast > 0) {
+    const k = overcast;
+    _grey.setRGB(0.5, 0.53, 0.56).multiplyScalar(0.35 + 0.65 * (1 - night));
+    skyU.top.value.lerp(_grey, 0.8 * k);
+    skyU.hor.value.lerp(_grey, 0.7 * k);
+    fog.color.lerp(_grey, 0.7 * k);
+    skyU.sunVis.value *= 1 - k;
+    sun.intensity *= 1 - 0.75 * k;
+    hemi.intensity *= 1 - 0.25 * k;
+    if (k > 0.5) sun.castShadow = false;
+  }
 }
+
+/** 0..1: how overcast it is (set by the weather). */
+export let overcast = 0;
+export const setOvercast = (v: number) => (overcast = v);
+const _grey = new THREE.Color();

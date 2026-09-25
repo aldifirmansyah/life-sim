@@ -29,12 +29,12 @@ export const tut = {
 const bambang = () => residents.find(r => r.npc.id === 'bambang')!;
 const h = (hh: number, mm = 0) => hh * 60 + mm;
 
-/** Households whose front door is on Gang Mawar (Raka's gang). */
+/** Households around Gang Mawar (Raka's gang): doors on it, or on the corners where it meets the jalan and the other gangs. */
 let mawar: string[] = [];
 function mawarHouseholds() {
   if (!mawar.length)
     mawar = [...homes.entries()]
-      .filter(([, p]) => Math.abs(p.entry[0][1] - 16) < 1.6)
+      .filter(([, p]) => Math.abs(p.entry[0][1] - 16) < 6)
       .map(([hh]) => hh)
       .filter(hh => residents.some(r => r.def.household === hh));
   return mawar;
