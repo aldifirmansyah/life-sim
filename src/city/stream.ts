@@ -34,7 +34,13 @@ export const pools: Record<PoolName, Pool> = {
     cast: false,
     receive: false,
   }),
-  dome: new Pool('dome', DOME, lam({ transparent: true, opacity: 0.75, side: THREE.DoubleSide, depthWrite: false }), 64, { cast: false }),
+  dome: new Pool(
+    'dome',
+    DOME,
+    lam({ transparent: true, opacity: 0.75, side: THREE.DoubleSide, depthWrite: false }),
+    64,
+    { cast: false },
+  ),
 };
 
 const _m = new THREE.Matrix4(),
