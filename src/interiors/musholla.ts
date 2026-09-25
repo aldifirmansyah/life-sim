@@ -143,6 +143,11 @@ function build(set: PropSet) {
     P(x, ce - 0.08, z, 1.1, 0.04, 0.05, '#f4fbff', set.glow);
   }
 
+  /* The door frame: jambs and a head, so the leaf sits snug in the opening. */
+  const dz = MU.door.z - 0.075;
+  P(MU.door.x, 2.17, dz, 1.0, 0.06, 0.17, WOOD);
+  for (const x of [MU.door.x - 0.49, MU.door.x + 0.49]) P(x, 1.1, dz, 0.03, 2.2, 0.17, WOOD);
+
   /* Outside by the door: a sandal rack. */
   P(9.2, 0.25, z1 + 0.3, 0.8, 0.5, 0.26, WOOD);
   colOnly(8.8, 9.6, z1 + 0.17, z1 + 0.43);
@@ -186,8 +191,8 @@ export function buildMushollaInterior(): Interior {
     x: door.x,
     z: door.z,
     y: 1.1,
-    size: 0.7,
-    reach: 2.0,
+    size: 0.8,
+    reach: 2.8,
     inside: '*',
     label: () => (door.target > 0.5 ? 'Close the door' : 'Open the door'),
     run: () => door.toggle(),
@@ -212,11 +217,8 @@ function salam() {
 }
 
 function wudhu() {
-  if (hasWudhu()) {
-    toast('Still in wudhu', 'You washed not long ago.');
-    return;
-  }
   const [tx, tz] = MU.taps;
+  stream.visible = true;
   standFor(MU.wudhuAt, [tx, 0.9, tz], () =>
     useTool(
       '',
@@ -226,6 +228,7 @@ function wudhu() {
       0.45,
       () => {
         wudhuAt = abs();
+        stream.visible = false;
         S.time += 5;
         toast('Wudhu', 'Hands, mouth, face, arms, head, ears, feet. Cool water in the heat.');
       },
@@ -269,7 +272,17 @@ function sholat() {
   });
 }
 
+/** Water running from the tap while Raka washes. */
+let stream: THREE.Mesh;
+
 export function registerMusholla() {
+  stream = new THREE.Mesh(
+    new THREE.CylinderGeometry(0.018, 0.024, 0.75, 6),
+    new THREE.MeshBasicMaterial({ color: 0x9fd0e8, transparent: true, opacity: 0.75 }),
+  );
+  stream.position.set(MU.taps[0], 0.42, MU.taps[1] + 0.03);
+  stream.visible = false;
+  scene.add(stream);
   const [tx, tz] = MU.taps;
   interactables.push({
     x: tx,
@@ -277,7 +290,7 @@ export function registerMusholla() {
     y: 0.9,
     size: 0.9,
     reach: 2.2,
-    label: () => (hasWudhu() ? null : 'Wudhu at the taps'),
+    label: () => (hasWudhu() ? 'Wudhu again at the taps' : 'Wudhu at the taps'),
     run: wudhu,
   });
   // Sholat: facing the mihrab from the front of the hall.

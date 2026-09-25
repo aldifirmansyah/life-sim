@@ -26,8 +26,8 @@ export const MU = {
   /** The pengajian circle: Ustadz Hasan at the west side facing east, everyone round him. */
   circle: { x: 8.9, z: -17, r: 1.5 },
   /** The wudhu taps, outside on the south face of the wudhu block, and where Raka stands to use them. */
-  taps: [12.2, -11.62] as P2,
-  wudhuAt: [12.2, -11.15] as P2,
+  taps: [12.1, -11.62] as P2,
+  wudhuAt: [12.1, -11.15] as P2,
   lamp: [9.3, 2.8, -17] as [number, number, number],
 };
 

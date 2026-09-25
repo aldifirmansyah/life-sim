@@ -168,7 +168,7 @@ export function landmarks() {
     for (const [h0, h1, y0] of holes) {
       if (h0 > x) B(x, h0, 0, 3.6, z0, z1, mw, { col: true });
       if (y0 > 0) B(h0, h1, 0, y0, z0, z1, mw, { col: true });
-      B(h0, h1, y0 > 0 ? 2.55 : 2.3, 3.6, z0, z1, mw);
+      B(h0, h1, y0 > 0 ? 2.55 : 2.2, 3.6, z0, z1, mw);
       x = h1;
     }
     B(x, mx1 - mt, 0, 3.6, z0, z1, mw, { col: true });
