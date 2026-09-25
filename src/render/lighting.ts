@@ -122,6 +122,8 @@ export function updateEnv(h: number) {
   // through the openings; without them (low quality) it is turned right down.
   if (indoor > 0) {
     hemi.intensity *= 1 - 0.55 * indoor;
+    // Light bounced off the floor and walls: ceilings and undersides aren't left dark.
+    hemi.groundColor.lerp(hemi.color, 0.55 * indoor);
     if (!sun.castShadow) sun.intensity *= 1 - 0.8 * indoor;
   }
   // Rain clouds: a grey sky, soft light, no hard shadows.

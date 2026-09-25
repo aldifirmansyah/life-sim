@@ -197,7 +197,8 @@ export function landmarks() {
     },
   });
   rakaHouse = rk;
-  kamboja(19.2, 18.1);
+  // Clear of the house now that it can be walked into (same R() calls, only moved).
+  kamboja(20.5, 17.7);
   const np = rk.F(-1.4, 3.12);
   B(np[0] - 0.18, np[0] + 0.18, 2.0, 2.25, np[1] - 0.02, np[1], '#1f5f8a');
 

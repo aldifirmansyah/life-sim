@@ -106,7 +106,15 @@ export function buildRakaInterior(): Interior {
   // Kamar mandi: tiled to shoulder height inside.
   across(MX, -IZ, MZ - T / 2);
   along(MZ, MX + T / 2, IX, [{ c: 2.72, w: 0.7, top: 2.0 }]);
-  P(MX + 0.06, 0.8, (MZ - IZ) / 2 - 0.02, 0.02, 1.4, -MZ + IZ - 0.1, '#a9c8c2');
+  const tile = '#a9c8c2';
+  P(MX + 0.06, 0.8, (MZ - IZ) / 2 - 0.02, 0.02, 1.4, IZ + MZ - 0.1, tile);
+  P((MX + IX) / 2, 0.8, -IZ + 0.015, IX - MX, 1.4, 0.012, tile);
+  P(IX - 0.015, 0.8, (MZ - IZ) / 2, 0.012, 1.4, IZ + MZ, tile);
+  for (const [a, b] of [
+    [MX + T / 2, 2.72 - 0.35],
+    [2.72 + 0.35, IX],
+  ])
+    P((a + b) / 2, 0.8, MZ - T / 2 - 0.006, b - a, 1.4, 0.012, tile);
 
   /* Paint on the inside of the outer walls (lighter than the outside), around the door and windows. */
   const L = 0.006;
