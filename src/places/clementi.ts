@@ -48,6 +48,17 @@ const STALLS: Stall[] = [
     ],
   },
   {
+    name: 'Kueh & Gifts',
+    sub: 'Kueh lapis · Tarts · Puffs',
+    color: '#c9493a',
+    dishes: [
+      { name: 'Kueh lapis, a box', price: 5, energy: 0, mood: 0, note: '', gift: 'kueh' },
+      { name: 'Pineapple tarts, a tin', price: 12, energy: 0, mood: 0, note: '', gift: 'tarts' },
+      { name: 'Curry puffs, three', price: 3, energy: 0, mood: 0, note: '', gift: 'puff' },
+      { name: 'Kopi, takeaway bag', price: 1.4, energy: 0, mood: 0, note: '', gift: 'kopi' },
+    ],
+  },
+  {
     name: 'Kopi & Drinks',
     sub: 'Kopi · Teh · Sugarcane',
     color: '#6b4a2f',

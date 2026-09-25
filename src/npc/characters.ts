@@ -93,6 +93,8 @@ export interface PoseState {
   wave?: number;
   /** Seconds, for idle motion. */
   t: number;
+  /** The floor they stand on (upper floors). */
+  baseY?: number;
 }
 
 const ZERO = new THREE.Matrix4().makeScale(0, 0, 0);
@@ -275,7 +277,7 @@ export class Crowd {
       rollR += st.wave * (0.2 + 0.28 * Math.sin(st.t * 9));
     }
 
-    trs(root, st.x, y, st.z, 0, st.ry, 0);
+    trs(root, st.x, y + (st.baseY ?? 0), st.z, 0, st.ry, 0);
     const b = i * BOX_PER;
     // Legs: thigh from the hip, shin from the knee.
     for (const [side, th, kn, T, S] of [

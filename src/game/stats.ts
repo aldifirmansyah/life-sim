@@ -14,6 +14,27 @@ export const wallet = {
   card: false,
 };
 export const vitals = { energy: 80, mood: 70 };
+/** Gifts and takeaways Aldi carries, by item id. */
+export const bag: Record<string, number> = {};
+/** What the items are called. */
+export const ITEM_NAMES: Record<string, string> = {
+  kueh: 'Kueh lapis',
+  tarts: 'Pineapple tarts',
+  puff: 'Curry puffs',
+  kopi: 'Kopi (takeaway)',
+  bbt: 'Bubble tea',
+  indomie: 'Indomie, a box',
+  keripik: 'Keripik tempe',
+  flowers: 'Flowers',
+};
+export function addItem(id: string, n = 1) {
+  bag[id] = (bag[id] ?? 0) + n;
+}
+export function takeItem(id: string) {
+  if (!bag[id]) return false;
+  if (--bag[id] <= 0) delete bag[id];
+  return true;
+}
 
 export const sgd = (n: number) => `S$${n.toFixed(2)}`;
 
@@ -65,9 +86,13 @@ export function drain(minutes: number) {
   showVitals();
 }
 
-export const saveStats = () => ({ ...wallet, ...vitals });
-export function loadStats(d: (Partial<typeof wallet> & Partial<typeof vitals>) | undefined) {
+export const saveStats = () => ({ ...wallet, ...vitals, bag: { ...bag } });
+export function loadStats(
+  d: (Partial<typeof wallet> & Partial<typeof vitals> & { bag?: Record<string, number> }) | undefined,
+) {
+  for (const k of Object.keys(bag)) delete bag[k];
   if (d) {
+    Object.assign(bag, d.bag ?? {});
     wallet.money = d.money ?? wallet.money;
     wallet.sim = d.sim ?? wallet.sim;
     wallet.card = d.card ?? wallet.card;
@@ -81,6 +106,7 @@ export function loadStats(d: (Partial<typeof wallet> & Partial<typeof vitals>) |
 export function resetStats() {
   Object.assign(wallet, { money: 500, sim: false, card: false });
   Object.assign(vitals, { energy: 80, mood: 70 });
+  for (const k of Object.keys(bag)) delete bag[k];
   showMoney();
   showVitals();
 }

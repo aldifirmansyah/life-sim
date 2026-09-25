@@ -28,9 +28,18 @@ export interface AppearanceSeed {
   gender: 'm' | 'f';
   /** Anything given here wins over the rolled value. */
   set?: Partial<AppearanceParams>;
+  /** Chance a woman wears a hijab (default 0.7). */
+  hijab?: number;
+  /** Skin tones to pick from (default: the Indonesian range). */
+  skins?: readonly string[];
 }
+/** Singapore's mix: lighter tones through darker ones. */
+export const SG_SKINS = ['#e8c4a0', '#dcb08a', '#d4a57c', '#c58b62', '#b67d55', '#9c6644', '#7a4b30', '#6a4028'];
 
-export function generateAppearance({ age, gender, set = {} }: AppearanceSeed, rnd: () => number): AppearanceParams {
+export function generateAppearance(
+  { age, gender, set = {}, hijab: hijabChance = 0.7, skins = SKIN }: AppearanceSeed,
+  rnd: () => number,
+): AppearanceParams {
   const pick = <T>(a: readonly T[]) => a[Math.floor(rnd() * a.length)];
   const range = (a: number, b: number) => a + (b - a) * rnd();
   const child = age < 13;
@@ -42,7 +51,7 @@ export function generateAppearance({ age, gender, set = {} }: AppearanceSeed, rn
   const build = child ? 1 : range(0.9, 1.12) + (age > 40 ? 0.06 : 0);
   let hair: AppearanceParams['hair'];
   if (gender === 'f')
-    hair = child ? pick(['long', 'bun'] as const) : age >= 16 && rnd() < 0.7 ? 'hijab' : pick(['long', 'bun'] as const);
+    hair = child ? pick(['long', 'bun'] as const) : age >= 16 && rnd() < hijabChance ? 'hijab' : pick(['long', 'bun'] as const);
   else
     hair = child
       ? 'short'
@@ -57,7 +66,7 @@ export function generateAppearance({ age, gender, set = {} }: AppearanceSeed, rn
   const out: AppearanceParams = {
     height,
     build,
-    skin: pick(SKIN),
+    skin: pick(skins),
     hair,
     hairColor: age > 58 ? pick(GREY) : pick(HAIR),
     top: pick(TOPS),

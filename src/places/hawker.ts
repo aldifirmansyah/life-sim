@@ -17,7 +17,7 @@ import { openPanel, closePanel } from '../ui/panel';
 import { toast } from '../ui/hud';
 import { player } from '../core/player';
 import { passTime } from '../core/time';
-import { spend, sgd, addEnergy, addMood } from '../game/stats';
+import { spend, sgd, addEnergy, addMood, addItem } from '../game/stats';
 
 export interface Dish {
   name: string;
@@ -26,6 +26,8 @@ export interface Dish {
   mood: number;
   note: string;
   drink?: boolean;
+  /** Bought to carry away as a gift (an item id in the bag). */
+  gift?: string;
 }
 export interface Stall {
   name: string;
@@ -195,6 +197,11 @@ export function buildHawker(o: HawkerSpec) {
   function buy(dish: Dish) {
     if (!spend(dish.price)) return toast('Not enough money', `${dish.name} is ${sgd(dish.price)}.`);
     closePanel();
+    if (dish.gift) {
+      addItem(dish.gift);
+      toast(`${dish.name}, wrapped to go`, 'In the bag. A good gift for someone.', null);
+      return;
+    }
     if (dish.drink) {
       addEnergy(dish.energy);
       addMood(dish.mood);

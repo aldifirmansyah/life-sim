@@ -9,6 +9,7 @@ import { saveArrival, loadArrival } from './arrival';
 import { saveOneNorth, loadOneNorth } from '../places/onenorth';
 import { saveWork, loadWork } from './work';
 import { saveHomes, loadHomes } from '../places/homes';
+import { savePeople, loadPeople } from '../npc/people';
 
 const KEY = 'sg-save';
 const VERSION = 3;
@@ -26,6 +27,7 @@ export function saveGame(): boolean {
     onenorth: saveOneNorth(),
     work: saveWork(),
     homes: saveHomes(),
+    people: savePeople(),
   };
   try {
     localStorage.setItem(KEY, JSON.stringify(d));
@@ -57,6 +59,7 @@ export function loadGame(): boolean {
   loadOneNorth(d.onenorth);
   loadWork(d.work);
   loadHomes(d.homes);
+  loadPeople(d.people);
   return true;
 }
 export function deleteSave() {

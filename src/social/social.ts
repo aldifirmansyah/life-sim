@@ -4,17 +4,18 @@ import type { Memory, NPC, Stage, Topic } from '../npc/types';
 import { repute, firstImpression } from './reputation';
 
 export const TOPICS: Topic[] = [
-  'football',
   'food',
-  'family',
+  'football',
   'work',
-  'kampung news',
+  'family',
   'weather',
-  'motorbikes',
   'old days',
   'religion',
   'music',
-  'market prices',
+  'property',
+  'travel',
+  'tech',
+  'shopping',
   'gossip',
 ];
 
@@ -28,7 +29,7 @@ export const stageFor = (f: number): Stage =>
 const STAGES: Stage[] = ['stranger', 'acquaintance', 'friend', 'close friend', 'best friend'];
 export const stageRank = (s: Stage) => STAGES.indexOf(s);
 
-/** What Raka knows and has done with one resident. */
+/** What Aldi knows and has done with one resident. */
 export interface Social {
   met: boolean;
   metDay: number;
@@ -38,7 +39,7 @@ export interface Social {
     birthday: boolean;
     stories: number;
     ties: string[];
-    /** Gift reactions Raka has seen, by item id. */
+    /** Gift reactions Aldi has seen, by item id. */
     gifts: Record<string, string>;
   };
   /** Day each topic was last talked about. */
@@ -48,7 +49,7 @@ export interface Social {
   gained: number;
   /** Day of the last proper greeting. */
   greetedDay: number;
-  /** Day Raka last invited them out, and last passed on a word about someone. */
+  /** Day Aldi last invited them out, and last passed on a word about someone. */
   invitedDay: number;
   wordDay: number;
   /** Per-day counters for actions that get stale when repeated. */
@@ -120,8 +121,8 @@ export function meet(npc: NPC, day: number) {
   if (s.met) return;
   s.met = true;
   s.metDay = day;
-  remember(npc, { day, kind: 'first', text: 'Met Raka for the first time', weight: 3 });
-  // What they've heard about Raka colours the first impression.
+  remember(npc, { day, kind: 'first', text: 'Met Aldi for the first time', weight: 3 });
+  // What they've heard about Aldi colours the first impression.
   const bonus = firstImpression();
   if (bonus) {
     npc.playerRelationship.friendship = Math.min(100, npc.playerRelationship.friendship + bonus);
@@ -129,7 +130,7 @@ export function meet(npc: NPC, day: number) {
   }
 }
 
-/** Once a day, residents Raka hasn't talked to for a week cool off a little. */
+/** Once a day, residents Aldi hasn't talked to for a week cool off a little. */
 export function dailyDecay(npcs: NPC[], day: number) {
   for (const npc of npcs) {
     const s = social(npc);
@@ -145,12 +146,12 @@ export function dailyDecay(npcs: NPC[], day: number) {
 
 /* ================= greetings ================= */
 
-const isElder = (npc: NPC) => npc.age >= 45 || npc.address === 'Ustadz' || npc.address === 'Pak RT';
+const isElder = (npc: NPC) => npc.age >= 45 || npc.address === 'Ustaz';
 const isYoung = (npc: NPC) => npc.age < 25;
 
-/** How Raka should address them, e.g. "Pak Darto", "Pak RT", "Dek Bima". */
+/** How Aldi should address them, e.g. "Uncle Ah Seng", "Aunty Mei", or just "Hafiz". */
 export function properName(npc: NPC) {
-  if (npc.address.includes(' ')) return npc.address; // "Pak RT", "Bu RT"
+  if (!npc.address) return npc.name;
   return npc.name.startsWith(npc.address) ? npc.name : `${npc.address} ${npc.name}`;
 }
 
@@ -258,11 +259,11 @@ export function compliment(npc: NPC, day: number) {
   const rank = stageRank(npc.playerRelationship.stage);
   if (npc.traits.includes('shy')) return { outcome: 'shy', delta: 3 };
   if (npc.traits.includes('grumpy') && rank === 0) return { outcome: 'flat', delta: 0 };
-  remember(npc, { day, kind: 'compliment', text: 'Raka said something kind', weight: 1 });
+  remember(npc, { day, kind: 'compliment', text: 'Aldi said something kind', weight: 1 });
   return { outcome: 'good', delta: npc.traits.includes('cheerful') || npc.traits.includes('caring') ? 3 : 2 };
 }
 
-/** `charisma` is Raka's Charisma level; each level makes jokes and teasing land a little more often. */
+/** `charisma` is Aldi's Charisma level; each level makes jokes and teasing land a little more often. */
 export function joke(npc: NPC, day: number, charisma = 1) {
   const c = counters(social(npc), day);
   c.joke++;
@@ -275,7 +276,7 @@ export function joke(npc: NPC, day: number, charisma = 1) {
   chance += (charisma - 1) * 0.02;
   const roll = Math.random();
   if (roll < chance) {
-    remember(npc, { day, kind: 'joke_good', text: 'Laughed at one of Raka’s jokes', weight: 1 });
+    remember(npc, { day, kind: 'joke_good', text: 'Laughed at one of Aldi’s jokes', weight: 1 });
     return { outcome: 'good', delta: 3 };
   }
   if (roll < chance + 0.3) return { outcome: 'flat', delta: 0 };
@@ -293,7 +294,7 @@ export function tease(npc: NPC, day: number, charisma = 1) {
     c.tease === 1 &&
     Math.random() < (npc.traits.includes('grumpy') ? 0.5 : 0.8) + (charisma - 1) * 0.015;
   if (ok) return { outcome: 'good', delta: 3 };
-  remember(npc, { day, kind: 'tease_bad', text: 'Raka said something hurtful', weight: 3 });
+  remember(npc, { day, kind: 'tease_bad', text: 'Aldi said something hurtful', weight: 3 });
   return { outcome: 'bad', delta: rank === 0 ? -5 : npc.age >= 55 ? -5 : -4 };
 }
 
@@ -306,7 +307,7 @@ export function gossip(npc: NPC, day: number, alive: (id: string) => boolean) {
   if (npc.dislikes.includes('gossip')) return { outcome: 'refuse', delta: -2, other: null };
   if (!loves && stageRank(npc.playerRelationship.stage) === 0) return { outcome: 'shy', delta: 0, other: null };
   if (c.gossip > (loves ? 2 : 1)) return { outcome: 'shy', delta: 0, other: null };
-  // Strong feelings first, and things Raka hasn't heard yet.
+  // Strong feelings first, and things Aldi hasn't heard yet.
   const opinions = Object.entries(npc.relationships)
     .filter(([id]) => alive(id))
     .sort((a, b) => Math.abs(b[1]) - Math.abs(a[1]));
@@ -315,7 +316,7 @@ export function gossip(npc: NPC, day: number, alive: (id: string) => boolean) {
   if (!pick.length) return { outcome: 'shy', delta: 0, other: null };
   const [other, v] = pick[Math.floor(Math.random() * pick.length)];
   if (!s.known.ties.includes(other)) s.known.ties.push(other);
-  remember(npc, { day, kind: 'gossip', text: 'Shared an opinion with Raka', weight: 1, about: other });
+  remember(npc, { day, kind: 'gossip', text: 'Shared an opinion with Aldi', weight: 1, about: other });
   return { outcome: v >= 30 ? 'good' : v <= -20 ? 'bad' : 'neutral', delta: loves ? 2 : 1, other };
 }
 
@@ -342,7 +343,7 @@ export function gift(
     remember(npc, {
       day,
       kind: 'gift_loved',
-      text: `Loved the ${lowerFirst(name)} Raka brought`,
+      text: `Loved the ${lowerFirst(name)} Aldi brought`,
       weight: 3,
       about: name,
     });
@@ -350,7 +351,7 @@ export function gift(
     remember(npc, {
       day,
       kind: 'gift_bad',
-      text: `Didn\u2019t care for the ${lowerFirst(name)} Raka brought`,
+      text: `Didn\u2019t care for the ${lowerFirst(name)} Aldi brought`,
       weight: 2,
       about: name,
     });
@@ -360,10 +361,10 @@ export function gift(
 
 /* ================= passing words between neighbours ================= */
 
-/** Neighbours who fell out, and whether Raka has helped them make peace. */
+/** Neighbours who fell out, and whether Aldi has helped them make peace. */
 const mended = new Set<string>();
 
-/** Put in a good word for another resident. Softens grudges over time; strangers don't take advice from Raka. */
+/** Put in a good word for another resident. Softens grudges over time; strangers don't take advice from Aldi. */
 export function goodWord(npc: NPC, other: NPC, day: number) {
   const s = social(npc);
   if (s.wordDay === day) return { outcome: 'again', delta: 0, peace: false };
@@ -373,7 +374,7 @@ export function goodWord(npc: NPC, other: NPC, day: number) {
   const v = npc.relationships[other.id] ?? 0;
   const lift = rank >= 2 ? 8 : 5;
   npc.relationships[other.id] = Math.min(100, v + lift);
-  remember(npc, { day, kind: 'good_word', text: `Raka spoke up for ${other.name}`, weight: 1, about: other.id });
+  remember(npc, { day, kind: 'good_word', text: `Aldi spoke up for ${other.name}`, weight: 1, about: other.id });
   // A feud is over once both sides have come round.
   const key = [npc.id, other.id].sort().join('|');
   const peace =
@@ -383,7 +384,7 @@ export function goodWord(npc: NPC, other: NPC, day: number) {
   return { outcome: v >= 30 ? 'agree' : 'warm', delta: 1, peace };
 }
 
-/** Pass on something unkind about another resident. Gossips love it; most people think less of Raka for it. */
+/** Pass on something unkind about another resident. Gossips love it; most people think less of Aldi for it. */
 export function badWord(npc: NPC, other: NPC, day: number) {
   const s = social(npc);
   if (s.wordDay === day) return { outcome: 'again', delta: 0 };
@@ -393,19 +394,19 @@ export function badWord(npc: NPC, other: NPC, day: number) {
   remember(npc, {
     day,
     kind: 'bad_word',
-    text: `Raka talked about ${other.name} behind their back`,
+    text: `Aldi talked about ${other.name} behind their back`,
     weight: 2,
     about: other.id,
   });
   if (npc.traits.includes('gossip')) return { outcome: 'juicy', delta: 2 };
   repute(-1, 'Talking behind people’s backs.', day, true);
-  if (npc.address === 'Ustadz' || npc.traits.includes('caring') || v >= 50) return { outcome: 'disapprove', delta: -3 };
+  if (npc.address === 'Ustaz' || npc.traits.includes('caring') || v >= 50) return { outcome: 'disapprove', delta: -3 };
   return { outcome: 'uneasy', delta: -1 };
 }
 
 /* ================= save ================= */
 
-/** What Raka knows of everyone, and how everyone feels (about him and each other). */
+/** What Aldi knows of everyone, and how everyone feels (about Aldi and each other). */
 export function saveSocial(npcs: NPC[]) {
   return {
     socials: [...socials.entries()],

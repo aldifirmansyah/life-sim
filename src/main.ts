@@ -36,6 +36,9 @@ import { buildClementi } from './places/clementi';
 import { buildCbd, updateCbd } from './places/cbd';
 import { buildHomes, updateHomes, homeMarker, homeApp, loadHomes } from './places/homes';
 import { openPhone, apps } from './game/phone';
+import { buildPeople, updatePeople, contacts, loadPeople, birthdaysToday } from './npc/people';
+import { buildCrowds, updateCrowds } from './npc/crowds';
+import { properName } from './social/social';
 import { showMoney, showVitals, resetStats, drain, addEnergy, addMood } from './game/stats';
 import { buildChangi, updateChangi, ARRIVAL } from './places/changi';
 import { buildOneNorth, loadOneNorth } from './places/onenorth';
@@ -69,6 +72,9 @@ buildClementi();
 buildCbd();
 buildHomes();
 apps.push({ label: 'HomeLah', note: 'rooms for rent', run: homeApp });
+buildPeople();
+buildCrowds();
+apps.push({ label: 'Contacts', note: 'people you know', run: contacts });
 buildBuses();
 initStream();
 const genMs = performance.now() - tGen;
@@ -88,6 +94,7 @@ function newGame() {
   loadOneNorth(undefined);
   loadWork(undefined);
   loadHomes(undefined);
+  loadPeople(undefined);
 }
 
 /** Energy runs down with the hours awake; a night's sleep fills it up. */
@@ -98,6 +105,7 @@ function vitalsTick() {
   if (lastDay >= 0 && S.day > lastDay) {
     addEnergy(100);
     addMood(3);
+    for (const p of birthdaysToday()) toast(`${properName(p.npc)}'s birthday today`, 'A gift would go down well.', 'msg');
   } else if (lastTime >= 0 && S.time > lastTime) drain(S.time - lastTime);
   lastTime = S.time;
   lastDay = S.day;
@@ -134,6 +142,11 @@ function loop(now: number) {
   updateTrains(dt);
   updateBuses(dt);
   lap('trains');
+  if (S.started) {
+    updatePeople(dt);
+    updateCrowds(dt);
+  }
+  lap('people');
   updateStream(player.x, player.z);
   lap('stream');
   applyCamera();
@@ -289,6 +302,7 @@ if (import.meta.env.DEV) {
     import('./places/hawker'),
     import('./city/roads'),
     import('./places/homes'),
+    import('./npc/people'),
   ]).then(
     ([
       geo,
@@ -311,6 +325,7 @@ if (import.meta.env.DEV) {
       hawker,
       roads,
       homes,
+      people,
     ]) => {
       (window as unknown as Record<string, unknown>).__sg = {
         S,
@@ -335,6 +350,7 @@ if (import.meta.env.DEV) {
         hawker,
         roads,
         homes,
+        people,
         renderer,
         parts,
       };

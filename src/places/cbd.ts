@@ -78,6 +78,16 @@ export function buildCbd() {
         ],
       },
       {
+        name: 'Bubble Tea',
+        sub: 'Brown sugar · Taro',
+        color: '#8e44ad',
+        dishes: [
+          { name: 'Brown sugar bubble tea', price: 4.5, energy: 5, mood: 4, note: 'Sweet, chewy, cold.', drink: true },
+          { name: 'Bubble tea to take away', price: 4.5, energy: 0, mood: 0, note: '', gift: 'bbt' },
+          { name: 'Pineapple tarts, a tin', price: 12, energy: 0, mood: 0, note: '', gift: 'tarts' },
+        ],
+      },
+      {
         name: 'Drinks',
         sub: 'Sugarcane · Lime · Teh',
         color: '#6b4a2f',

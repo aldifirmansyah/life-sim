@@ -1,22 +1,23 @@
 /* NPC data model (spec §8.2). Game logic reads and writes these; the dialogue
-   provider (Phase 3) only ever reads them. */
+   provider only ever reads them. */
 
 export type Trait =
   'cheerful' | 'shy' | 'grumpy' | 'curious' | 'gossip' | 'sporty' | 'artsy' | 'bookish' | 'ambitious' | 'caring';
 
-/** Conversation topics (spec §11). Gift categories are added in Phase 4. */
+/** Conversation topics (Singapore). */
 export type Topic =
-  | 'football'
   | 'food'
-  | 'family'
+  | 'football'
   | 'work'
-  | 'kampung news'
+  | 'family'
   | 'weather'
-  | 'motorbikes'
   | 'old days'
   | 'religion'
   | 'music'
-  | 'market prices'
+  | 'property'
+  | 'travel'
+  | 'tech'
+  | 'shopping'
   | 'gossip';
 
 export type Stage = 'stranger' | 'acquaintance' | 'friend' | 'close friend' | 'best friend';
@@ -85,12 +86,12 @@ export interface AppearanceParams {
 export interface NPC {
   id: string;
   name: string;
-  /** How Raka addresses them: Pak, Bu, Mas, Mbak, Dek, Bang, Ustadz. */
+  /** How Aldi addresses them: Uncle, Aunty, Mdm, Mr, Pak, Encik, Mak Cik, Ustaz, or '' for first names. */
   address: string;
   age: number;
   gender: 'm' | 'f';
   occupation: string;
-  /** e.g. "14 Maret". Shown in Contacts once Raka has asked. */
+  /** e.g. "14 Maret". Shown in Contacts once Aldi has asked. */
   birthday: string;
   /** Household id; members share a home. */
   household: string;
