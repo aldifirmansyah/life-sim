@@ -109,15 +109,22 @@ const door = (at: P2): SlotSpec => ({ at, face: 0, pose: 'hidden' });
 
 /** Landmarks. Coordinates follow the geometry in world/landmarks.ts. */
 function landmarkPois() {
-  poi('warung', 'Warung Bu Sri', 'warung', [[9.0, -7.5]], {
-    owner: [stand([10.3, -5.8], [10.3, -8])],
-    helper: [stand([9.3, -5.75], [9.3, -8])],
+  // Inside the shop (interiors/warung.ts): in through the entrance; Bu Sri and Dimas go round the back of the
+  // counter through the flap by the back wall.
+  const inShop: P2[] = [
+    [6.55, -4.2],
+    [6.55, -5.3],
+  ];
+  const behind: P2[] = [[9.3, -2.45], [8.65, -2.42], [7.9, -2.55], ...inShop];
+  poi('warung', 'Warung Bu Sri', 'warung', [[7.0, -7.5]], {
+    owner: [stand([9.35, -3.45], [7, -3.45], { via: behind })],
+    helper: [stand([9.35, -4.2], [7, -4.2], { via: behind })],
     customer: [
-      stand([9.55, -6.7], [9.55, -5]),
-      stand([8.95, -7.0], [9.3, -5]),
+      stand([7.95, -3.45], [9, -3.45], { via: inShop }),
+      stand([7.95, -4.15], [9, -4.15], { via: inShop }),
       stand([5.6, -6.2], [7, -5], { via: [[5.9, -7.2]] }),
     ],
-    bench: [sit([6.8, -6.33], [6.8, -8], 0.45), sit([8.0, -6.33], [8.0, -8], 0.45)],
+    bench: [sit([8.5, -6.33], [8.5, -8], 0.45), sit([9.7, -6.33], [9.7, -8], 0.45)],
   });
   poi('warungMeja', 'Meja warung', 'meja', [[2.3, -1.2]], {
     seat: [

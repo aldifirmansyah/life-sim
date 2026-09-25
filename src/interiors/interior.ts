@@ -11,7 +11,6 @@ import { S } from '../core/state';
 import { player } from '../core/player';
 import { setIndoorLight } from '../render/lighting';
 import { setIndoor, sfx } from '../audio/audio';
-import type { Door } from './door';
 import type { Frame } from '../world/layout';
 
 export interface Room {
@@ -28,7 +27,8 @@ export interface Interior {
   props: PropSet;
   /** A second set that changes with the story (Raka's rooms as they're restored). */
   extra?: () => PropSet | null;
-  door: Door;
+  /** The way in: a hinged door, or a shop's rolling shutter. */
+  door: { update(dt: number): void };
   /** Ceiling lamp, world. */
   lamp: [number, number, number];
   /** Whether the lamp is on (at night it always is while Raka is near). */
@@ -95,8 +95,8 @@ export function updateInteriors(dt: number) {
   if (inside !== current) {
     const was = current;
     current = inside;
-    // Sandals off at the threshold, back on going out.
-    if (inside || was) sfx('sandal');
+    // Sandals off at the threshold of a house (not a shop), back on going out.
+    if (inside?.sandals || was?.sandals) sfx('sandal');
     if (was) {
       if (was.sandals) was.sandals.visible = false;
       was.onExit?.();

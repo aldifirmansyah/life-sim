@@ -11,25 +11,58 @@ const GOODS = ['#e2412e', '#f2c14e', '#3b7dd8', '#58b368', '#ff8d5c', '#f4f1ea',
 export let rakaHouse: House;
 
 export function landmarks() {
-  /* Warung Bu Sri */
-  const wc = '#3fb0a0';
-  B(5.5, 11.3, 0, 3.3, -4.8, -0.5, wc, { col: true });
-  B(5.46, 11.34, 0, 0.45, -4.84, -0.46, '#2a7f74');
-  B(6.0, 10.8, 0.95, 2.35, -4.87, -4.8, '#ffd9a0', { b: lit });
+  /* Warung Bu Sri: a walk-in shop at the front of the building (interiors/warung.ts), Bu Sri's home behind.
+     The goods in the window and the renteng hanging under the awning keep their R() calls, so the layout of
+     the rest of the kampung doesn't move. */
+  const wc = '#3fb0a0',
+    band = '#2a7f74';
+  // Bu Sri's home: the back of the building, solid.
+  B(5.5, 11.3, 0, 3.3, -2.0, -0.5, wc, { col: true });
+  B(5.46, 11.34, 0, 0.45, -2.0, -0.46, band);
+  // The shop: side walls, and a front wall with the entrance (a rolling shutter) and a display window.
+  for (const [x0, x1] of [
+    [5.5, 5.62],
+    [11.18, 11.3],
+  ]) {
+    B(x0, x1, 0, 3.3, -4.8, -2.0, wc, { col: true });
+    B(x0 === 5.5 ? 5.46 : 11.3, x0 === 5.5 ? 5.5 : 11.34, 0, 0.45, -4.84, -2.0, band);
+  }
+  const fz0 = -4.8,
+    fz1 = -4.68;
+  B(5.62, 5.95, 0, 3.3, fz0, fz1, wc, { col: true });
+  B(5.95, 7.15, 2.3, 3.3, fz0, fz1, wc);
+  B(7.15, 9.0, 0, 3.3, fz0, fz1, wc, { col: true });
+  B(9.0, 10.9, 0, 1.0, fz0, fz1, wc, { col: true });
+  B(9.0, 10.9, 2.2, 3.3, fz0, fz1, wc);
+  B(10.9, 11.18, 0, 3.3, fz0, fz1, wc, { col: true });
+  for (const [x0, x1] of [
+    [5.46, 5.95],
+    [7.15, 11.34],
+  ])
+    B(x0, x1, 0, 0.45, -4.84, -4.8, band);
+  // Window frame and teralis.
+  B(8.95, 10.95, 0.95, 1.02, -4.86, -4.66, '#e8e2d2');
+  B(8.95, 10.95, 2.18, 2.25, -4.86, -4.66, '#e8e2d2');
+  for (let x = 9.2; x < 10.9; x += 0.24) C(x, -4.74, 1.0, 2.2, 0.012, '#2a2a2c');
+  // A lit sign over the entrance.
+  B(5.95, 7.15, 2.36, 2.62, -4.9, -4.84, '#ffd9a0', { b: lit });
   for (let y = 1.05; y < 2.2; y += 0.42)
     for (let x = 6.15; x < 10.6; x += 0.34) {
-      if (R() < 0.75) B(x, x + 0.26, y, y + 0.3, -4.93, -4.88, pick(GOODS));
+      if (R() < 0.75) {
+        const c = pick(GOODS);
+        // Goods on the window sill; none in the doorway or in front of the plain wall.
+        if (x > 9.0 && x < 10.6 && y < 1.2) B(x, x + 0.26, 1.02, 1.32, -4.93, -4.88, c);
+      }
     }
   for (let x = 6.1; x < 10.8; x += 0.21) {
     const h = rand(0.35, 0.7);
     B(x, x + 0.13, 2.35 - h, 2.35, -5.02, -4.99, pick(GOODS));
   }
-  B(5.8, 11, 0, 1.05, -5.35, -4.85, '#ece7da', { col: true });
-  B(5.9, 10.9, 1.05, 1.38, -5.3, -4.9, '#b9d9e4');
   solid.add(mat(8.1, 2.4, -6.1, 7.2, 0.07, 2.6, 0, -0.12), '#2d7fc1');
   C(4.7, -7.25, 0, 2.25, 0.06, '#6f6a62', { col: true });
   C(11.5, -7.25, 0, 2.25, 0.06, '#6f6a62', { col: true });
-  B(6.2, 8.7, 0, 0.45, -6.7, -5.95, '#c9a86a', { col: true });
+  // The bench out front, under the window (the entrance is kept clear).
+  B(7.9, 10.4, 0, 0.45, -6.7, -5.95, '#c9a86a', { col: true });
   for (const [x, z] of [
     [4.1, -5.8],
     [4.5, -5.5],

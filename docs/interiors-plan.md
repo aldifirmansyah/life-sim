@@ -24,7 +24,7 @@ Agreed with the user after Phase 7. The spec (§4) is updated to match.
 
 ## Steps (a check with the user after each)
 
-Steps 1 and 2 are done.
+Steps 1, 2 and 3 are done.
 1. **Foundation + Raka's house shell.**
    - Hollow shell, door, rooms (ruang tamu, kamar, dapur, kamar mandi), tiled floor, plafon, lamp, indoor light and sound, sandals, slower walk, room names.
    - The home menu moves to a table inside.

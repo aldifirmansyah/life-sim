@@ -1602,7 +1602,28 @@ input[type='checkbox'] {
   }
 }
 
-/* first goals and the follow marker */
+/* first goals and the follow marker; the task box (the warung shift) uses the same look */
+#task {
+  position: absolute;
+  left: 16px;
+  top: 200px;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  max-width: 420px;
+  padding: 9px 14px 10px;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: var(--glass);
+  font-size: 13px;
+  pointer-events: none;
+}
+#task b {
+  font: 700 11px/1.4 var(--ui);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--kunyit);
+}
 #goals {
   position: absolute;
   left: 16px;

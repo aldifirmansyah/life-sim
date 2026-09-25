@@ -17,7 +17,7 @@ import { savePhone, loadPhone } from '../social/phone';
 import { saveRep, loadRep } from '../social/reputation';
 import { saveArcs, loadArcs } from '../social/arcs';
 import { saveMinah, loadMinah } from '../social/minah';
-import { saveActivities, loadActivities } from '../ui/activities';
+import { saveWarung, loadWarung } from '../interiors/warungshop';
 import { saveHome, loadHome } from '../interiors/rakahome';
 import { saveTutorial, loadTutorial } from './tutorial';
 import { dateLabel } from './calendar';
@@ -44,7 +44,7 @@ function snapshot() {
     rep: saveRep(),
     arcs: saveArcs(),
     minah: saveMinah(),
-    activities: saveActivities(),
+    warung: saveWarung(),
     home: saveHome(),
     tutorial: saveTutorial(),
   };
@@ -103,7 +103,7 @@ export function loadGame() {
     loadJobs(d.jobs);
     loadPhone(d.phone);
     loadEvents(d.events);
-    loadActivities(d.activities);
+    loadWarung(d.warung ?? (d as { activities?: { shiftDay?: number } }).activities);
     loadHome(d.home);
     loadTutorial(d.tutorial);
     // Plans last: they lay blocks over schedules for the (now loaded) day.

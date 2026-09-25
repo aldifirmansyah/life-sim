@@ -48,7 +48,10 @@ import { buildGarden, gardenNewDay } from './game/garden';
 import { placeVendorStools, vendorCount, initVendors, updateVendors } from './npc/vendors';
 import { RESIDENTS } from './npc/roster';
 import { initActions, updateActions } from './game/actions';
-import { registerActivities, updateActivities } from './ui/activities';
+import { registerActivities } from './ui/activities';
+import { buildWarungInterior } from './interiors/warung';
+import { registerWarungShop, updateWarungShop } from './interiors/warungshop';
+import { initShoppers, updateShoppers, SHOPPER_SLOTS } from './npc/shoppers';
 import { buildRakaInterior } from './interiors/raka';
 import { updateInteriors } from './interiors/interior';
 import { registerHome, updateHome } from './interiors/rakahome';
@@ -81,8 +84,10 @@ buildGarden();
 placeVendorStools();
 ALL_BATCHES.forEach(b => b.build());
 buildCables();
-initResidents(vendorCount());
+// Spare crowd slots after the residents: the pasar stall-keepers, then the warung's shift customers.
+initResidents(vendorCount() + SHOPPER_SLOTS);
 initVendors(crowd, RESIDENTS.length);
+initShoppers(crowd, RESIDENTS.length + vendorCount());
 initActions();
 buildPlate();
 buildFestival();
@@ -91,9 +96,11 @@ buildHouseProps();
 buildArcProps();
 // Walk-in interiors (no R() calls; built after the world so they sit inside the hollow shells).
 buildRakaInterior();
+const warung = buildWarungInterior();
 onPhoneChange(() => showPlate(plate?.state === 'waiting'));
 registerActivities();
 registerHome();
+registerWarungShop(warung);
 initEvents();
 initTutorial();
 registerPastimes();
@@ -132,6 +139,7 @@ function loop(now: number) {
     updateTutorial(dt, r => void openDialogue(r));
   }
   updateVendors();
+  updateShoppers(S.paused ? 0 : dt);
   applyCamera();
   updateInteriors(dt);
   if (S.started) updateHome(dt);
@@ -144,7 +152,7 @@ function loop(now: number) {
   updateNpcDebug(dt);
   updateDialogue(dt);
   updateInteraction();
-  updateActivities();
+  if (S.started) updateWarungShop();
   updateActions();
   updateGame();
   if (inWorld()) updateStats(dt);

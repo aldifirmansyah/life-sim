@@ -245,6 +245,37 @@ function standSteps(seat: Seat): Step[] {
 
 /* ================= public sequences ================= */
 
+/** Take something off a shelf: turn to it, reach, and bring it back in the right hand. */
+export function takeFrom(id: string, at: [number, number, number], done: () => void) {
+  let y0 = 0,
+    y1 = 0,
+    p0 = 0,
+    p1 = 0;
+  run(
+    [
+      {
+        dur: 0.35,
+        start: () => {
+          y0 = player.yaw;
+          p0 = player.pitch;
+          y1 = Math.atan2(-(at[0] - player.x), -(at[2] - player.z));
+          p1 = Math.atan2(at[1] - player.eye, Math.hypot(at[0] - player.x, at[2] - player.z));
+          hands.hold(null);
+        },
+        update: k => {
+          player.yaw = lerpAngle(y0, y1, ease(k));
+          player.pitch = p0 + (p1 - p0) * ease(k);
+        },
+      },
+      move(0.3, 'R', POSES.hiddenR, POSES.reachR, { end: () => hands.hold(id, item(id).cat) }),
+      move(0.3, 'R', POSES.reachR, POSES.holdR),
+      wait(0.2),
+      move(0.3, 'R', POSES.holdR, POSES.hiddenR),
+    ],
+    done,
+  );
+}
+
 /** Buy something to take away: pay, take it, put it in the bag. */
 export function buyToBag(id: string, serve: () => void, seller: [number, number] | undefined, done: () => void) {
   run([...payAndTake(id, serve, seller), move(0.35, 'R', POSES.holdR, POSES.hiddenR)], done);

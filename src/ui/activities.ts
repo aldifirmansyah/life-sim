@@ -15,7 +15,6 @@ import { pots, CROPS, isReady, refreshGarden, type Pot } from '../game/garden';
 import { openPanel, closePanel, setPanelFooter, type Row } from './panel';
 import { toast } from './hud';
 import { emit } from '../game/bus';
-import { repute } from '../social/reputation';
 import { ROOMS, restored, job as houseJob, canBook, book } from '../game/house';
 import { plate, takePlate } from '../social/phone';
 import { platePos, showPlate } from '../game/plate';
@@ -149,33 +148,6 @@ export function finishEating(id: string, q: number, seated: boolean) {
     `${it.cat === 'drink' ? 'Drank' : 'Ate'} the ${lc}`,
     `${gained > 0 ? `Energy +${gained}. ` : ''}${seated ? 'Nice to sit for a bit.' : it.cat === 'drink' ? 'Refreshing.' : 'That hit the spot.'}`,
   );
-}
-
-function warungMenu(note?: string) {
-  const sri = present('sri', 'warung', 'owner');
-  const h = hour();
-  const shiftReason =
-    shiftDay === S.day
-      ? 'already helped today'
-      : h < 7 || h >= 20
-        ? 'open 07:00–20:00'
-        : st.stats.energy < 15
-          ? 'too tired'
-          : undefined;
-  openPanel({
-    title: 'Warung Bu Sri',
-    sub: sri ? 'Bu Sri is behind the counter' : 'Dimas is minding the counter',
-    body: note,
-    rows: [
-      { label: 'Buy something', run: () => openShop('warung', undefined, () => warungMenu()) },
-      {
-        label: 'Help Bu Sri serve customers',
-        note: '1 hour · Rp 25.000 + tips',
-        disabled: sri ? shiftReason : 'Bu Sri isn’t here',
-        run: startShift,
-      },
-    ],
-  });
 }
 
 /* ================= home ================= */
@@ -356,124 +328,12 @@ function usePot(p: Pot) {
   refreshGarden();
 }
 
-/* ================= helping at the warung ================= */
-
-let shiftDay = -1;
-const SHELF = ['Beras', 'Telur', 'Kopi sachet', 'Indomie', 'Gula', 'Minyak goreng'];
-const SHIFT_SECONDS = 45;
-interface Shift {
-  ends: number;
-  customer: string;
-  order: string[];
-  served: number;
-  tips: number;
-  mistakes: number;
-  msg: string;
-}
-let shift: Shift | null = null;
-
-function newOrder(s: Shift) {
-  const pool = residents.filter(r => r.npc.id !== 'sri' && r.npc.id !== 'dimas');
-  s.customer = pool[Math.floor(Math.random() * pool.length)].npc.name;
-  const n = 1 + Math.floor(Math.random() * Math.min(3, 1 + s.served / 3));
-  s.order = Array.from({ length: n }, () => SHELF[Math.floor(Math.random() * SHELF.length)]);
-}
-
-function startShift() {
-  shiftDay = S.day;
-  shift = {
-    ends: performance.now() + SHIFT_SECONDS * 1000,
-    customer: '',
-    order: [],
-    served: 0,
-    tips: 0,
-    mistakes: 0,
-    msg: 'Bu Sri hands you an apron. “Quick now, Mas!”',
-  };
-  newOrder(shift);
-  renderShift();
-}
-
-function renderShift() {
-  const s = shift!;
-  const left = Math.max(0, Math.ceil((s.ends - performance.now()) / 1000));
-  openPanel({
-    title: 'Helping at Warung Bu Sri',
-    sub: `${left}s left · ${s.served} served · tips ${rupiah(s.tips)}`,
-    body: `${s.msg}\n${s.customer} wants: ${s.order.join(', ')}`,
-    rows: SHELF.map(g => ({ label: g, note: s.order.includes(g) ? '←' : '', run: () => serve(g) })),
-    back: () => endShift(true),
-    keepPage: true,
-  });
-}
-
-function serve(g: string) {
-  const s = shift;
-  if (!s) return;
-  const i = s.order.indexOf(g);
-  if (i < 0) {
-    s.mistakes++;
-    s.ends -= 2000;
-    s.msg = `“Bukan itu, Mas! Not that one.”`;
-  } else {
-    s.order.splice(i, 1);
-    s.msg = 'Good.';
-    if (!s.order.length) {
-      s.served++;
-      s.tips += 2000;
-      s.msg = `${s.customer} pays and says terima kasih.`;
-      newOrder(s);
-    }
-  }
-  renderShift();
-}
-
-function endShift(early = false) {
-  const s = shift;
-  if (!s) return;
-  shift = null;
-  const pay = early && s.served < 3 ? 10000 : 25000;
-  const sri = residents.find(r => r.npc.id === 'sri')!.npc;
-  passTime(60, 'Serving customers at the warung…', () => {
-    st.earn(pay + s.tips);
-    st.addEnergy(-10);
-    st.addMood(3);
-    st.practise('charisma', 6 + s.served * 2);
-    const ch = social.befriend(sri, 2 + Math.floor(s.served / 2), S.day);
-    emit('shift');
-    repute(1, 'You helped out at the warung.', S.day, true);
-    toast(
-      `Warung shift: +${rupiah(pay + s.tips)}`,
-      `${s.served} customers served${s.mistakes ? `, ${s.mistakes} mix-ups` : ''}. ${ch.delta > 0 ? 'Bu Sri likes you more.' : 'Bu Sri is grateful.'}`,
-    );
-  });
-}
-
-/** Every frame: the warung shift's clock. */
-export function updateActivities() {
-  if (!shift) return;
-  if (performance.now() >= shift.ends) endShift();
-  else if (S.panel) {
-    const left = Math.max(0, Math.ceil((shift.ends - performance.now()) / 1000));
-    const sub = `${left}s left · ${shift.served} served · tips ${rupiah(shift.tips)}`;
-    if ($('panel-sub').textContent !== sub) $('panel-sub').textContent = sub;
-  }
-}
-
 /* ================= world hooks ================= */
 
 export function registerActivities() {
   setPanelFooter(
     () => `${rupiah(st.stats.money)} · energy ${Math.round(st.stats.energy)} · mood ${Math.round(st.stats.mood)}`,
   );
-  // The warung counter: open while Bu Sri or Dimas is there.
-  interactables.push({
-    x: 7.6,
-    z: -5.5,
-    reach: 2.4,
-    label: () => (present('sri', 'warung', 'owner') || present('dimas', 'warung', 'helper') ? 'Warung Bu Sri' : null),
-    run: () => warungMenu(),
-  });
   // Every pasar pagi stall, while the market is up.
   for (const p of groups.get('pasar') ?? []) {
     const s = p.slots[0];
@@ -526,10 +386,4 @@ export function registerActivities() {
   });
   for (const p of pots)
     interactables.push({ x: p.x, z: p.z, reach: 1.9, label: () => potLabel(p), run: () => usePot(p) });
-}
-
-/** Once-a-day warung shift, for the save. */
-export const saveActivities = () => ({ shiftDay });
-export function loadActivities(d: ReturnType<typeof saveActivities>) {
-  shiftDay = d.shiftDay;
 }
