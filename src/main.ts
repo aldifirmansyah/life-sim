@@ -43,6 +43,9 @@ import { updateNear } from './places/shops';
 import { buildEvents, updateEvents, calendarApp, loadEvents } from './game/events';
 import { buildWeather, updateWeather } from './game/weather';
 import { buildRegions, updateRegions, loadRegions } from './places/regions';
+import { buildRoadGraph } from './city/roadgraph';
+import { buildTraffic, updateTraffic } from './city/traffic';
+import { buildTaxis, updateTaxis, taxiMenu, nabApp } from './game/taxi';
 import { properName } from './social/social';
 import { showMoney, showVitals, resetStats, drain, addEnergy, addMood } from './game/stats';
 import { buildChangi, updateChangi, ARRIVAL } from './places/changi';
@@ -55,7 +58,7 @@ import { landAt, polyEdgeDist, ISLANDS } from './city/geo';
 addEventListener('resize', resize);
 // E: aboard a bus, ring the bell; aboard a train, choose the stop; otherwise use what's in front.
 actions.interact = () => {
-  if (player.ride) busMenu() || pickStop();
+  if (player.ride) taxiMenu() || busMenu() || pickStop();
   else interact();
 };
 // L: the work laptop.
@@ -79,12 +82,16 @@ buildHomes();
 buildCentre();
 buildEvents();
 buildRegions();
+buildRoadGraph();
+buildTraffic();
+buildTaxis();
 buildWeather();
 apps.push({ label: 'HomeLah', note: 'rooms for rent', run: homeApp });
 buildPeople();
 buildCrowds();
 apps.push({ label: 'Contacts', note: 'people you know', run: contacts });
 apps.push({ label: 'Calendar', note: "what's on", run: calendarApp });
+apps.push({ label: 'Nab', note: 'ride-hail', run: nabApp });
 buildBuses();
 initStream();
 const genMs = performance.now() - tGen;
@@ -156,10 +163,12 @@ function loop(now: number) {
   updateTrains(dt);
   updateBuses(dt);
   updateRegions(dt);
+  updateTaxis(dt);
   lap('trains');
   if (S.started) {
     updatePeople(dt);
     updateCrowds(dt);
+    updateTraffic(dt);
   }
   lap('people');
   updateStream(player.x, player.z);
@@ -325,6 +334,9 @@ if (import.meta.env.DEV) {
     import('./game/events'),
     import('./game/weather'),
     import('./places/regions'),
+    import('./game/taxi'),
+    import('./city/traffic'),
+    import('./city/roadgraph'),
   ]).then(
     ([
       geo,
@@ -352,6 +364,9 @@ if (import.meta.env.DEV) {
       events,
       weather,
       regions,
+      taxi,
+      traffic,
+      roadgraph,
     ]) => {
       (window as unknown as Record<string, unknown>).__sg = {
         S,
@@ -381,6 +396,9 @@ if (import.meta.env.DEV) {
         events,
         weather,
         regions,
+        taxi,
+        traffic,
+        roadgraph,
         renderer,
         parts,
       };

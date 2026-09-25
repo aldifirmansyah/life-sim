@@ -113,6 +113,51 @@ export function buildRoadGraph() {
       prev = cur;
     }
   });
+  // Roads drawn to end near another road join it: each dead end links to the nearest node within 60 m
+  // that isn't already its neighbour (a short connector).
+  for (const n of nodes) {
+    if (n.out.length !== 1) continue;
+    let best: GNode | null = null,
+      bd = 60;
+    for (const m of nearNodes(n.x, n.z, 60)) {
+      if (m === n || n.out.some(e => e.to === m.id) || m.out.some(e => e.to === n.id)) continue;
+      // Not back along its own road: the connector should leave roughly away from the one edge it has.
+      const o = nodes[n.out[0].to];
+      const ax = n.x - o.x,
+        az = n.z - o.z,
+        bx = m.x - n.x,
+        bz = m.z - n.z;
+      if (ax * bx + az * bz < 0) continue;
+      const d = Math.hypot(bx, bz);
+      if (d < bd) {
+        bd = d;
+        best = m;
+      }
+    }
+    if (best) link(n.id, best.id, 7, 'street');
+  }
+}
+function* nearNodes(x: number, z: number, r: number) {
+  for (let ix = Math.floor((x - r) / CELL); ix <= Math.floor((x + r) / CELL); ix++)
+    for (let iz = Math.floor((z - r) / CELL); iz <= Math.floor((z + r) / CELL); iz++)
+      for (const id of grid.get(ix + ',' + iz) ?? []) if (Math.hypot(nodes[id].x - x, nodes[id].z - z) < r) yield nodes[id];
+}
+/** How many separate pieces the network is in (for checks). */
+export function components() {
+  const seen = new Set<number>();
+  let k = 0;
+  for (const n of nodes) {
+    if (seen.has(n.id)) continue;
+    k++;
+    const stack = [n.id];
+    while (stack.length) {
+      const id = stack.pop()!;
+      if (seen.has(id)) continue;
+      seen.add(id);
+      for (const e of nodes[id].out) stack.push(e.to);
+    }
+  }
+  return k;
 }
 
 /** The node nearest to (x, z) that has roads leaving it, within `r` metres. */
