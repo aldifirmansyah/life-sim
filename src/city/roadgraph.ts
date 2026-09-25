@@ -140,7 +140,8 @@ export function buildRoadGraph() {
 function* nearNodes(x: number, z: number, r: number) {
   for (let ix = Math.floor((x - r) / CELL); ix <= Math.floor((x + r) / CELL); ix++)
     for (let iz = Math.floor((z - r) / CELL); iz <= Math.floor((z + r) / CELL); iz++)
-      for (const id of grid.get(ix + ',' + iz) ?? []) if (Math.hypot(nodes[id].x - x, nodes[id].z - z) < r) yield nodes[id];
+      for (const id of grid.get(ix + ',' + iz) ?? [])
+        if (Math.hypot(nodes[id].x - x, nodes[id].z - z) < r) yield nodes[id];
 }
 /** How many separate pieces the network is in (for checks). */
 export function components() {

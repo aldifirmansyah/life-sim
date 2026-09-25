@@ -29,10 +29,13 @@ export function carBody() {
 }
 export function carCabin() {
   const c = new THREE.BoxGeometry(2.3, 0.5, 1.66).translate(-0.2, 1.2, 0);
-  const w = new THREE.BoxGeometry(0.1, 0.12, 0.9).translate(-0.2, 1.57, 0); // the taxi sign bar (hidden inside for cars)
-  const g = mergeGeometries([c, w]);
-  c.dispose();
-  w.dispose();
+  const parts = [c];
+  // Four wheels, dark like the windows.
+  for (const x of [-1.35, 1.35])
+    for (const z of [-0.82, 0.82])
+      parts.push(new THREE.CylinderGeometry(0.34, 0.34, 0.24, 10).rotateX(Math.PI / 2).translate(x, 0.34, z));
+  const g = mergeGeometries(parts);
+  parts.forEach(q => q.dispose());
   return g;
 }
 
