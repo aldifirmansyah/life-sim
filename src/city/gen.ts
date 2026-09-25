@@ -633,10 +633,10 @@ function landmarks() {
     put({
       p: 'bldg',
       x,
-      y: (h + 34) / 2,
+      y: (h + 0.35 + 34) / 2,
       z,
       sx: x1 - x0,
-      sy: 34 - h,
+      sy: 34 - h - 0.35,
       sz: z1 - z0,
       ry: 0,
       c: '#ee4d2d',

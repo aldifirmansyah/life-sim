@@ -267,9 +267,9 @@ export function buildBuses() {
       border: '#f2c14e',
       font: 'ui',
     },
-    ix,
-    4,
-    iz + 2.1,
+    ix - 10,
+    2.6,
+    iz + 2.05,
     0,
     { both: true },
   );

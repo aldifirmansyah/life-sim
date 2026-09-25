@@ -248,8 +248,8 @@ export function buildChopee() {
     x: tx,
     y: Y + 0.9,
     z: tz,
-    reach: 3.5,
-    size: 1.6,
+    reach: 5,
+    size: 2,
     label: meetingLabel,
     run: meeting,
   });

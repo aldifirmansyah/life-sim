@@ -161,8 +161,8 @@ export function buildClementi() {
       x: tx,
       y: 0.9,
       z: tz,
-      reach: 2.4,
-      size: 0.8,
+      reach: 3.2,
+      size: 1,
       label: () => tableLabel(i),
       run: () => table(i),
     });
@@ -193,8 +193,8 @@ export function buildClementi() {
     x: TRAY.x,
     y: 1.1,
     z: TRAY.z,
-    reach: 2.6,
-    size: 1,
+    reach: 3.2,
+    size: 1.2,
     label: () => (meal.tray ? 'Return the tray' : null),
     run: () => {
       meal.tray = false;
