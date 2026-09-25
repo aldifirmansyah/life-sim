@@ -44,7 +44,7 @@ let lastCallout = -1e9;
 
 const abs = () => S.day * 1440 + S.time;
 const rel = (a: Resident, b: Resident) => a.npc.relationships[b.npc.id] ?? 0;
-const canChat = (r: Resident) => !r.hidden && !r.talking && !r.chat;
+const canChat = (r: Resident) => !r.hidden && !r.talking && !r.chat && !r.guide;
 
 let acc = 0;
 /** Every frame; does its work at 1 Hz. */

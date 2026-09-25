@@ -7,7 +7,7 @@ import * as THREE from 'three';
 import { $ } from '../core/util';
 import { S, inWorld } from '../core/state';
 import { camera } from '../render/context';
-import { residents, setPlan, headPos, resync, type Resident } from '../npc/npcs';
+import { residents, setPlan, headPos, resync, guideWaiting, type Resident } from '../npc/npcs';
 import { homes } from '../npc/places';
 import { on } from './bus';
 import * as st from './stats';
@@ -66,13 +66,17 @@ export function beginNewGame(skipIntro: boolean) {
 export function startWalk() {
   tut.stage = 'follow';
   const r = bambang();
-  setPlan(r, S.day, { start: S.time + 1, end: S.time + 80, location: 'raka.work', activity: 'chat' });
+  // Straight to Raka's house, and he stays there until Raka arrives (nothing else of his day in between).
+  r.plans = r.plans.filter(p => p.block.location !== 'gapura.greet');
+  setPlan(r, S.day, { start: S.time + 1, end: h(25), location: 'raka.work', activity: 'chat' });
+  r.guide = true;
   tip('follow', 'Follow Pak RT', 'He’s walking you to Mbah Minah’s house. The marker shows where he is.');
 }
 /** After the talk at the house: the first goals. */
 export function startGoals() {
   tut.stage = 'goals';
   const r = bambang();
+  r.guide = false;
   // Pak RT goes back to his day.
   r.plans = r.plans.filter(p => p.block.location !== 'raka.work' && p.block.location !== 'gapura.greet');
   setPlan(r, S.day, { start: S.time + 2, end: S.time + 3, location: 'home.teras', activity: 'relax' });
@@ -102,6 +106,7 @@ export function tip(id: string, title: string, sub: string) {
 /* ================= every second ================= */
 
 let acc = 0;
+let lastCall = -1e9;
 export function updateTutorial(dt: number, openTalk: (r: Resident) => void) {
   acc += dt;
   if (acc < 1) return;
@@ -112,6 +117,13 @@ export function updateTutorial(dt: number, openTalk: (r: Resident) => void) {
     if (r.state === 'walk' && r.dist < 9 && tut.walkLine < 5 && Math.random() < 0.18) {
       const i = tut.walkLine++;
       void lineFor(r, { kind: 'arc', outcome: 'tutorial.walk', line: i }).then(t => bubble(r, () => headPos(r), t, 5));
+    }
+    // Waiting for Raka to catch up: he calls him on now and then.
+    if (guideWaiting(r) && S.time - lastCall > 6 && r.dist < 40) {
+      lastCall = S.time;
+      void lineFor(r, { kind: 'arc', outcome: 'tutorial.wait', line: Math.floor(Math.random() * 4) }).then(t =>
+        bubble(r, () => headPos(r), t, 3.5),
+      );
     }
     if (r.state === 'at' && r.slot.poi.id === 'raka' && r.dist < 7 && inWorld()) {
       tut.stage = 'house';
@@ -203,7 +215,8 @@ export function updateMarker() {
   sy = Math.min(0.92, Math.max(0.08, sy));
   el.hidden = false;
   el.style.transform = `translate(${sx * innerWidth}px, ${sy * innerHeight}px) translate(-50%, -100%)`;
-  el.querySelector('span')!.textContent = `${properName(r.npc)} · ${Math.round(r.dist)} m`;
+  el.querySelector('span')!.textContent =
+    `${properName(r.npc)} · ${guideWaiting(r) ? 'waiting for you · ' : ''}${Math.round(r.dist)} m`;
 }
 
 /* ================= hooks ================= */

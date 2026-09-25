@@ -76,6 +76,8 @@ export interface Resident {
   waveUntil: number;
   /** An unnamed passer-by (no relationships, not in Contacts). */
   ambient: boolean;
+  /** Showing Raka the way (the tutorial): waits for him when he falls behind, and doesn't stop to chat. */
+  guide: boolean;
   /** One-off blocks laid over the week schedule on a given day (invitations). */
   plans: { day: number; block: ScheduleBlock }[];
   /** Today's blocks with plans applied, cached. */
@@ -171,6 +173,7 @@ export function initResidents(extras = 0) {
       chat: null,
       waveUntil: 0,
       ambient: false,
+      guide: false,
       plans: [],
       dayCache: null,
     });
@@ -453,6 +456,8 @@ function simulate(r: Resident, t: number) {
   const dm = Math.max(0, t - r.simT);
   r.simT = t;
   if (r.talking || r.state !== 'walk' || !r.path) return 0;
+  // A guide stops and waits when Raka falls behind.
+  if (r.guide && guideWaiting(r)) return 0;
   // Stopping for a chat: keep walking until close to the other person, or until passing them.
   if (r.chat) {
     const c = r.chat;
@@ -532,8 +537,17 @@ function place(r: Resident, dtReal: number, full: boolean) {
 }
 
 /** Who a resident is facing: Raka while talking to or serving him, a neighbour while chatting. */
+/** How far behind Raka can fall before a guide stops to wait. */
+const GUIDE_GAP = 10;
+/** A guide waits when Raka is well behind: far from him, and farther from where they're going. */
+export const guideWaiting = (r: Resident) =>
+  r.guide &&
+  r.state === 'walk' &&
+  r.dist > GUIDE_GAP &&
+  Math.hypot(player.x - r.slot.x, player.z - r.slot.z) > Math.hypot(r.x - r.slot.x, r.z - r.slot.z) + 3;
+
 function lookTarget(r: Resident): [number, number] | null {
-  if (r.talking || clock < r.serveUntil) return [player.x, player.z];
+  if (r.talking || clock < r.serveUntil || guideWaiting(r)) return [player.x, player.z];
   if (r.chat && !r.chat.closing) return [r.chat.with.x, r.chat.with.z];
   return null;
 }
