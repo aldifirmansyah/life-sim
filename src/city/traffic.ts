@@ -29,7 +29,7 @@ export function carBody() {
 }
 export function carCabin() {
   const c = new THREE.BoxGeometry(2.3, 0.5, 1.66).translate(-0.2, 1.2, 0);
-  const parts = [c];
+  const parts: THREE.BufferGeometry[] = [c];
   // Four wheels, dark like the windows.
   for (const x of [-1.35, 1.35])
     for (const z of [-0.82, 0.82])
