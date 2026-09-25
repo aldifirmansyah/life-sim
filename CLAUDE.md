@@ -23,7 +23,7 @@ Kampung is a first-person life-sim that runs in the browser. It is set in **Kamp
 
 Do one phase at a time. At the end of each phase, check it and stop for the user's go-ahead.
 
-**Next: open world** (planned, not started). The kampung becomes one neighbourhood of a coastal town with a beach, mall, hotel, country club and theme park, reached in place by every kind of transport; 30-minute days. Steps and decisions are in `docs/openworld-plan.md`.
+**Next: Singapore** (planned with the user, not started). The game moves to Singapore: the player becomes Aldi, an Indonesian expat who rents a place of the player's choosing, in a compressed real Singapore that starts from the central landmarks and grows outward, travelled in place (walking, MRT, bus, taxi, bicycle), with 30-minute days. The kampung content is replaced; the engine and systems stay. Steps and decisions are in `docs/singapore-plan.md`; once step 1 starts, it supersedes the setting and player decisions below and the design spec is rewritten.
 
 ## Current state (Phase 7, Polish)
 The game lives in `src/` and builds with Vite (`npm run dev`, `npm run build`). `three` is pinned to 0.169.0 from npm, matching the prototype's r169. `prototype/index.html` is the original single-file build (Three.js from jsDelivr, no build step). It is kept only for comparison; don't develop in it.
