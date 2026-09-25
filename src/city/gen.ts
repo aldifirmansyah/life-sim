@@ -11,7 +11,20 @@ import { addRoad, allSegs, nearRoad, type Road } from './roads';
 import { nearTrack, EWL } from './mrtdata';
 import { sign } from '../render/signs';
 import { STYLE } from './facade';
-import { CHOPEE_HQ, CLEMENTI_HAWKER, LAU_PA_SAT, CITY_OFFICE, BOAT_QUAY, HOME_SITES } from '../places/sites';
+import {
+  CHOPEE_HQ,
+  CLEMENTI_HAWKER,
+  LAU_PA_SAT,
+  CITY_OFFICE,
+  BOAT_QUAY,
+  HOME_SITES,
+  MOSQUE,
+  TEKKA,
+  TB_MARKET,
+  HAJI_LANE,
+  CT_MARKET,
+  LUCKY,
+} from '../places/sites';
 
 export const CHUNK = 128;
 export const LOT = 36;
@@ -677,21 +690,21 @@ function landmarks() {
   // one-north Residences: the serviced-apartment tower (its ground-floor studio is places/onenorth.ts).
   building(-532, 148, 24, 18, 46, '#e6e0d4', STYLE.office);
   reserve(-532, 158, 30);
-  // The Sultan Mosque's golden dome.
+  // Masjid Sultan: the hall is walk-in (places/centre.ts); here the golden dome and the minarets.
   {
-    const t = tn('kampong_glam');
-    building(t.x, t.z, 26, 30, 11, '#efe6cf', STYLE.house);
-    put({ p: 'dome', x: t.x, y: 11, z: t.z, sx: 9, sy: 10, sz: 9, ry: 0, c: '#d9b24a' });
-    for (const [dx, dz] of [
-      [-12, -14],
-      [12, -14],
-    ]) {
-      put({ p: 'cyl', x: t.x + dx, y: 11, z: t.z + dz, sx: 1.4, sy: 22, sz: 1.4, ry: 0, c: '#efe6cf' });
-      put({ p: 'dome', x: t.x + dx, y: 22, z: t.z + dz, sx: 1.8, sy: 2.4, sz: 1.8, ry: 0, c: '#d9b24a' });
+    const { x, z, h, d } = MOSQUE;
+    put({ p: 'dome', x, y: h, z, sx: 9, sy: 10, sz: 9, ry: 0, c: '#d9b24a' });
+    for (const dx of [-12, 12]) {
+      const mz = z + d / 2 - 1.5;
+      put({ p: 'cyl', x: x + dx, y: h, z: mz, sx: 1.4, sy: 22, sz: 1.4, ry: 0, c: '#efe6cf' });
+      put({ p: 'dome', x: x + dx, y: h + 11, z: mz, sx: 1.8, sy: 2.4, sz: 1.8, ry: 0, c: '#d9b24a' });
     }
-    reserve(t.x, t.z, 26);
-    landmarkSign('Masjid Sultan', 'Kampong Glam', t.x, 4, t.z - 15.3, 0, '#2f5d3a', '#e8d9a8');
+    reserve(x, z, 24);
+    landmarkSign('Masjid Sultan', 'Kampong Glam', x, 8, z + d / 2 + 3.2, 0, '#2f5d3a', '#e8d9a8');
   }
+  // The other walk-in places of the centre keep their ground clear.
+  for (const k of [TEKKA, TB_MARKET]) reserve(k.x, k.z, 22);
+  for (const r of [HAJI_LANE, CT_MARKET]) reserve((r.x0 + r.x1) / 2, (r.z0 + r.z1) / 2, (r.x1 - r.x0) / 2 + 3);
   // A Chinatown temple, red with stacked roofs.
   {
     const t = tn('chinatown');
@@ -753,8 +766,31 @@ function landmarks() {
     building(t.x - 30, t.z - 30, 40, 30, 22, '#cfd8de', STYLE.mall);
     building(t.x - 36, t.z - 36, 20, 20, 140, '#9fb2bd', STYLE.glass);
     landmarkSign('EON Orchard', 'Orchard Road', t.x - 30, 16, t.z - 14.8, 0, '#1d2b36', '#e6e6e6');
-    building(t.x + 48, t.z - 22, 30, 26, 24, '#e6ddc8', STYLE.mall);
-    landmarkSign('Lucky Place', 'Orchard Road · Toko Indonesia', t.x + 48, 14, t.z - 8.8, 0, '#b8342a', '#f2d27a');
+    {
+      const { x0, x1, z0, z1, h } = LUCKY;
+      put({
+        p: 'bldg',
+        x: (x0 + x1) / 2,
+        y: (h + 0.35 + 24) / 2,
+        z: (z0 + z1) / 2,
+        sx: x1 - x0,
+        sy: 24 - h - 0.35,
+        sz: z1 - z0,
+        ry: 0,
+        c: '#e6ddc8',
+        st: STYLE.mall,
+      });
+      landmarkSign(
+        'Lucky Place',
+        'Orchard Road · Toko Indonesia',
+        (x0 + x1) / 2,
+        14,
+        z1 + 0.3,
+        0,
+        '#b8342a',
+        '#f2d27a',
+      );
+    }
     reserve(t.x - 30, t.z - 30, 30);
     reserve(t.x + 48, t.z - 22, 22);
   }

@@ -43,7 +43,20 @@ import {
 } from '../social/social';
 import { provider, PERSONAL } from '../dialogue/template';
 import type { LineKind } from '../dialogue/types';
-import { CHOPEE_HQ, CITY_OFFICE, CLEMENTI_HAWKER, LAU_PA_SAT, BOAT_QUAY, HOME_SITES } from '../places/sites';
+import {
+  CHOPEE_HQ,
+  CITY_OFFICE,
+  CLEMENTI_HAWKER,
+  LAU_PA_SAT,
+  BOAT_QUAY,
+  HOME_SITES,
+  MOSQUE,
+  LUCKY,
+  TEKKA,
+  CT_MARKET,
+  HAJI_LANE,
+  TB_MARKET,
+} from '../places/sites';
 
 /** Slots in the shared crowd: named people first, then the passers-by (npc/crowds.ts). */
 export const NAMED_SLOTS = 40;
@@ -195,6 +208,33 @@ function buildSpots() {
   add('bq.marcus', { x: Q.x0 + 45, y: 0, z: Q.z0 - 1.2, ry: Math.PI, where: 'Boat Quay' });
   add('bq.table', { x: Q.x0 + 48, y: 0, z: Q.z0 - 4.7, ry: 0, where: 'Boat Quay' });
   add('on.desk', { x: -522, y: 0, z: 160, ry: -Math.PI / 2, where: 'one-north Residences' });
+  // Step 7: the mosque, Lucky Place, the markets.
+  const M = MOSQUE;
+  add('m.imam', { x: M.x - M.w / 2 + 2.2, y: 0, z: M.z + 1.5, ry: Math.PI / 2, where: 'Masjid Sultan' });
+  add('m.jumaat', { x: M.x + 2, y: 0, z: M.z + 4, ry: -Math.PI / 2, sit: 0.35, where: 'Masjid Sultan' });
+  const U = LUCKY,
+    ux = (U.x0 + U.x1) / 2;
+  add('l.toko', { x: U.x0 + 5, y: 0, z: U.z0 + 3.2, ry: 0, where: 'Lucky Place' });
+  add('l.bench1', { x: ux - 6.6, y: 0, z: U.z1 - 5.7, ry: Math.PI, sit: 0.45, where: 'Lucky Place' });
+  add('l.bench2', { x: ux - 5.4, y: 0, z: U.z1 - 5.7, ry: Math.PI, sit: 0.45, where: 'Lucky Place' });
+  const tk = TEKKA;
+  add('t.garland', {
+    x: tk.x - tk.w / 2 + (tk.w / 5) * 3.5,
+    y: 0,
+    z: tk.z - tk.d / 2 + 1.6,
+    ry: 0,
+    where: 'Tekka Centre',
+  });
+  add('c.tea', { x: CT_MARKET.x0 + 8.2, y: 0, z: CT_MARKET.z0 - 1.3, ry: -Math.PI / 2, where: 'Chinatown' });
+  add('h.batik', { x: HAJI_LANE.x0 + 6.8, y: 0, z: HAJI_LANE.z1 + 1.3, ry: -Math.PI / 2, where: 'Haji Lane' });
+  const tb = TB_MARKET;
+  add('tb.bakery', {
+    x: tb.x - tb.w / 2 + (tb.w / 4) * 2.5,
+    y: 0,
+    z: tb.z - tb.d / 2 + 1.6,
+    ry: 0,
+    where: 'Tiong Bahru Market',
+  });
 }
 
 /* ---------- the roster ---------- */
@@ -791,6 +831,208 @@ const DEFS: Def[] = [
     gifts: ['bbt'],
     look: { skin: '#c58b62', hair: 'long', top: '#1d2b36', bottom: '#1d2b36' },
     ties: {},
+  },
+  {
+    id: 'hamid',
+    name: 'Hamid',
+    address: 'Ustaz',
+    age: 58,
+    gender: 'm',
+    role: 'Imam, Masjid Sultan',
+    birthday: '15 Rabiulawal',
+    traits: ['caring', 'bookish'],
+    likes: ['religion', 'old days', 'family'],
+    dislikes: ['gossip'],
+    plan: daily(
+      ['06:00', 'away'],
+      ['12:45', 'm.imam'],
+      ['14:30', 'away'],
+      ['16:15', 'm.imam'],
+      ['17:00', 'away'],
+      ['19:00', 'm.imam'],
+      ['21:00', 'away'],
+    ),
+    stories: [
+      'This mosque was built by the Sultan in 1824, rebuilt a hundred years later. The glass bottles under the dome, poor people donated them, one each.',
+      'Many workers from Indonesia and Bangladesh pray here on Fridays. Far from home, but here, brothers.',
+    ],
+    loves: ['kueh'],
+    gifts: ['garland', 'tea'],
+    look: { skin: '#9c6644', hair: 'peci', headwear: '#f4f1ea', top: '#f4f1ea', longSleeves: true, bottom: '#f4f1ea' },
+    ties: { bayu: 30, harun: 40 },
+    intro: ['Assalamualaikum. Welcome, welcome. You are new? From Indonesia? Masha Allah. I am Ustaz Hamid.'],
+  },
+  {
+    id: 'dewi',
+    name: 'Dewi',
+    address: 'Mbak',
+    age: 34,
+    gender: 'f',
+    role: 'On her Sunday off, at Lucky Place',
+    birthday: '21 April',
+    traits: ['cheerful', 'caring'],
+    likes: ['family', 'food', 'music'],
+    dislikes: ['property'],
+    plan: d =>
+      weekday(d) === 0
+        ? [
+            ['06:00', 'away'],
+            ['11:00', 'l.bench1'],
+            ['18:00', 'away'],
+          ]
+        : [['06:00', 'away']],
+    stories: [
+      'Aku dari Ponorogo, kerja di sini jaga anak dan nenek. Twelve years already. My own daughter is in SMA now; I see her on video call.',
+      'Sunday is our day. Lucky Place, bakso, then the whole gang sits on Orchard and gossips until night. Come join!',
+    ],
+    loves: ['keripik', 'indomie'],
+    gifts: ['kueh', 'batik'],
+    look: { skin: '#b67d55', hair: 'hijab', headwear: '#e8c9bd', top: '#e8c9bd', bottom: '#2f5d8a' },
+    ties: { bayu: 50, ana: 60 },
+    intro: ['Eh, mas orang Indonesia? Dari mana? Bekasi! Aku Dewi, dari Ponorogo. Minggu depan ke sini lagi ya!'],
+  },
+  {
+    id: 'bayu',
+    name: 'Bayu',
+    address: 'Mas',
+    age: 30,
+    gender: 'm',
+    role: 'Engineer at a bank, from Surabaya',
+    birthday: '10 November',
+    traits: ['sporty', 'curious'],
+    likes: ['football', 'tech', 'food'],
+    dislikes: ['weather'],
+    plan: d => {
+      const w = weekday(d);
+      if (w === 0)
+        return [
+          ['06:00', 'away'],
+          ['12:00', 'l.bench2'],
+          ['17:00', 'away'],
+        ];
+      if (w === 5)
+        return [
+          ['06:00', 'away'],
+          ['12:45', 'm.jumaat'],
+          ['13:55', 'away'],
+        ];
+      return [['06:00', 'away']];
+    },
+    stories: [
+      'Five years in Singapore. First year I only ate at Lucky Place. Now I can order kopi siew dai like a local.',
+      'We have a futsal team, the Indonesian engineers. Persija fans and Persebaya fans in one team, can you imagine.',
+    ],
+    loves: ['indomie'],
+    gifts: ['kopi', 'puff'],
+    look: { skin: '#b67d55', hair: 'short', top: '#d7263d', bottom: '#1f2a36' },
+    ties: { dewi: 50, hamid: 30, junhao: 20 },
+    intro: ['Wah, anak baru! Aku Bayu, dari Surabaya, kerja di bank. Kalau butuh apa-apa, WA aja ya.'],
+  },
+  {
+    id: 'ana',
+    name: 'Ana',
+    address: 'Kak',
+    age: 45,
+    gender: 'f',
+    role: 'Runs Toko Indonesia, Lucky Place',
+    birthday: '2 March',
+    traits: ['gossip', 'cheerful'],
+    likes: ['gossip', 'food', 'family'],
+    dislikes: ['tech'],
+    plan: daily(['06:00', 'away'], ['10:00', 'l.toko'], ['21:00', 'away']),
+    stories: [
+      "Twenty years this shop. Indomie, kerupuk, kecap, everything the kids miss from home. I am everybody's kakak here.",
+      'Before Lebaran, the queue goes out the door. Everyone sending parcels home.',
+    ],
+    loves: ['kueh'],
+    gifts: ['flowers'],
+    look: { skin: '#b67d55', hair: 'hijab', headwear: '#b8342a', top: '#f2c14e', bottom: '#6b3f5a' },
+    ties: { dewi: 60, harun: 20 },
+  },
+  {
+    id: 'lakshmi',
+    name: 'Lakshmi',
+    address: 'Mdm',
+    age: 52,
+    gender: 'f',
+    role: 'Garland stall, Tekka Centre',
+    birthday: '14 January',
+    traits: ['caring'],
+    likes: ['religion', 'family', 'music'],
+    dislikes: ['property'],
+    plan: daily(['06:00', 'away'], ['07:00', 't.garland'], ['19:00', 'away']),
+    stories: [
+      'Jasmine for the temple, marigold for weddings. Every morning at four I start threading. My mother did the same.',
+      'Deepavali, the whole Serangoon Road lights up. You come, I give you a garland free.',
+    ],
+    loves: ['tea'],
+    gifts: ['kueh'],
+    look: { skin: '#6a4028', hair: 'bun', top: '#e07a1f', longSleeves: true, bottom: '#8a3b2e', skirt: true },
+    ties: { ravi: 30 },
+  },
+  {
+    id: 'lim',
+    name: 'Lim',
+    address: 'Uncle',
+    age: 71,
+    gender: 'm',
+    role: 'Tea shop, Chinatown',
+    birthday: '8 August',
+    traits: ['bookish', 'grumpy'],
+    likes: ['old days', 'music', 'food'],
+    dislikes: ['shopping'],
+    plan: daily(['06:00', 'away'], ['09:00', 'c.tea'], ['19:00', 'away']),
+    stories: [
+      'This street was full of trishaws when I was a boy. Now full of tourists. Tourists pay better, at least.',
+      'Good tea you must wait. Young people now, everything also cannot wait.',
+    ],
+    loves: ['mooncake'],
+    gifts: ['tarts'],
+    hates: ['bbt'],
+    look: { skin: '#dcb08a', hair: 'bald', hairColor: '#d6d0c6', top: '#e8e4da', bottom: '#3b3a36' },
+    ties: { ahseng: 30 },
+  },
+  {
+    id: 'ibrahim',
+    name: 'Ibrahim',
+    address: 'Encik',
+    age: 40,
+    gender: 'm',
+    role: 'Batik shop, Haji Lane',
+    birthday: '27 June',
+    traits: ['cheerful', 'ambitious'],
+    likes: ['shopping', 'travel', 'music'],
+    dislikes: ['weather'],
+    plan: daily(['06:00', 'away'], ['11:00', 'h.batik'], ['21:00', 'away']),
+    stories: [
+      'My grandfather sold textiles on Arab Street. I sell batik on Haji Lane. My son wants to sell on Chopee. Progress!',
+      'Every month I go Pekalongan and Solo to buy. Your country makes the best batik, I tell everyone.',
+    ],
+    loves: ['tea'],
+    gifts: ['keripik'],
+    look: { skin: '#b67d55', hair: 'short', top: '#8e44ad', bottom: '#2c3e50' },
+    ties: { hamid: 20 },
+  },
+  {
+    id: 'sarah',
+    name: 'Sarah',
+    address: '',
+    age: 25,
+    gender: 'f',
+    role: 'Barista, Tiong Bahru Bakehouse',
+    birthday: '19 December',
+    traits: ['artsy', 'shy'],
+    likes: ['music', 'travel', 'food'],
+    dislikes: ['work'],
+    plan: daily(['06:00', 'away'], ['07:30', 'tb.bakery'], ['16:00', 'away']),
+    stories: [
+      'I studied art. Now I draw on lattes. Same thing, smaller canvas.',
+      'The old people here have lived in these art deco flats since the fifties. The young people pay five dollars for a croissant downstairs. Both are Tiong Bahru.',
+    ],
+    loves: ['croissant'],
+    gifts: ['bbt'],
+    look: { skin: '#e8c4a0', hair: 'bun', top: '#2c3e50', bottom: '#6b5a45' },
+    ties: { junhao: 20 },
   },
 ];
 

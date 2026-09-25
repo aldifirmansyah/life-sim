@@ -26,6 +26,12 @@ export const ITEM_NAMES: Record<string, string> = {
   indomie: 'Indomie, a box',
   keripik: 'Keripik tempe',
   flowers: 'Flowers',
+  tea: 'Oolong tea, a tin',
+  bakkwa: 'Bak kwa',
+  garland: 'A jasmine garland',
+  batik: 'A batik scarf',
+  croissant: 'Kaya croissants',
+  mooncake: 'Mooncakes',
 };
 export function addItem(id: string, n = 1) {
   bag[id] = (bag[id] ?? 0) + n;

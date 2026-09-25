@@ -29,6 +29,7 @@ import { spend, earn, sgd, addEnergy, addMood } from '../game/stats';
 import { dateOf, shortDate, DAYS, weekday } from '../game/calendar';
 import { markTo } from '../game/marker';
 import { goalLines } from '../game/work';
+import { takeWudhu, prayLabel, pray } from './centre';
 import { HOME_SITES, unitOf, type HomeId, type HomeSite } from './sites';
 
 interface HomeInfo {
@@ -361,6 +362,25 @@ function buildHome(s: HomeSite) {
     size: 0.8,
     label: () => (home.id === s.id ? 'Make it yours (decorate)' : null),
     run: () => decorate(s.id),
+  });
+  // Wudhu at the tap and prayer on the floor, at home.
+  register({
+    x: x0 + 0.5,
+    y: Y + 1,
+    z: z1 - 2.4,
+    reach: 2.4,
+    size: 0.8,
+    label: () => (home.id === s.id ? 'Wudhu at the tap' : null),
+    run: takeWudhu,
+  });
+  register({
+    x: (x0 + x1) / 2,
+    y: Y + 0.2,
+    z: (z0 + z1) / 2,
+    reach: 3,
+    size: 1.5,
+    label: () => (home.id === s.id ? prayLabel('home') : null),
+    run: () => pray('home'),
   });
   built[s.id] = { door, bed, entry, extra: null };
   const rooms = [{ name: s.id === 'clementi' ? 'Your room' : 'Home', x0, x1, z0, z1, y0: Y - 0.5, y1: Y + 3 }];

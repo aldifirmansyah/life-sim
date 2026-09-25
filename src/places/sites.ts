@@ -43,3 +43,16 @@ export function unitOf(s: HomeSite) {
   const y = s.floor ?? 0;
   return { x0: s.x - 5, x1: s.x + 5, z0: s.z + s.d / 2 - 8, z1: s.z + s.d / 2, y, h: 2.8 };
 }
+
+/* Step 7: the rest of the centre. */
+/** Masjid Sultan, walk-in; the entrance and the wudhu taps on the south side. */
+export const MOSQUE = { x: 344, z: 24, w: 26, d: 30, h: 11 };
+/** Tekka Centre (Little India) and Tiong Bahru Market: hawker centres. */
+export const TEKKA = { x: 155, z: -54, w: 30, d: 22 };
+export const TB_MARKET = { x: -62, z: 467, w: 30, d: 22 };
+/** Haji Lane's shops (Kampong Glam), their fronts to the south. */
+export const HAJI_LANE = { x0: 335, x1: 365, z0: 52, z1: 60 };
+/** Chinatown's street market, the stalls facing north towards the temple. */
+export const CT_MARKET = { x0: 42, x1: 78, z0: 548, z1: 556 };
+/** Lucky Place on Orchard Road: the ground floor walk-in (the Indonesian shops), the mall above streamed. */
+export const LUCKY = { x0: -7, x1: 23, z0: -5, z1: 21, h: 5 };

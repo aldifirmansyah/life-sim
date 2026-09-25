@@ -38,6 +38,8 @@ import { buildHomes, updateHomes, homeMarker, homeApp, loadHomes } from './place
 import { openPhone, apps } from './game/phone';
 import { buildPeople, updatePeople, contacts, loadPeople, birthdaysToday } from './npc/people';
 import { buildCrowds, updateCrowds } from './npc/crowds';
+import { buildCentre, loadCentre } from './places/centre';
+import { updateNear } from './places/shops';
 import { properName } from './social/social';
 import { showMoney, showVitals, resetStats, drain, addEnergy, addMood } from './game/stats';
 import { buildChangi, updateChangi, ARRIVAL } from './places/changi';
@@ -71,6 +73,7 @@ buildChopee();
 buildClementi();
 buildCbd();
 buildHomes();
+buildCentre();
 apps.push({ label: 'HomeLah', note: 'rooms for rent', run: homeApp });
 buildPeople();
 buildCrowds();
@@ -95,6 +98,7 @@ function newGame() {
   loadWork(undefined);
   loadHomes(undefined);
   loadPeople(undefined);
+  loadCentre(undefined);
 }
 
 /** Energy runs down with the hours awake; a night's sleep fills it up. */
@@ -154,6 +158,7 @@ function loop(now: number) {
   updateInteriors(dt);
   updateChangi(dt);
   updateCbd();
+  updateNear(player.x, player.z);
   updateFares();
   updateInteraction();
   if (S.started) {
@@ -304,6 +309,7 @@ if (import.meta.env.DEV) {
     import('./city/roads'),
     import('./places/homes'),
     import('./npc/people'),
+    import('./places/centre'),
   ]).then(
     ([
       geo,
@@ -327,6 +333,7 @@ if (import.meta.env.DEV) {
       roads,
       homes,
       people,
+      centre,
     ]) => {
       (window as unknown as Record<string, unknown>).__sg = {
         S,
@@ -352,6 +359,7 @@ if (import.meta.env.DEV) {
         roads,
         homes,
         people,
+        centre,
         renderer,
         parts,
       };
