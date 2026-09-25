@@ -38,6 +38,9 @@ export interface Interior {
   /** Raka comes in (after the sandals) and goes out. */
   onEnter?: () => void;
   onExit?: () => void;
+  /** Draw the furniture only within this distance of the lamp (default 32 m); small homes seen only through
+      their door use less. */
+  showWithin?: number;
   /** 0..1: how much of the indoor look applies (an open pavilion is only partly indoors). */
   amount?: number;
   /** A pair of sandals left on the teras while Raka is inside. */
@@ -82,8 +85,9 @@ export function updateInteriors(dt: number) {
     it.door.update(dt);
     const d = Math.hypot(player.x - it.lamp[0], player.z - it.lamp[2]);
     // The furniture is only drawn near the house (through the windows and door) and inside.
-    it.props.show(d < 32);
-    it.extra?.()?.show(d < 32);
+    const show = d < (it.showWithin ?? 32);
+    it.props.show(show);
+    it.extra?.()?.show(show);
     if (d < nearD) {
       nearD = d;
       near = it;

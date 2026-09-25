@@ -24,7 +24,7 @@ Agreed with the user after Phase 7. The spec (§4) is updated to match.
 
 ## Steps (a check with the user after each)
 
-Steps 1 to 5 are done. The musholla's mihrab is in the west wall (toward the qibla), so its door moved to the south side by the wudhu taps.
+Steps 1 to 6 are done. In step 6 only the front room (ruang tamu) of a resident's house is walk-in; the family's rooms stay behind a curtained partition. The musholla's mihrab is in the west wall (toward the qibla), so its door moved to the south side by the wudhu taps.
 1. **Foundation + Raka's house shell.**
    - Hollow shell, door, rooms (ruang tamu, kamar, dapur, kamar mandi), tiled floor, plafon, lamp, indoor light and sound, sandals, slower walk, room names.
    - The home menu moves to a table inside.

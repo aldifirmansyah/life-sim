@@ -53,6 +53,7 @@ import { buildWarungInterior } from './interiors/warung';
 import { buildWarkopInterior, registerWarkop, updateWarkop } from './interiors/warkop';
 import { buildMushollaInterior, registerMusholla } from './interiors/musholla';
 import { buildBalaiInterior, registerBalai } from './interiors/balai';
+import { carveHomes, buildHomeInteriors, updateHomes } from './interiors/homes';
 import { registerWarungShop, updateWarungShop } from './interiors/warungshop';
 import { initShoppers, updateShoppers, SHOPPER_SLOTS } from './npc/shoppers';
 import { buildRakaInterior } from './interiors/raka';
@@ -81,6 +82,8 @@ pasarPagi();
 ground();
 // NPC places and the waypoint graph; homes without a teras bench get stools, so this comes before the batches are built.
 initWorldNav();
+// Residents' homes are hollowed out now that it's known which houses they are (before the batches are built).
+carveHomes();
 // Raka's planters go into the static batches too.
 buildGarden();
 // Stools for the pasar stall-keepers.
@@ -103,6 +106,7 @@ const warung = buildWarungInterior();
 buildWarkopInterior();
 buildMushollaInterior();
 buildBalaiInterior();
+buildHomeInteriors();
 onPhoneChange(() => showPlate(plate?.state === 'waiting'));
 registerActivities();
 registerHome();
@@ -164,6 +168,7 @@ function loop(now: number) {
   if (S.started) {
     updateWarungShop();
     updateWarkop(dt);
+    updateHomes(dt);
   }
   updateActions();
   updateGame();

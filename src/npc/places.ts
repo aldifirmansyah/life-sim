@@ -9,6 +9,7 @@ import { rakaHouse } from '../world/landmarks';
 import * as RL from '../interiors/rakalayout';
 import { WK } from '../interiors/warkoplayout';
 import { MU, BA } from '../interiors/civiclayout';
+import { homeLayout, FL as HL_FL } from '../interiors/homelayout';
 
 export type P2 = [number, number];
 export type Pose = 'stand' | 'sit' | 'squat' | 'kneel' | 'hidden';
@@ -388,13 +389,25 @@ function housePoi(h: House, k: number, household: string) {
     front = F(dx + o, fz + sb + 0.9);
     if (clear(step, front)) break;
   }
+  // Inside (interiors/homes.ts): the family's sofa in the ruang tamu, where whoever lets Raka in sits with him.
+  const L = homeLayout(h);
   const p = poi(`house${k}`, 'Rumah', 'house', [front, step], {
     inside: [door(F(dx, fz + 0.1))],
     teras: [seat(-0.35), seat(0.35)],
+    host: L.sofa.seats.map(x =>
+      sit(F(x, L.sofa.z + 0.05), F(x, L.sofa.z + 2), HL_FL + 0.44, {
+        approach: F(x, L.sofa.z + 0.62),
+        via: [F(L.hub[0], L.hub[1])],
+      }),
+    ),
   });
   homes.set(household, p);
+  homeHouses.set(household, h);
   return p;
 }
+
+/** Each household's row house (not the warung). */
+export const homeHouses = new Map<string, House>();
 
 /** Where each household lives: the free row house whose door is nearest the given point. */
 export const HOUSEHOLD_SITES: Record<string, P2 | 'warung'> = {

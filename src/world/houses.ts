@@ -1,4 +1,5 @@
 /* Procedural row houses along the block edges that face a road. */
+import * as THREE from 'three';
 import { addCol, overlaps, overlapsAny, type Rect4 } from '../core/collision';
 import { R, rand, pick } from '../core/util';
 import { Batch, mat, solid, roofs, cyl, lit, C, blob } from '../render/batch';
@@ -97,7 +98,7 @@ export function buildHouse({ cx, cz, th, w, d, sb, sp = {} }: HouseArgs) {
   const colL = (lx0: number, lx1: number, lz0: number, lz1: number) => {
     const a = F(lx0, lz0),
       b = F(lx1, lz1);
-    addCol(a[0], b[0], a[1], b[1]);
+    return addCol(a[0], b[0], a[1], b[1]);
   };
   const two = sp.two ?? R() < 0.3;
   const H = two ? 5.8 : 3.2;
@@ -105,8 +106,13 @@ export function buildHouse({ cx, cz, th, w, d, sb, sp = {} }: HouseArgs) {
   const trim = pick(TRIMS);
   const fz = d / 2;
   const hollow = !!sp.hollow;
+  // Where the solid block, its plinth and the door leaf sit in the batch, so a house can be hollowed out
+  // later (carveHouse) when it turns out to be a resident's home.
+  const idx = { block: -1, plinth: -1, door: -1 };
   if (!hollow) {
+    idx.block = solid.m.length;
     put(solid, 0, H / 2, 0, w, H, d, wall);
+    idx.plinth = solid.m.length;
     put(solid, 0, 0.22, 0, w + 0.05, 0.44, d + 0.05, dark(wall, 0.68));
   }
   if (two) put(solid, 0, 3.05, 0, w + 0.08, 0.16, d + 0.08, '#f3efe6');
@@ -146,7 +152,10 @@ export function buildHouse({ cx, cz, th, w, d, sb, sp = {} }: HouseArgs) {
   const dx = slots[di];
   const doorC = sp.door || pick(DOORS);
   // A walk-in house's door leaf is animated (interiors/door.ts), so it isn't part of the batch.
-  if (!hollow) put(solid, dx, 1.07, fz + 0.035, 0.95, 2.14, 0.07, doorC);
+  if (!hollow) {
+    idx.door = solid.m.length;
+    put(solid, dx, 1.07, fz + 0.035, 0.95, 2.14, 0.07, doorC);
+  }
   put(solid, dx, 2.42, fz + 0.03, 1.0, 0.22, 0.06, dark(wall, 0.8));
   const win = (x: number, y: number) => {
     if (hollow) {
@@ -245,7 +254,8 @@ export function buildHouse({ cx, cz, th, w, d, sb, sp = {} }: HouseArgs) {
     put(solid, w / 2 + 0.26, 3.42, fz + sb - 0.25, 0.9, 0.25, 0.02, '#f5f3ee');
   }
   // collider
-  if (!hollow) colL(-w / 2, w / 2, -d / 2, d / 2);
+  let col: ReturnType<typeof colL> | null = null;
+  if (!hollow) col = colL(-w / 2, w / 2, -d / 2, d / 2);
   else {
     // Walls with a doorway and window openings; the plinth band outside only.
     const T = 0.12;
@@ -278,7 +288,53 @@ export function buildHouse({ cx, cz, th, w, d, sb, sp = {} }: HouseArgs) {
       colL(a, b, fz - T, fz);
     }
   }
-  return { F, H, fz, dx, sb, th, w, d, bench, hollow, wall, doorC };
+  return { F, H, fz, dx, sb, th, w, d, bench, hollow, wall, doorC, trim, idx, col, slots, di };
+}
+
+const ZERO = new THREE.Matrix4().makeScale(0, 0, 0);
+/** Hollow out a solid row house that turned out to be someone's home (after the places are known, before the
+    batches are built): the block, plinth and door leaf go, and walls with a doorway take their place. The
+    windows stay as they are on the outside (inside they're behind curtains). No R() calls. */
+export function carveHouse(h: House) {
+  if (h.hollow) return;
+  for (const i of [h.idx.block, h.idx.plinth, h.idx.door]) if (i >= 0) solid.m[i].copy(ZERO);
+  if (h.col) h.col.on = false;
+  const { F, th, w, d, H, dx, fz, wall } = h;
+  const put = (lx: number, y: number, lz: number, sx: number, sy: number, sz: number, c: string) => {
+    const [x, z] = F(lx, lz);
+    solid.add(mat(x, y, z, sx, sy, sz, th), c);
+  };
+  const colL = (lx0: number, lx1: number, lz0: number, lz1: number) => {
+    const a = F(lx0, lz0),
+      b = F(lx1, lz1);
+    addCol(a[0], b[0], a[1], b[1]);
+  };
+  const T = 0.12;
+  const band = dark(wall, 0.68);
+  put(0, H / 2, -d / 2 + T / 2, w, H, T, wall);
+  put(0, 0.22, -d / 2 - 0.015, w + 0.05, 0.44, 0.03, band);
+  colL(-w / 2, w / 2, -d / 2, -d / 2 + T);
+  for (const sx of [-1, 1]) {
+    put(sx * (w / 2 - T / 2), H / 2, 0, T, H, d, wall);
+    put(sx * (w / 2 + 0.015), 0.22, 0, 0.03, 0.44, d + 0.05, band);
+    colL(sx * (w / 2 - T), sx * (w / 2), -d / 2, d / 2);
+  }
+  // The front wall, with only the doorway open.
+  const fzw = fz - T / 2;
+  for (const [a, b] of [
+    [-w / 2 + T, dx - 0.5],
+    [dx + 0.5, w / 2 - T],
+  ])
+    if (b > a) put((a + b) / 2, H / 2, fzw, b - a, H, T, wall);
+  put(dx, (2.2 + H) / 2, fzw, 1.0, H - 2.2, T, wall);
+  for (const [a, b] of [
+    [-w / 2, dx - 0.5],
+    [dx + 0.5, w / 2],
+  ]) {
+    put((a + b) / 2, 0.22, fz + 0.015, b - a, 0.44, 0.03, band);
+    colL(a, b, fz - T, fz);
+  }
+  h.hollow = true;
 }
 
 /** Back-row house inside a block. (Currently never fits; see CLAUDE.md known gaps.) */

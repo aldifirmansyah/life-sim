@@ -464,7 +464,8 @@ export type Sfx =
   | 'blip'
   | 'doorOpen'
   | 'doorClose'
-  | 'sandal';
+  | 'sandal'
+  | 'knock';
 /** A short UI or action sound. `pitch` shifts dialogue blips per speaker. */
 export function sfx(kind: Sfx, pitch = 1) {
   if (!ctx || !S.started) return;
@@ -521,6 +522,13 @@ export function sfx(kind: Sfx, pitch = 1) {
       tone(fx, 'sine', 110, 60, t, 0.003, 0.18, 0.35);
       hiss(fx, 'lowpass', 900, 0.8, t, 0.002, 0.1, 0.25);
       hiss(fx, 'bandpass', 2600, 6, t + 0.06, 0.002, 0.03, 0.15);
+      break;
+    case 'knock':
+      // Three knuckle raps on a wooden door.
+      for (let i = 0; i < 3; i++) {
+        tone(fx, 'triangle', 180, 120, t + i * 0.22, 0.002, 0.08, 0.25);
+        hiss(fx, 'bandpass', 900, 3, t + i * 0.22, 0.002, 0.04, 0.12);
+      }
       break;
     case 'sandal':
       hiss(fx, 'bandpass', 1400, 1.5, t, 0.003, 0.05, 0.12);
