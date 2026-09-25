@@ -154,8 +154,7 @@ const built: Partial<
 export function buildHomes() {
   for (const s of HOME_SITES) buildHome(s);
   goalLines.push(() => {
-    if (home.appt)
-      return `Viewing: ${HOMES[home.appt.id].name}, ${shortDate(home.appt.day)} ${hhmm(home.appt.time)}`;
+    if (home.appt) return `Viewing: ${HOMES[home.appt.id].name}, ${shortDate(home.appt.day)} ${hhmm(home.appt.time)}`;
     if (!home.id)
       return S.day <= FREE_UNTIL
         ? `Find a place to live: HomeLah on the phone (P). one-north is free until ${shortDate(FREE_UNTIL)}`
@@ -164,7 +163,8 @@ export function buildHomes() {
   });
 }
 
-const hhmm = (t: number) => `${String(Math.floor(t / 60)).padStart(2, '0')}:${String(Math.round(t % 60)).padStart(2, '0')}`;
+const hhmm = (t: number) =>
+  `${String(Math.floor(t / 60)).padStart(2, '0')}:${String(Math.round(t % 60)).padStart(2, '0')}`;
 
 function buildHome(s: HomeSite) {
   const info = HOMES[s.id];
@@ -208,7 +208,17 @@ function buildHome(s: HomeSite) {
     p.box(lx - 0.8, lx + 0.8, 0, 2.2, s.z + 1.5, s.z + 1.56, '#b9c0c6');
     const level = Math.round(s.floor / 2.9) + 1;
     sign(
-      { text: s.id === 'condo' ? 'The Riverside Vue' : 'Blk 420', sub: s.id === 'condo' ? 'Tower B' : 'Clementi Ave 3', w: 2.6, h: 0.7, bg: '#1d2b36', fg: '#ffffff', border: '#f2c14e', subfg: '#f2c14e', font: 'ui' },
+      {
+        text: s.id === 'condo' ? 'The Riverside Vue' : 'Blk 420',
+        sub: s.id === 'condo' ? 'Tower B' : 'Clementi Ave 3',
+        w: 2.6,
+        h: 0.7,
+        bg: '#1d2b36',
+        fg: '#ffffff',
+        border: '#f2c14e',
+        subfg: '#f2c14e',
+        font: 'ui',
+      },
       lx,
       2.8,
       s.z + 1.6,
@@ -276,6 +286,7 @@ function buildHome(s: HomeSite) {
   const { x0, x1, z0, z1 } = u;
   const H = Y + u.h;
   p.box(x0, x1, Y, Y + 0.06, z0, z1, info.floor);
+  if (Y > 0) addFloor((x0 + x1) / 2, (z0 + z1) / 2, (x1 - x0) / 2, (z1 - z0) / 2, 0, Y);
   p.box(x0, x1, H, H + 0.1, z0, z1, '#f4f2ec');
   wall(x0 + 0.05, x1 - 0.05, z0, z0 + 0.15, Y, H, info.wall);
   wall(x0 + 0.05, x0 + 0.2, z0, z1, Y, H, info.wall);
@@ -381,7 +392,12 @@ function doorUse(id: HomeId, door: Door) {
   const h = HOMES[id];
   if (home.id === id) return door.toggle();
   if (!apptNow(id)) {
-    toast(h.name, home.appt?.id === id ? `The viewing is at ${hhmm(home.appt.time)}.` : 'Nobody answers. Book a viewing on HomeLah (P).');
+    toast(
+      h.name,
+      home.appt?.id === id
+        ? `The viewing is at ${hhmm(home.appt.time)}.`
+        : 'Nobody answers. Book a viewing on HomeLah (P).',
+    );
     return;
   }
   const cost = h.deposit + h.rent;
@@ -409,7 +425,8 @@ function doorUse(id: HomeId, door: Door) {
 }
 function sign_(id: HomeId, door: Door) {
   const h = HOMES[id];
-  if (!spend(h.deposit + h.rent)) return toast('Not enough money', `The deposit and the first month come to ${sgd(h.deposit + h.rent)}.`);
+  if (!spend(h.deposit + h.rent))
+    return toast('Not enough money', `The deposit and the first month come to ${sgd(h.deposit + h.rent)}.`);
   closePanel();
   const old = home.id;
   if (old) {
@@ -450,7 +467,9 @@ export function homeApp() {
   openPanel({
     title: 'HomeLah',
     sub: 'Rooms and flats for rent',
-    body: home.id ? `Home: ${HOMES[home.id].name}. Rent ${sgd(HOMES[home.id].rent)} on the 1st.` : 'Pick a listing to see it and book a viewing.',
+    body: home.id
+      ? `Home: ${HOMES[home.id].name}. Rent ${sgd(HOMES[home.id].rent)} on the 1st.`
+      : 'Pick a listing to see it and book a viewing.',
     rows,
   });
 }
@@ -474,7 +493,11 @@ function listing(id: HomeId) {
               run: () => {
                 home.appt = { id, day, time: t };
                 closePanel();
-                toast(`Viewing booked: ${h.name}`, `${shortDate(day)}, ${hhmm(t)}. ${h.landlord} will meet Aldi at the door.`, 'msg');
+                toast(
+                  `Viewing booked: ${h.name}`,
+                  `${shortDate(day)}, ${hhmm(t)}. ${h.landlord} will meet Aldi at the door.`,
+                  'msg',
+                );
               },
             })),
             { label: 'Back', run: homeApp },
@@ -489,7 +512,9 @@ function decorate(id: HomeId) {
   openPanel({
     title: 'Make it yours',
     sub: HOMES[id].name,
-    body: have.length ? `${have.length} things so far. Every morning here feels a bit better.` : 'Bare walls. Time to make it feel like home.',
+    body: have.length
+      ? `${have.length} things so far. Every morning here feels a bit better.`
+      : 'Bare walls. Time to make it feel like home.',
     keepPage: true,
     rows: DECO.map(d => ({
       label: d.name,
@@ -539,13 +564,23 @@ function rebuildDeco(id: HomeId) {
         break;
       case 'shelf':
         p.box(x0 + 0.2, x0 + 0.6, Y, Y + 1.8, z0 + 5, z0 + 6.2, '#6b5139');
-        for (let k = 0; k < 4; k++) p.box(x0 + 0.25, x0 + 0.55, Y + 0.3 + k * 0.4, Y + 0.55 + k * 0.4, z0 + 5.1, z0 + 6.1, ['#b8342a', '#2f8a4e', '#3f7fd0', '#e0a02a'][k]);
+        for (let k = 0; k < 4; k++)
+          p.box(
+            x0 + 0.25,
+            x0 + 0.55,
+            Y + 0.3 + k * 0.4,
+            Y + 0.55 + k * 0.4,
+            z0 + 5.1,
+            z0 + 6.1,
+            ['#b8342a', '#2f8a4e', '#3f7fd0', '#e0a02a'][k],
+          );
         break;
       case 'beanbag':
         p.put(x1 - 2.5, Y + 0.3, z1 - 1.4, 0.9, 0.6, 0.9, '#e07a1f', 0, p.cone);
         break;
       case 'lights':
-        for (let x = x0 + 0.6; x < x1 - 0.4; x += 0.6) p.light(x, h + Y - 0.15 - Math.sin((x - x0) * 2) * 0.05, z0 + 0.25, 0.04, '#ffd98a');
+        for (let x = x0 + 0.6; x < x1 - 0.4; x += 0.6)
+          p.light(x, h + Y - 0.15 - Math.sin((x - x0) * 2) * 0.05, z0 + 0.25, 0.04, '#ffd98a');
         break;
       case 'flag':
         p.post(x0 + 4.3, z0 + 0.3, Y + 1.2, Y + 2.2, 0.02, '#8e969c');
@@ -569,7 +604,8 @@ export function updateHomes() {
   // A new morning without a home, after the free fortnight: another night at one-north.
   if (lastDay >= 0 && S.day !== lastDay && !home.id && S.day > FREE_UNTIL && home.night !== S.day) {
     home.night = S.day;
-    if (spend(140)) toast('one-north Residences', `Another night in the studio: ${sgd(140)}. Time to find a place.`, null);
+    if (spend(140))
+      toast('one-north Residences', `Another night in the studio: ${sgd(140)}. Time to find a place.`, null);
   }
   lastDay = S.day;
   // Rent on the 1st at 09:00.

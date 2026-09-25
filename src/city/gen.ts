@@ -654,7 +654,18 @@ function landmarks() {
   // which is a void deck (lift homes) or the ground-floor shell (street homes).
   for (const h of HOME_SITES) {
     const y0 = 3.4;
-    put({ p: 'bldg', x: h.x, y: (y0 + h.h) / 2, z: h.z, sx: h.w, sy: h.h - y0, sz: h.d, ry: 0, c: h.color, st: STYLE[h.style] });
+    put({
+      p: 'bldg',
+      x: h.x,
+      y: (y0 + h.h) / 2,
+      z: h.z,
+      sx: h.w,
+      sy: h.h - y0,
+      sz: h.d,
+      ry: 0,
+      c: h.color,
+      st: STYLE[h.style],
+    });
     if (h.style === 'shophouse' || h.style === 'house')
       put({ p: 'roof', x: h.x, y: h.h, z: h.z, sx: h.w + 0.6, sy: 2.2, sz: h.d + 0.6, ry: 0, c: '#b5553a' });
     reserve(h.x, h.z, Math.hypot(h.w, h.d) / 2 + 4);
