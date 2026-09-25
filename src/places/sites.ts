@@ -15,3 +15,31 @@ export const LAU_PA_SAT = { x: 175, z: 530, w: 30, d: 22 };
 export const BOAT_QUAY = { x0: 160, x1: 262, z0: 472, z1: 482 };
 /** Where the light show is watched from: the promenade by the Merlion. */
 export const PROMENADE = { x: 300, z: 503 };
+
+export type HomeId = 'clementi' | 'tiong' | 'condo' | 'coliv' | 'katong';
+/** The homes to rent (step 5): the building (centre, size, height, facade) and the unit, which faces
+    south. With `floor` the unit is upstairs, reached by a lift from the void deck and a corridor along
+    the south face; without it, the unit is on the ground floor with its own door on the street. */
+export interface HomeSite {
+  id: HomeId;
+  x: number;
+  z: number;
+  w: number;
+  d: number;
+  h: number;
+  style: 'hdb' | 'office' | 'glass' | 'shophouse' | 'house';
+  color: string;
+  floor?: number;
+}
+export const HOME_SITES: HomeSite[] = [
+  { id: 'clementi', x: -1013, z: 173, w: 40, d: 12, h: 38, style: 'hdb', color: '#efe6d2', floor: 17.4 },
+  { id: 'tiong', x: -137, z: 447, w: 20, d: 12, h: 13, style: 'house', color: '#efe9dc' },
+  { id: 'condo', x: 0, z: 240, w: 24, d: 24, h: 90, style: 'glass', color: '#a9bcc6', floor: 34.8 },
+  { id: 'coliv', x: 197, z: 671, w: 20, d: 12, h: 16, style: 'office', color: '#e6d3a8' },
+  { id: 'katong', x: 847, z: 393, w: 20, d: 14, h: 10, style: 'shophouse', color: '#9fc4b8' },
+];
+/** The walk-in unit of a home: 10 m wide on the south face, 8 m deep. */
+export function unitOf(s: HomeSite) {
+  const y = s.floor ?? 0;
+  return { x0: s.x - 5, x1: s.x + 5, z0: s.z + s.d / 2 - 8, z1: s.z + s.d / 2, y, h: 2.8 };
+}

@@ -9,7 +9,7 @@ import { panelKey } from '../ui/panel';
 import { gameKey } from '../ui/minigame';
 
 /** What E does in the world (set by the game). */
-export const actions = { interact: () => {}, skip: () => {}, laptop: () => {} };
+export const actions = { interact: () => {}, skip: () => {}, laptop: () => {}, phone: () => {} };
 
 export function initInput() {
   document.addEventListener('pointerlockchange', () => {
@@ -65,6 +65,10 @@ export function initInput() {
     }
     if (e.code === 'KeyE' && inWorld()) {
       actions.interact();
+      return;
+    }
+    if (e.code === 'KeyP' && inWorld()) {
+      actions.phone();
       return;
     }
     if (e.code === 'KeyL' && inWorld()) {

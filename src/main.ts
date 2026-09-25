@@ -34,6 +34,8 @@ import { buildBuses, updateBuses, busMenu } from './city/buses';
 import { buildChopee } from './places/chopee';
 import { buildClementi } from './places/clementi';
 import { buildCbd, updateCbd } from './places/cbd';
+import { buildHomes, updateHomes, homeMarker, homeApp, loadHomes } from './places/homes';
+import { openPhone, apps } from './game/phone';
 import { showMoney, showVitals, resetStats, drain, addEnergy, addMood } from './game/stats';
 import { buildChangi, updateChangi, ARRIVAL } from './places/changi';
 import { buildOneNorth, loadOneNorth } from './places/onenorth';
@@ -50,6 +52,8 @@ actions.interact = () => {
 };
 // L: the work laptop.
 actions.laptop = () => openLaptop();
+// P: the phone.
+actions.phone = () => openPhone();
 bindOverlayButtons();
 initInput();
 bindSettingsUI();
@@ -63,6 +67,8 @@ buildOneNorth();
 buildChopee();
 buildClementi();
 buildCbd();
+buildHomes();
+apps.push({ label: 'HomeLah', note: 'rooms for rent', run: homeApp });
 buildBuses();
 initStream();
 const genMs = performance.now() - tGen;
@@ -81,6 +87,7 @@ function newGame() {
   loadArrival(undefined);
   loadOneNorth(undefined);
   loadWork(undefined);
+  loadHomes(undefined);
 }
 
 /** Energy runs down with the hours awake; a night's sleep fills it up. */
@@ -137,6 +144,8 @@ function loop(now: number) {
   updateInteraction();
   if (S.started) {
     updateArrival();
+    updateHomes();
+    homeMarker();
     updateWork();
     vitalsTick();
   }
@@ -278,6 +287,8 @@ if (import.meta.env.DEV) {
     import('./places/sites'),
     import('./places/cbd'),
     import('./places/hawker'),
+    import('./city/roads'),
+    import('./places/homes'),
   ]).then(
     ([
       geo,
@@ -298,6 +309,8 @@ if (import.meta.env.DEV) {
       sites,
       cbd,
       hawker,
+      roads,
+      homes,
     ]) => {
       (window as unknown as Record<string, unknown>).__sg = {
         S,
@@ -320,6 +333,8 @@ if (import.meta.env.DEV) {
         sites,
         cbd,
         hawker,
+        roads,
+        homes,
         renderer,
         parts,
       };

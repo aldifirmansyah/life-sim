@@ -11,7 +11,7 @@ import { addRoad, allSegs, nearRoad, type Road } from './roads';
 import { nearTrack, EWL } from './mrtdata';
 import { sign } from '../render/signs';
 import { STYLE } from './facade';
-import { CHOPEE_HQ, CLEMENTI_HAWKER, LAU_PA_SAT, CITY_OFFICE, BOAT_QUAY } from '../places/sites';
+import { CHOPEE_HQ, CLEMENTI_HAWKER, LAU_PA_SAT, CITY_OFFICE, BOAT_QUAY, HOME_SITES } from '../places/sites';
 
 export const CHUNK = 128;
 export const LOT = 36;
@@ -649,6 +649,15 @@ function landmarks() {
     building(-600, 255, 22, 18, 18, '#e8e4dc', STYLE.office);
     reserve(-560, 262, 20);
     reserve(-600, 255, 16);
+  }
+  // The homes to rent (places/homes.ts builds the walk-in parts): the building above the ground floor,
+  // which is a void deck (lift homes) or the ground-floor shell (street homes).
+  for (const h of HOME_SITES) {
+    const y0 = 3.4;
+    put({ p: 'bldg', x: h.x, y: (y0 + h.h) / 2, z: h.z, sx: h.w, sy: h.h - y0, sz: h.d, ry: 0, c: h.color, st: STYLE[h.style] });
+    if (h.style === 'shophouse' || h.style === 'house')
+      put({ p: 'roof', x: h.x, y: h.h, z: h.z, sx: h.w + 0.6, sy: 2.2, sz: h.d + 0.6, ry: 0, c: '#b5553a' });
+    reserve(h.x, h.z, Math.hypot(h.w, h.d) / 2 + 4);
   }
   // NUS on Kent Ridge: a sign by the road (the campus itself is generated).
   landmarkSign('NUS', 'National University of Singapore · Kent Ridge', -820, 4, 326, Math.PI);

@@ -465,14 +465,22 @@ function target(): [string, [number, number, number]] | null {
   return null;
 }
 
+/** Other lines for the goals box (the home hunt, …), each null when there's nothing to say. */
+export const goalLines: (() => string | null)[] = [];
+
 function renderGoals() {
   const el = $('goals');
   el.hidden = false;
+  const extra = goalLines.map(f => f()).filter((l): l is string => !!l);
+  const add = (l: string) => {
+    const s = document.createElement('span');
+    s.textContent = l;
+    el.appendChild(s);
+  };
   if (!job.pass) {
     el.innerHTML = '<b>Chopee</b>';
-    const s = document.createElement('span');
-    s.textContent = 'Onboarding: Monday 10am at reception, Science Park Drive (bus 96 from one-north)';
-    el.appendChild(s);
+    add('Onboarding: Monday 10am at reception, Science Park Drive (bus 96 from one-north)');
+    extra.forEach(add);
     return;
   }
   if (!job.sprint) return;
@@ -482,11 +490,7 @@ function renderGoals() {
     `Office days: ${officeLabel()} · stand-up 10:00`,
     `Seller meeting ${shortDate(sellerDay())}, 2pm · city office (Raffles Place)`,
   ];
-  for (const l of lines) {
-    const s = document.createElement('span');
-    s.textContent = l;
-    el.appendChild(s);
-  }
+  [...lines, ...extra].forEach(add);
 }
 
 /* ---------- saving ---------- */
