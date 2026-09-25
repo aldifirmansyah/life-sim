@@ -8,7 +8,7 @@ A first-person life-sim in the browser, set in **Singapore**: the whole island, 
 The game used to be set in an Indonesian kampung ("Kampung Sukamaju", player Raka). That version is complete and kept on the branch **`kampung-v1`** (commit `18dfd08`); its content was removed from this branch and its systems are ported back from there as each Singapore step needs them.
 
 ## Decisions already made (don't reopen unless asked)
-- **Setting:** real Singapore, the whole island (Clementi and Science Park Drive explicitly), compressed. Real names for public places; businesses get pun names (Chopee, Marina Bay Stands, Jool, Nab, EZ-Lah, EON Orchard, Lucky Place, VivaCity, FairlyPrice, 8-Twelve, SingaTel, Uniworsal Studios).
+- **Setting:** Singapore, GTA San Andreas style: a hand-built island of about 3 × 2 km that follows the real geography and keeps the important landmarks (the West with Clementi, Science Park and NUS; the City with Marina Bay, the CBD and Chinatown; Orchard, Kampong Glam and Little India; the East and Sentosa; the North later). Real names for public places; businesses get pun names (Chopee, Marina Bay Stands, Jool, Nab, EZ-Lah, EON Orchard, Lucky Place, VivaCity, FairlyPrice, 8-Twelve, SingaTel, Uniworsal Studios).
 - **Player:** Aldi, fixed, no appearance editor, face never shown. Avoid gendered pronouns for Aldi in text: use the name.
 - **Work:** software engineer at Chopee: two-week sprints of tickets done anywhere, office days at Science Park, a city office in a Raffles Place tower. Free days to go around.
 - **Home:** rented, chosen by the player (a property app, viewings, a lease). Clementi first.
@@ -18,7 +18,8 @@ The game used to be set in an Indonesian kampung ("Kampung Sukamaju", player Rak
 - **Romance:** not in v1 (keep the hook). **Dialogue:** templates behind `DialogueProvider`; an LLM provider can plug in later; game logic never lives in the provider.
 
 ## Steps (docs/singapore-plan.md)
-1. **The new spec and the groundwork: DONE, awaiting the user's check.** The island, streaming, skyline, buildings, roads, the MRT East-West Line and Changi branch you can ride.
+1. **The new spec and the groundwork: DONE.** The engine (streaming, skyline, buildings, roads, the MRT you can ride) on a scaled-down real island.
+1b. **Next: the San Andreas-style island** (decided with the user after step 1): replace the scaled-down real island with a hand-built 3 × 2 km one and a shorter MRT. See the plan's "The map: San Andreas style".
 2. Changi and the first ride. 3. Science Park Drive, one-north and Clementi (the job, buses). 4. The CBD and Marina Bay. 5. A place to live. 6. People and conversation. 7. Chinatown, Tiong Bahru, Little India, Kampong Glam and Orchard. 8. The calendar. 9. The other regions. 10. Taxis and ride-hail. 11. Aldi's own car. 12. Performance pass and docs.
 
 Do one step at a time. At the end of each, check it and stop for the user's go-ahead.

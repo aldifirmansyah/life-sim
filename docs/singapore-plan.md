@@ -1,6 +1,6 @@
 # Singapore plan
 
-The game moves from Kampung Sukamaju to Singapore. The player is **Aldi**, a young Indonesian software engineer who lands at Changi to start a job at Chopee, finds a place to rent, and builds a life: neighbours, colleagues, the hawker stall owners who learn Aldi's order, the Indonesian community on Orchard Road on a Sunday. The world is the whole of Singapore, compressed, and travel happens in the world (walking, MRT, buses, then cars) with no loading screens.
+The game moves from Kampung Sukamaju to Singapore. The player is **Aldi**, a young Indonesian software engineer who lands at Changi to start a job at Chopee, finds a place to rent, and builds a life: neighbours, colleagues, the hawker stall owners who learn Aldi's order, the Indonesian community on Orchard Road on a Sunday. The world is Singapore the way GTA San Andreas does Los Angeles: a smaller, hand-built island (about 3 × 2 km) that follows the real city's shape and keeps its important landmarks, with travel in the world (walking, MRT, buses, then cars) and no loading screens.
 
 This replaces the kampung (its setting, map, 24 residents, lines, food and events). It keeps the engine and every system: schedules and NPC movement, conversation and friendship, gifts, plans and invitations, the phone, interiors and doors, actions and hands, shops, mini-games, rain, save and audio. The open-world plan's technical ideas (chunks, streaming, a skyline, in-place travel, the 30-minute day) carry over here.
 
@@ -8,7 +8,7 @@ The last kampung version is kept on the branch **`kampung-v1`** (commit `18dfd08
 
 ## Decisions (with the user)
 
-- **Setting:** real Singapore, the whole island: central, west, east, north, north-east and south, plus the islands. **Clementi** and **Science Park Drive** are in explicitly.
+- **Setting:** Singapore, San Andreas style: a hand-built island of about **3 × 2 km** that follows the real geography (west is west, the city is by the bay, Changi is east, Sentosa south) but keeps only the important districts and landmarks, squeezing out what's between. First districts: the West (Clementi, Science Park, NUS), the City (Marina Bay, the CBD, Chinatown), Orchard with Kampong Glam and Little India, and the East with Sentosa. **Clementi** and **Science Park Drive** are in explicitly. Real place names; businesses get pun names.
 - **Player:** Aldi, from Indonesia, new to Singapore. A fixed character with no face shown.
 - **Start:** landing at Changi Airport.
 - **Home:** rented, of the player's choosing; where Aldi lives decides the neighbours.
@@ -39,21 +39,37 @@ Real place names for public places: areas, roads, MRT lines and stations, parks,
 
 More are named the same way as they come up. Signs and logos use the game's own colours and shapes, not the real brand's.
 
-The island is about 50 × 27 km. The game compresses it unevenly:
-- **Inside a neighbourhood** (Clementi, Chinatown, Marina Bay…), about **1:3**, so a town centre, its MRT station, hawker centre, mall and HDB blocks are a few minutes' walk apart, as they feel in real life.
-- **Between regions**, much more (about **1:10**), with generated HDB estates, expressways and greenery filling the space. The whole island comes out at roughly **5 × 3 km**.
-- **Journey times follow real Singapore.** Trains and buses run fast enough through the compressed gaps that a trip takes about what it would really take in game time: Changi Airport to the city about 35 game-minutes, Clementi to Raffles Place about 25, Clementi to Science Park about 10 by bus. With the 30-minute day (0.8 game-minutes a real second), that's under a minute of real riding for most trips.
+## The map: San Andreas style
 
-## The areas
+Instead of the real island shrunk to scale (step 1's blockout, about 1:10 everywhere), the island is **laid out by hand, about 3 × 2 km** (x −1500…1500, z −1000…1000; +x east, +z south). Like San Andreas, it follows the real city (where things are relative to each other, the coastline's character, the MRT's shape) and keeps what makes each place recognisable, while the ordinary stretches between them shrink to a street or two. Buildings, roads and landmarks are real size; distances between districts aren't.
 
-The whole island is in the plan; it's built region by region (step 9 onward), each with its people.
+Rough layout (to be refined while building):
 
-- **Central:** Marina Bay (the bay promenade, the Merlion, the three-tower hotel and sky park, the durian domes, the helix bridge, the supertrees and their light show), the CBD around Raffles Place (Chopee's city office tower), Boat Quay and Clarke Quay, the octagonal hawker market with satay street at night, Chinatown (shophouses, temples, hawker centre, wet market), Tanjong Pagar, Tiong Bahru's art deco blocks, Little India, Kampong Glam and the Sultan Mosque, Bugis, Orchard Road with its malls (one the Indonesian community's Sunday meeting place) and the Botanic Gardens, Novena and Toa Payoh.
-- **West:** **Clementi** (the HDB town round the MRT station and bus interchange, the mall above it, the market and hawker centre, the stadium, the neighbourhood park, and the view to the West Coast), **Science Park Drive** (the tech campus next to Kent Ridge where Chopee has its headquarters: glass offices in green grounds, a food court, the park connector), NUS and Kent Ridge Park, Haw Par Villa, West Coast Park, Jurong East (malls, the lake gardens, the science centre), Jurong Island's flares on the skyline, Boon Lay.
-- **East:** **Changi Airport** (the terminals, the dome with the indoor waterfall, the MRT station), Changi Village and the bumboat jetty to **Pulau Ubin** (Singapore's last kampung island: bicycles, quarries, a real kampung house or two, a nod to where the game began), Tampines, Bedok, East Coast Park (the beach, cycling, the seafood centre), Katong and Joo Chiat (Peranakan shophouses, laksa), Geylang Serai (the Hari Raya bazaar), Paya Lebar.
-- **South:** Sentosa (beaches, a theme park, the cable car and monorail), HarbourFront and its big mall, Mount Faber, Keppel Bay.
-- **North and North-East:** Woodlands and the Causeway (the queue to Johor), Sembawang, Mandai (the zoo, night safari and bird park), Yishun, Ang Mo Kio, Serangoon, Sengkang, and Punggol's waterfront.
-- **The earlier plan's destinations** land here: beaches at East Coast and Sentosa, malls on Orchard, at HarbourFront and in Jurong, a country club in the east or at Keppel, the Marina Bay hotel, and the theme park on Sentosa.
+```
+ z −1000  ┌──────────────────── Strait of Johor ─────────────────────┐
+          │  (the North: forest, reservoir, the zoo; Woodlands and     │
+          │   the Causeway at the edge; later)                         │
+ z  −400  │ WEST                 ORCHARD · LITTLE INDIA · KAMPONG GLAM │  EAST
+          │ Clementi town        Botanic Gardens – Orchard Road –      │  Changi Airport
+          │ NUS on the hill      malls, Lucky Place   Sultan Mosque    │  (Jool, runways)
+          │ Science Park         CITY: CBD towers, the river, Boat Quay│  Katong shophouses
+          │ (Chopee campus)      Chinatown · the bay: Marina Bay Stands│  East Coast beach
+ z  +500  │ West Coast park      Merlion, Flyer, durians, supertrees   │
+          │            HarbourFront ── cable car ──┐                   │
+ z +1000  └──────────────────── SENTOSA (beach, Uniworsal) ───────────┘
+            x −1500                     x 0                    x +1500
+```
+
+- **Districts, each packed with its landmarks:**
+  - **The West:** Clementi's HDB town (the MRT with the mall over it, the bus interchange, the market and hawker centre, void decks, the stadium), Science Park with **Chopee's campus**, NUS on Kent Ridge, one-north, West Coast Park on the shore.
+  - **The City:** Marina Bay (Marina Bay Stands and its sky park, the Merlion, the Flyer, the durian domes, the helix bridge, the supertrees), the CBD towers round Raffles Place (Chopee's city office), the river with Boat Quay and Clarke Quay, Chinatown (shophouses, the temple, the hawker centre), the octagonal hawker market and satay street.
+  - **Orchard, Kampong Glam and Little India:** Orchard Road's malls (EON Orchard, Lucky Place for the Indonesian community), the Botanic Gardens, the Sultan Mosque and Arab Street, Little India's Serangoon Road.
+  - **The East:** Changi Airport (terminals, the Jool dome and waterfall, the runways), Katong's Peranakan shophouses, East Coast Park's beach.
+  - **Sentosa:** a small island to the south: the beach, Uniworsal Studios, reached by the cable car from HarbourFront (and a bridge).
+  - **Later:** the North (forest, the reservoirs, the zoo, Woodlands and the Causeway to Johor).
+- **The MRT:** two or three lines and about 12–16 stations that pass the landmarks: the East-West Line (Changi Airport – Katong – Paya Lebar – Bugis – City Hall – Raffles Place – Chinatown – Tiong Bahru – Buona Vista – Clementi – Jurong East), a North-South Line (the North – Orchard – City Hall – Raffles Place – Marina Bay), and later a line out to HarbourFront. A hop takes 10–15 real seconds; end to end about 1–2 real minutes, faster still with the express stop. Stations in the city are underground (later step), the others on viaducts.
+- **Between districts:** a few HDB estates, parks and expressways, not kilometres of them.
+- **What carries over from step 1:** the streaming and pools, the facade material, the skyline, collision and floors, the trains, stations and riding, save, the map and HUD. **What changes:** the island's data (coastline, districts, roads, MRT) becomes hand-placed and the generator fills each district from its layout instead of scattering lots across a scaled-down real island.
 
 ## Aldi's life
 
@@ -137,15 +153,16 @@ Same budget (spec §9): under 150 draw calls, under 300k triangles, under 8 ms o
 
 ## Steps (a check with the user after each)
 
-1. **The new spec and the groundwork (done).** Rewrite `docs/design-spec.md` and CLAUDE.md for Singapore. The 30-minute day. The island framework: regions with their own seeds and compression, 128 m chunks with streaming, the skyline, builders for HDB blocks, shophouse rows and towers, the road graph. Clear out the kampung content. Aldi can walk a blockout of the island's towns and ride an MRT line through it.
-2. **Changi and the first ride.** The airport (arrival hall, the dome and waterfall, the MRT station), the East-West Line across the island with the transfers at Tanah Merah and Buona Vista. The arrival tutorial.
+1. **The new spec and the groundwork (done; a scaled-down real island, replaced by 1b).** Rewrite `docs/design-spec.md` and CLAUDE.md for Singapore. The 30-minute day. The island framework: regions with their own seeds and compression, 128 m chunks with streaming, the skyline, builders for HDB blocks, shophouse rows and towers, the road graph. Clear out the kampung content. Aldi can walk a blockout of the island's towns and ride an MRT line through it.
+1b. **The San Andreas-style island.** The hand-built 3 × 2 km coastline, the districts laid out by hand with their landmarks as blockouts, the roads, the MRT (East-West and North-South Lines, 12–16 stations), the map. Replaces step 1's scaled-down real island; the engine stays.
+2. **Changi and the first ride.** The airport (arrival hall, the dome and waterfall, the MRT station), the East-West Line across the island to the West. The arrival tutorial.
 3. **Science Park Drive, one-north and Clementi.** Chopee's headquarters (the lobby and gantries, the team's floor, the pantry, meeting rooms, the food court), the serviced apartment at one-north, Clementi's town centre, HDB blocks with void decks and lifts, the market and hawker centre, the mall, the bus interchange; NUS and Kent Ridge between them. The sprint job and buses.
 4. **The CBD and Marina Bay.** Chopee's city office tower (lift lobby, the floor, meeting rooms), Raffles Place, the hawker market, the river quays, Marina Bay's landmarks. Meetings, all-hands and hackathons there.
 5. **A place to live.** The property app, viewings, leases and rent, the five homes (Clementi first) with their interiors, moving in and decorating.
 6. **People and conversation.** The first 30 named people, all lines rewritten in Singlish, hawker food and gifts, the Clementi neighbours and the colleagues.
 7. **Chinatown, Tiong Bahru, Little India, Kampong Glam and Orchard.** The rest of the centre, including the mosque (wudhu and sholat carry over) and the Indonesian community on Orchard.
 8. **The calendar.** National Day, 17 Agustus and the first months' festivals; everyday rituals; balancing money and time.
-9. **The east** (Katong, Geylang Serai, East Coast Park, Changi Village and Pulau Ubin, Tampines), then **the south** (Sentosa and HarbourFront), **the rest of the west** (Jurong), and **the north and north-east** (Woodlands, Mandai, Punggol): one region per step, each with its people.
+9. **The East** (Changi, Katong, East Coast Park) and **Sentosa** (the beach, Uniworsal Studios, the cable car), then **the North** (forest, the zoo, Woodlands and the Causeway): one district per step, each with its people.
 10. **Cars as a passenger:** taxis and ride-hail, and the traffic they drive in.
 11. **Aldi's own car:** saving up, the licence tests, the dealer and buying, driving, parking, ERP and running costs.
 12. **Performance pass and docs.**

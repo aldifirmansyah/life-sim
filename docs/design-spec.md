@@ -4,7 +4,7 @@ A first-person, browser-based life simulation set in Singapore, built around soc
 The earlier version of this game was set in an Indonesian kampung ("Kampung Sukamaju"); it is kept on the branch `kampung-v1`. Its engine and systems carry over; its content was replaced. The step-by-step plan for the move is `docs/singapore-plan.md`.
 
 ## Decisions (resolved)
-- **Setting:** real Singapore, the whole island, compressed (§4). Real names for public places; businesses and brands get pun names on the real ones (Chopee, Marina Bay Stands, Nab, EZ-Lah…).
+- **Setting:** Singapore, GTA San Andreas style (§4): a hand-built island of about 3 × 2 km that follows the real city and keeps its important landmarks. Real names for public places; businesses and brands get pun names on the real ones (Chopee, Marina Bay Stands, Nab, EZ-Lah…).
 - **Player:** Aldi, from Indonesia, a software engineer at Chopee on Science Park Drive (§3.1). Fixed protagonist, no appearance editor, face never shown.
 - **Start:** landing at Changi Airport on Sunday 26 July.
 - **Home:** rented, of the player's choosing (a room or flat from a property app); where Aldi lives decides the neighbours.
@@ -52,6 +52,8 @@ The earlier version of this game was set in an Indonesian kampung ("Kampung Suka
 ---
 
 ## 4. World: Singapore
+> **Changing (step 1b):** the map below describes step 1's scaled-down real island. It is being replaced by a hand-built, San Andreas-style island of about 3 × 2 km with the districts and landmarks listed in `docs/singapore-plan.md` ("The map: San Andreas style"); this section will be rewritten with it.
+
 The whole island, compressed unevenly: real latitude and longitude map to game metres at **1:10** around (1.35 N, 103.82 E), so the island is about 4.7 × 3.3 km; inside a town, content is laid out at a gentler scale (about 1:3) so a town centre, its station, hawker centre and blocks are a few minutes' walk apart. Heights are real (HDB blocks 30–56 m, towers up to 250 m). Low-poly, flat-shaded, warm tropical palette.
 
 **Towns** (each with a real centre, a radius and a kind that decides what's built): Changi Airport and Changi Village, Tampines, Pasir Ris, Simei, Tanah Merah, Bedok, Katong, Joo Chiat, Geylang Serai, Paya Lebar, Geylang, Kallang, Marina Bay, Raffles Place, City Hall, Clarke Quay, Chinatown, Tanjong Pagar, Bugis, Kampong Glam, Little India, Orchard Road, the Botanic Gardens, Tiong Bahru, Novena, Toa Payoh, Bishan, Queenstown, HarbourFront, Ang Mo Kio, Serangoon, Hougang, Sengkang, Punggol, Yishun, Sembawang, Woodlands, Mandai, Bukit Panjang, Choa Chu Kang, Bukit Batok, Jurong East, Jurong Lake Gardens, Jurong West, Tuas, **Clementi**, Dover, West Coast, NUS Kent Ridge, **Science Park**, one-north, Buona Vista, Holland Village, Sentosa and Pulau Ubin. Between them: estates, landed houses, greenery, industry; the Central and Western catchment forests; the airport and its runways; Jurong Island.
