@@ -24,13 +24,18 @@ import { dateLabel } from './game/calendar';
 import { generateCity } from './city/gen';
 import { buildMrt } from './city/mrtbuild';
 import { initStream, updateStream, applyCityFog, liveChunks, pools } from './city/stream';
-import { updateTrains } from './city/trains';
+import { updateTrains, pickStop } from './city/trains';
+import { actions } from './core/input';
 import { CGL, PLAT_OUT, STAIR_LEN } from './city/mrtdata';
 import { roadCloseness } from './city/roads';
 import { landAt, polyEdgeDist, ISLANDS } from './city/geo';
 
 /* ================= input & UI ================= */
 addEventListener('resize', resize);
+// E: aboard a train, choose the stop to get off at.
+actions.interact = () => {
+  if (player.ride) pickStop();
+};
 bindOverlayButtons();
 initInput();
 bindSettingsUI();

@@ -17,16 +17,24 @@ import { toast } from '../ui/hud';
 import { sfx } from '../audio/audio';
 import { LINES, along, FLOOR, TRACK, CAR_LEN, CARS, type Line, type Station } from './mrtdata';
 import { platformSides, DOOR_W } from './mrtbuild';
+import { openPanel, closePanel } from '../ui/panel';
 
 /* ---------- the timetable ---------- */
 
-const V = 34; // cruising speed, m/s
-const A = 1.4; // acceleration and braking, m/s²
-const DWELL = 11; // seconds at each station
-const TURN = 18; // seconds at each end
+const V = 40; // cruising speed, m/s
+const A = 1.8; // acceleration and braking, m/s²
+const DWELL = 8; // seconds at each station
+const TURN = 14; // seconds at each end
 const DOORS_AFTER = 1.2; // doors open this long after stopping, close this long before leaving
-/** While aboard, the clock runs this many times faster (a ride then takes about as long as the real one). */
-export const RIDE_CLOCK = 4.5;
+/** Between stations, while Aldi is aboard, the whole rail clock runs this much faster (the ride's real
+    length); stops keep their normal length so there's time to get on and off. */
+const RIDE_RUSH = 2;
+/** With a stop chosen, the ride runs this much faster until the train nears that stop. */
+const EXPRESS = 8;
+/** On the trains and the platforms the game clock follows the rail clock at this rate: a hop between
+    stations (about 24 rail seconds with the stop) then takes a little over two game minutes, as it
+    would for real. Waiting for a train costs minutes, not hours. */
+export const STATION_CLOCK = 0.12;
 
 interface Leg {
   t0: number;
@@ -59,7 +67,7 @@ function hopDist(L: number, tau: number) {
   const r = T - tau;
   return L - 0.5 * A * r * r;
 }
-function schedule(line: Line, headway: number): Sched {
+function schedule(line: Line, headway: number, trains?: number): Sched {
   const legs: Leg[] = [];
   let t = 0;
   const n = line.stations.length;
@@ -80,9 +88,10 @@ function schedule(line: Line, headway: number): Sched {
       }
     }
   }
-  return { line, legs, cycle: t, trains: Math.max(2, Math.round(t / headway)) };
+  return { line, legs, cycle: t, trains: trains ?? Math.max(2, Math.round(t / headway)) };
 }
-const SCHEDS = [schedule(LINES[0], 70), schedule(LINES[1], 1e9)];
+/** A train every ~45 s each way on the East-West Line; three shuttles on the airport branch. */
+const SCHEDS = [schedule(LINES[0], 45), schedule(LINES[1], 0, 3)];
 
 interface TrainState {
   s: number;
@@ -268,7 +277,17 @@ function poseCars(tr: LiveTrain) {
 }
 
 /** Is the player aboard, and where (car-local)? */
-let ride: { tr: LiveTrain; car: number; lx: number; lz: number; ry: number } | null = null;
+let ride: {
+  tr: LiveTrain;
+  car: number;
+  lx: number;
+  lz: number;
+  ry: number;
+  /** The stop Aldi chose (station index), or null to ride along at normal speed. */
+  dest: number | null;
+  /** The train has stopped at the chosen stop. */
+  reached: boolean;
+} | null = null;
 let lastNext = -1;
 let lastStop = -2;
 
@@ -316,10 +335,10 @@ function carRide(): Ride {
       place();
     },
     label: () => {
-      const { line, legs } = ride!.tr.sc;
+      const { line } = ride!.tr.sc;
       const last = ride!.tr.st.dir === 1 ? line.stations[line.stations.length - 1] : line.stations[0];
-      void legs;
-      return `${line.name} to ${last.name}`;
+      const d = ride!.dest;
+      return `${line.name} to ${last.name}${d !== null ? ` · for ${line.stations[d].name}` : ''}`;
     },
   };
 }
@@ -341,25 +360,27 @@ function place() {
   ride.ry = c.ry;
 }
 function board(tr: LiveTrain, car: number, lx: number, lz: number) {
-  ride = { tr, car, lx, lz, ry: tr.cars[car].ry };
+  ride = { tr, car, lx, lz, ry: tr.cars[car].ry, dest: null, reached: false };
   player.ride = carRide();
-  S.clockScale = RIDE_CLOCK;
   lastNext = tr.st.next;
   lastStop = tr.st.stop;
   const l = tr.sc.line;
   const end = tr.st.dir === 1 ? l.stations[l.stations.length - 1] : l.stations[0];
-  toast(`${l.name} to ${end.name}`, `Next station: ${l.stations[tr.st.next].name}`, null);
+  toast(`${l.name} to ${end.name}`, `Next station: ${l.stations[tr.st.next].name}. Press E to choose your stop.`, null);
   sfx('chime');
 }
 function leave() {
   ride = null;
   player.ride = null;
-  S.clockScale = 1;
 }
 
 /** Called every frame. */
 export function updateTrains(dt: number) {
-  if (inWorld()) railT += dt * timeWarp();
+  const warp = timeWarp();
+  const f = railFactor(warp);
+  if (inWorld()) railT += dt * f;
+  // Time on the MRT follows the rail clock (the clock already multiplies by the warp).
+  S.clockScale = ride || stationAt(player.x, player.z, player.y) ? (STATION_CLOCK * f) / warp : 1;
   let ci = 0,
     ni = 0,
     li = 0;
@@ -485,11 +506,65 @@ function tryBoard() {
   }
 }
 
+/** How fast the rail clock runs this frame: with the world, a little faster while riding along, and much
+    faster on the way to a chosen stop (back to normal for the last stretch into it). */
+function railFactor(warp: number) {
+  if (!ride) return warp;
+  const st = ride.tr.st;
+  if (ride.dest === null) return warp === 1 && st.moving ? RIDE_RUSH : warp;
+  const l = ride.tr.sc.line;
+  const arriving =
+    st.stop === ride.dest || (st.moving && st.next === ride.dest && Math.abs(l.stations[ride.dest].s - st.s) < 70);
+  return arriving ? warp : Math.max(warp, EXPRESS);
+}
+
+/** E aboard: choose the stop to get off at; the train runs fast until it nears it. */
+export function pickStop() {
+  if (!ride) return;
+  const l = ride.tr.sc.line,
+    st = ride.tr.st;
+  const n = l.stations.length;
+  const ahead: number[] = [];
+  for (let i = st.moving ? st.next : st.stop + st.dir; i >= 0 && i < n; i += st.dir) ahead.push(i);
+  const end = st.dir === 1 ? l.stations[n - 1] : l.stations[0];
+  const r = ride;
+  openPanel({
+    title: `${l.name} to ${end.name}`,
+    sub: 'Where are you getting off?',
+    body: 'The train speeds through the stations in between and slows down for your stop.',
+    rows: [
+      ...ahead.map((i, k) => ({
+        label: l.stations[i].name,
+        note: `${l.stations[i].code} · about ${Math.round((k + 1) * 2.3)} min`,
+        run: () => {
+          r.dest = i;
+          r.reached = false;
+          closePanel();
+          toast(`Getting off at ${l.stations[i].name}`, 'Hold on; the train will slow down for your stop.', null);
+        },
+      })),
+      {
+        label: 'Just ride along',
+        note: 'normal speed',
+        run: () => {
+          r.dest = null;
+          closePanel();
+        },
+      },
+    ],
+  });
+}
+
 /** Next-station announcements while aboard. */
 function announce() {
   if (!ride) return;
   const st = ride.tr.st;
   const l = ride.tr.sc.line;
+  // The chosen stop: once the train has stood there and moves off again, ride along at normal speed.
+  if (ride.dest !== null) {
+    if (st.stop === ride.dest) ride.reached = true;
+    else if (ride.reached) ride.dest = null;
+  }
   if (st.stop !== lastStop) {
     lastStop = st.stop;
     if (st.stop >= 0) {
