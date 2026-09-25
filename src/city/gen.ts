@@ -6,9 +6,10 @@
    instances only when the player comes near (stream.ts). Seeds come from the
    lot's position, so the city is the same every time and in any build order. */
 import { hash, rng, type Rng } from '../core/util';
-import { TOWNS, landAt, type Land, type Town, BOUNDS, toGame } from './geo';
+import { TOWNS, landAt, type Land, type Town, BOUNDS } from './geo';
 import { addRoad, allSegs, nearRoad, type Road } from './roads';
-import { nearTrack } from './mrtdata';
+import { nearTrack, EWL } from './mrtdata';
+import { sign } from '../render/signs';
 import { STYLE } from './facade';
 
 export const CHUNK = 128;
@@ -239,7 +240,7 @@ function clear(x: number, z: number, w: number, d: number, m = 1.5) {
     [hw, 0],
   ])
     if (nearRoad(x + ox, z + oz, m)) return false;
-  return !nearTrack(x, z, Math.hypot(hw, hd) + m);
+  return !nearTrack(x, z, Math.hypot(hw, hd) + m) && !isReserved(x, z, Math.hypot(hw, hd));
 }
 /** Place a building if its footprint is clear, shrinking once if it isn't. */
 function tryBuilding(x: number, z: number, w: number, d: number, h: number, c: string, st: number) {
@@ -393,7 +394,7 @@ function forestLot(r: Rng, x: number, z: number, n: number) {
   for (let i = 0; i < n; i++) {
     const px = x + r.range(-17, 17),
       pz = z + r.range(-17, 17);
-    if (!nearRoad(px, pz, 2) && !nearTrack(px, pz, 2)) tree(r, px, pz, r.range(1, 1.5));
+    if (!nearRoad(px, pz, 2) && !nearTrack(px, pz, 2) && !isReserved(px, pz, 2)) tree(r, px, pz, r.range(1, 1.5));
   }
 }
 function kampungLot(r: Rng, x: number, z: number) {
@@ -483,55 +484,221 @@ function lot(ix: number, iz: number) {
 
 /* ---------- authored landmarks (blockout) ---------- */
 
-/** Changi Airport: terminals, the glass dome, the control tower and the two runways. */
+/** Hand-placed landmarks keep ordinary lots off their ground. */
+const reserved: [number, number, number][] = [];
+const reserve = (x: number, z: number, r: number) => reserved.push([x, z, r]);
+function isReserved(x: number, z: number, m: number) {
+  for (const [rx, rz, r] of reserved) if (Math.hypot(x - rx, z - rz) < r + m) return true;
+  return false;
+}
+/** A landmark sign on a pole or a wall. */
+function landmarkSign(
+  text: string,
+  sub: string,
+  x: number,
+  y: number,
+  z: number,
+  ry: number,
+  bg = '#1d2b36',
+  fg = '#ffffff',
+) {
+  sign({ text, sub, w: 6, h: 1.4, bg, fg, border: fg, font: 'ui' }, x, y, z, ry, { both: true, glow: true });
+}
+
+/** Changi Airport: terminals round the MRT station, the Jool dome, the control tower and two runways. */
 function airport() {
-  const [ax, az] = toGame(1.3574, 103.9884);
-  // Terminals round the MRT station (which stands in the middle), clear of its stairs.
-  const T = (dx: number, dz: number, w: number, d: number, h: number) =>
-    tryBuilding(ax + dx, az + dz, w, d, h, '#d8dde0', STYLE.terminal);
-  T(-105, 5, 60, 32, 16); // T1
-  T(10, 100, 34, 70, 16); // T2
-  T(-25, -100, 76, 32, 18); // T3
-  // The dome with the indoor waterfall (Jool), in front of T1.
-  const jx = ax - 95,
-    jz = az - 70;
-  put({ p: 'dome', x: jx, y: 0, z: jz, sx: 40, sy: 30, sz: 40, ry: 0, c: '#a9d0de' });
-  putCol(jx, jz, 28, 28);
-  put({ p: 'cyl', x: ax + 55, y: 30, z: az + 40, sx: 3, sy: 60, sz: 3, ry: 0, c: '#e8e8e4' });
-  put({ p: 'cyl', x: ax + 55, y: 62, z: az + 40, sx: 7, sy: 6, sz: 7, ry: 0, c: '#5c7f96' });
-  putCol(ax + 55, az + 40, 3, 3);
-  // Runways, running a little east of north.
-  for (const [la0, lo0, la1, lo1] of [
-    [1.335, 103.99, 1.372, 104.0],
-    [1.332, 104.004, 1.368, 104.015],
+  const st = EWL.stations[0];
+  const T = (x: number, z: number, w: number, d: number, h: number) => {
+    building(x, z, w, d, h, '#d8dde0', STYLE.terminal);
+    reserve(x, z, Math.hypot(w, d) / 2);
+  };
+  T(st.x - 20, st.z - 110, 90, 36, 18); // T3
+  T(st.x - 150, st.z - 10, 36, 90, 16); // T1
+  T(st.x - 10, st.z + 110, 90, 34, 16); // T2
+  // The dome with the indoor waterfall (Jool), between the terminals.
+  const jx = st.x - 110,
+    jz = st.z + 100;
+  put({ p: 'dome', x: jx, y: 0, z: jz, sx: 36, sy: 28, sz: 36, ry: 0, c: '#a9d0de' });
+  putCol(jx, jz, 26, 26);
+  reserve(jx, jz, 40);
+  landmarkSign('Jool', 'Changi Airport', jx, 30, jz, 0.3);
+  put({ p: 'cyl', x: st.x + 70, y: 30, z: st.z + 170, sx: 3, sy: 60, sz: 3, ry: 0, c: '#e8e8e4' });
+  put({ p: 'cyl', x: st.x + 70, y: 62, z: st.z + 170, sx: 7, sy: 6, sz: 7, ry: 0, c: '#5c7f96' });
+  putCol(st.x + 70, st.z + 170, 3, 3);
+  // Runways, running north–south along the east side.
+  for (const [x, z0, z1] of [
+    [1385, -250, 270],
+    [1440, -140, 180],
   ]) {
-    const [x0, z0] = toGame(la0, lo0),
-      [x1, z1] = toGame(la1, lo1);
-    strip('road', x0, z0, x1, z1, 16, 0, 0.07, '#55585c');
-    strip('road', x0, z0, x1, z1, 0.8, 0.02, 0.07, '#e8e4d8');
+    strip('road', x, z0, x, z1, 16, 0, 0.07, '#55585c');
+    strip('road', x, z0, x, z1, 0.8, 0.02, 0.07, '#e8e4d8');
   }
 }
 
-/** Marina Bay: the three-tower hotel and its sky park (Marina Bay Stands), at a gentler scale. */
+/** Marina Bay: Marina Bay Stands and its sky park, the podium, the Merlion, the Flyer, the durian domes
+    and the supertrees. */
 function marinaBay() {
-  const [mx, mz] = toGame(1.2826, 103.8607);
-  // Three towers in a row running north–south, joined by the sky park on top.
+  const mx = 560,
+    mz = 520;
   for (const dz of [-38, 0, 38]) {
     building(mx - 6, mz + dz, 22, 18, 170, '#c8ccc6', STYLE.glass);
     building(mx + 8, mz + dz, 10, 18, 160, '#b7bcb6', STYLE.glass);
   }
   put({ p: 'solid', x: mx + 2, y: 172, z: mz, sx: 34, sy: 5, sz: 150, ry: 0, c: '#dcdcd4' });
-  put({ p: 'crown', x: mx + 2, y: 176, z: mz + 70, sx: 7, sy: 3, sz: 7, ry: 0, c: '#4f8f45' });
-  // The podium mall along the water.
-  building(mx - 34, mz, 20, 110, 14, '#e2e0d8', STYLE.mall);
-  // The durian domes on the other side of the bay.
-  const [ex, ez] = toGame(1.2898, 103.8558);
-  for (const [dx, s] of [
-    [-10, 20],
+  for (const dz of [-60, -20, 20, 60])
+    put({ p: 'crown', x: mx + 2, y: 176, z: mz + dz, sx: 4, sy: 2, sz: 4, ry: dz, c: '#4f8f45' });
+  building(mx - 36, mz, 20, 110, 14, '#e2e0d8', STYLE.mall);
+  reserve(mx, mz, 80);
+  landmarkSign('Marina Bay Stands', 'Hotel · Sky Park · Shoppes', mx - 47, 16, mz, Math.PI / 2, '#20303a', '#e8d9a8');
+  // The Merlion, spouting into the bay at the river mouth.
+  const [lx, lz] = [306, 492];
+  put({ p: 'solid', x: lx, y: 0.5, z: lz, sx: 10, sy: 1, sz: 10, ry: 0, c: '#c9c5bb' });
+  put({ p: 'solid', x: lx, y: 3.5, z: lz, sx: 2.2, sy: 5, sz: 2.6, ry: 0.5, c: '#f2efe8' });
+  put({ p: 'crown', x: lx + 0.4, y: 6.8, z: lz, sx: 1.6, sy: 1.5, sz: 1.6, ry: 0, c: '#f2efe8' });
+  put({ p: 'cyl', x: lx + 3, y: 5.5, z: lz, sx: 0.25, sy: 0.25, sz: 5, ry: 0, rz: 0, c: '#bfe3f0' });
+  putCol(lx, lz, 5, 5);
+  reserve(lx, lz, 10);
+  // The Flyer: a wheel beside the bay.
+  const [fx, fz] = [610, 380],
+    fr = 32,
+    fy = fr + 8,
+    fry = 0.9;
+  for (let k = 0; k < 28; k++) {
+    const a = (k / 28) * Math.PI * 2;
+    const u = Math.cos(a) * fr;
+    put({
+      p: 'solid',
+      x: fx + Math.cos(fry) * u,
+      y: fy + Math.sin(a) * fr,
+      z: fz - Math.sin(fry) * u,
+      sx: (Math.PI * 2 * fr) / 28 + 0.4,
+      sy: 0.8,
+      sz: 0.8,
+      ry: fry,
+      rz: a + Math.PI / 2,
+      c: '#e6e8ea',
+    });
+    if (k % 2 === 0)
+      put({
+        p: 'crown',
+        x: fx + Math.cos(fry) * u,
+        y: fy + Math.sin(a) * fr - 1.5,
+        z: fz - Math.sin(fry) * u,
+        sx: 1.3,
+        sy: 1.1,
+        sz: 1.3,
+        ry: 0,
+        c: '#cfe6ee',
+      });
+  }
+  for (const s of [-1, 1])
+    put({ p: 'solid', x: fx + s * 6, y: fy / 2, z: fz, sx: 1.2, sy: fy, sz: 1.2, ry: fry, rz: s * 0.25, c: '#d9dcdf' });
+  put({ p: 'solid', x: fx, y: 3, z: fz, sx: 40, sy: 6, sz: 18, ry: fry, c: '#d4d0c6' });
+  putCol(fx, fz, 20, 9, fry);
+  reserve(fx, fz, 40);
+  landmarkSign('Singapore Flyer', 'Marina Bay', fx, 8, fz + 12, fry);
+  // The durian domes across the bay.
+  for (const [dx, sz] of [
+    [-14, 20],
     [16, 16],
   ] as [number, number][]) {
-    put({ p: 'crown', x: ex + dx, y: 2, z: ez, sx: s, sy: s * 0.55, sz: s * 1.2, ry: 0.4, c: '#b7a98a' });
-    putCol(ex + dx, ez, s * 0.8, s * 0.9);
+    put({ p: 'crown', x: 390 + dx, y: 2, z: 405, sx: sz, sy: sz * 0.55, sz: sz * 1.2, ry: 0.4, c: '#b7a98a' });
+    putCol(390 + dx, 405, sz * 0.8, sz * 0.9);
+  }
+  reserve(390, 405, 35);
+  // The supertrees in the gardens south of the bay.
+  const r = rng(hash('supertrees'));
+  for (let k = 0; k < 9; k++) {
+    const x = 600 + r.range(-40, 50),
+      z = 665 + r.range(-18, 20),
+      h = r.range(22, 42);
+    put({ p: 'cyl', x, y: h / 2, z, sx: 1.4, sy: h, sz: 1.4, ry: 0, c: '#5f4a6e' });
+    put({ p: 'cyl', x, y: h * 0.8, z, sx: 2.6, sy: h * 0.3, sz: 2.6, ry: 0, c: '#6d5680' });
+    put({ p: 'crown', x, y: h + 1, z, sx: 7, sy: 1.6, sz: 7, ry: r.range(0, 6), c: '#8a5f9e' });
+    putCol(x, z, 1.4, 1.4);
+  }
+  reserve(610, 665, 55);
+}
+
+/** The other landmarks, one per district. */
+function landmarks() {
+  const tn = (id: string) => TOWNS.find(t => t.id === id)!;
+  // Chopee's campus at Science Park: orange glass blocks round a court.
+  {
+    const t = tn('science_park');
+    building(t.x - 20, t.z - 15, 34, 22, 34, '#ee4d2d', STYLE.glass);
+    building(t.x + 22, t.z + 12, 26, 26, 26, '#f06a45', STYLE.glass);
+    building(t.x - 18, t.z + 28, 22, 18, 18, '#e8e4dc', STYLE.office);
+    reserve(t.x, t.z, 45);
+    landmarkSign('Chopee', 'Science Park Drive', t.x - 20, 36, t.z - 26.2, 0, '#ee4d2d');
+  }
+  // The Sultan Mosque's golden dome.
+  {
+    const t = tn('kampong_glam');
+    building(t.x, t.z, 26, 30, 11, '#efe6cf', STYLE.house);
+    put({ p: 'dome', x: t.x, y: 11, z: t.z, sx: 9, sy: 10, sz: 9, ry: 0, c: '#d9b24a' });
+    for (const [dx, dz] of [
+      [-12, -14],
+      [12, -14],
+    ]) {
+      put({ p: 'cyl', x: t.x + dx, y: 11, z: t.z + dz, sx: 1.4, sy: 22, sz: 1.4, ry: 0, c: '#efe6cf' });
+      put({ p: 'dome', x: t.x + dx, y: 22, z: t.z + dz, sx: 1.8, sy: 2.4, sz: 1.8, ry: 0, c: '#d9b24a' });
+    }
+    reserve(t.x, t.z, 26);
+    landmarkSign('Masjid Sultan', 'Kampong Glam', t.x, 4, t.z - 15.3, 0, '#2f5d3a', '#e8d9a8');
+  }
+  // A Chinatown temple, red with stacked roofs.
+  {
+    const t = tn('chinatown');
+    building(t.x, t.z, 24, 24, 12, '#b8342a', STYLE.house);
+    for (let k = 0; k < 3; k++)
+      put({ p: 'roof', x: t.x, y: 12 + k * 3.5, z: t.z, sx: 28 - k * 6, sy: 3, sz: 28 - k * 6, ry: 0, c: '#6b3a2a' });
+    reserve(t.x, t.z, 22);
+    landmarkSign('Buddha Tooth Temple', 'Chinatown', t.x, 5, t.z - 12.3, 0, '#8a1f17', '#f2d27a');
+  }
+  // The octagonal hawker market and its clock tower.
+  {
+    const [x, z] = [200, 555];
+    put({ p: 'cyl', x, y: 3.5, z, sx: 16, sy: 7, sz: 16, ry: 0, c: '#c9c2b0' });
+    put({ p: 'cyl', x, y: 8, z, sx: 12, sy: 2, sz: 12, ry: 0, c: '#8a6a4a' });
+    put({ p: 'cyl', x, y: 12, z, sx: 2.6, sy: 8, sz: 2.6, ry: 0, c: '#d9d2c3' });
+    putCol(x, z, 16, 16);
+    reserve(x, z, 24);
+    landmarkSign('Lau Pa Sat', 'Hawker market · Satay street', x, 9, z - 16.5, 0, '#6b3a2a', '#f2d27a');
+  }
+  // The Raffles Hotel: long, white, red roofs.
+  {
+    const [x, z] = [262, 205];
+    building(x, z, 54, 16, 13, '#f4f1e8', STYLE.house);
+    put({ p: 'roof', x, y: 13, z, sx: 56, sy: 3, sz: 18, ry: 0, c: '#b5553a' });
+    reserve(x, z, 32);
+    landmarkSign('Raffles Hotel', 'Beach Road', x, 5, z - 8.3, 0, '#f4f1e8', '#1d2b36');
+  }
+  // Orchard: EON Orchard and Lucky Place.
+  {
+    const t = tn('orchard');
+    building(t.x - 30, t.z - 30, 40, 30, 22, '#cfd8de', STYLE.mall);
+    building(t.x - 36, t.z - 36, 20, 20, 140, '#9fb2bd', STYLE.glass);
+    landmarkSign('EON Orchard', 'Orchard Road', t.x - 30, 16, t.z - 14.8, 0, '#1d2b36', '#e6e6e6');
+    building(t.x + 48, t.z - 22, 30, 26, 24, '#e6ddc8', STYLE.mall);
+    landmarkSign('Lucky Place', 'Orchard Road · Toko Indonesia', t.x + 48, 14, t.z - 8.8, 0, '#b8342a', '#f2d27a');
+    reserve(t.x - 30, t.z - 30, 30);
+    reserve(t.x + 48, t.z - 22, 22);
+  }
+  // HarbourFront's mall and the Sentosa globe.
+  {
+    const t = tn('harbourfront');
+    building(t.x, t.z - 10, 50, 28, 18, '#e6e0d4', STYLE.mall);
+    reserve(t.x, t.z - 10, 30);
+    landmarkSign('VivaCity', 'HarbourFront', t.x, 12, t.z + 4.2, 0, '#f06a45');
+    const [gx, gz] = [120, 830];
+    put({ p: 'cyl', x: gx, y: 1, z: gz, sx: 7, sy: 2, sz: 7, ry: 0, c: '#8a969c' });
+    put({ p: 'crown', x: gx, y: 9, z: gz, sx: 6.5, sy: 6.5, sz: 6.5, ry: 0.4, c: '#3f7fd0' });
+    putCol(gx, gz, 7, 7);
+    building(gx + 50, gz + 10, 40, 30, 20, '#f2c14e', STYLE.mall);
+    building(gx + 30, gz - 30, 16, 16, 34, '#b35ec2', STYLE.house);
+    reserve(gx + 25, gz, 55);
+    landmarkSign('Uniworsal Studios', 'Sentosa', gx, 2.5, gz - 8, 0, '#1d2b36', '#f2c14e');
   }
 }
 
@@ -544,6 +711,7 @@ export function generateCity() {
   townStreets();
   airport();
   marinaBay();
+  landmarks();
   for (let ix = Math.floor(BOUNDS.x0 / LOT); ix < Math.ceil(BOUNDS.x1 / LOT); ix++)
     for (let iz = Math.floor(BOUNDS.z0 / LOT); iz < Math.ceil(BOUNDS.z1 / LOT); iz++) lot(ix, iz);
   // Roads: every segment, cut into pieces per chunk; expressways get a pale divider.

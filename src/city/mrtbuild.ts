@@ -8,7 +8,7 @@ import { addRotCol, type Collider } from '../core/collision';
 import { addFloor } from '../core/levels';
 import { sign } from '../render/signs';
 import { put, putCol, strip } from './gen';
-import { LINES, DECK, FLOOR, TRACK, PLAT_IN, PLAT_OUT, PLAT_LEN, STAIR_LEN, type Line, type Station } from './mrtdata';
+import { LINES, TRACK, PLAT_IN, PLAT_OUT, PLAT_LEN, type Line, type Station } from './mrtdata';
 
 const CONCRETE = '#c9c5bb',
   BED = '#5d5852',
@@ -34,6 +34,9 @@ export const platformSides: PlatformSide[] = [];
 const rot = (dx: number, dz: number) => Math.atan2(-dz, dx);
 
 function buildStation(l: Line, st: Station) {
+  const DECK = l.deck,
+    FLOOR = l.floor,
+    STAIR_LEN = l.stair;
   const { x, z, dx, dz } = st;
   const qx = -dz,
     qz = dx;
@@ -207,6 +210,7 @@ function buildStation(l: Line, st: Station) {
 }
 
 function buildLine(l: Line) {
+  const DECK = l.deck;
   const q = (i: number) => {
     const [ax, az] = l.pts[i - 1],
       [bx, bz] = l.pts[i];

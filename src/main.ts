@@ -26,7 +26,7 @@ import { buildMrt } from './city/mrtbuild';
 import { initStream, updateStream, applyCityFog, liveChunks, pools } from './city/stream';
 import { updateTrains, pickStop } from './city/trains';
 import { actions } from './core/input';
-import { CGL, PLAT_OUT, STAIR_LEN } from './city/mrtdata';
+import { EWL, PLAT_OUT } from './city/mrtdata';
 import { roadCloseness } from './city/roads';
 import { landAt, polyEdgeDist, ISLANDS } from './city/geo';
 
@@ -49,10 +49,10 @@ const genMs = performance.now() - tGen;
 
 /** A new game: Aldi comes out of Changi Airport by the MRT station, early on day 1. */
 function newGame() {
-  const st = CGL.stations[CGL.stations.length - 1];
+  const st = EWL.stations[0];
   const qx = -st.dz,
     qz = st.dx;
-  const d = PLAT_OUT + STAIR_LEN + 5;
+  const d = PLAT_OUT + EWL.stair + 5;
   player.x = st.x + qx * d;
   player.z = st.z + qz * d;
   player.y = 0;

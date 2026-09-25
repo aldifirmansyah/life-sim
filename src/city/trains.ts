@@ -15,7 +15,7 @@ import { timeWarp } from '../core/time';
 import { S, inWorld } from '../core/state';
 import { toast } from '../ui/hud';
 import { sfx } from '../audio/audio';
-import { LINES, along, FLOOR, TRACK, CAR_LEN, CARS, type Line, type Station } from './mrtdata';
+import { LINES, along, TRACK, CAR_LEN, CARS, type Line, type Station } from './mrtdata';
 import { platformSides, DOOR_W } from './mrtbuild';
 import { openPanel, closePanel } from '../ui/panel';
 
@@ -90,8 +90,8 @@ function schedule(line: Line, headway: number, trains?: number): Sched {
   }
   return { line, legs, cycle: t, trains: trains ?? Math.max(2, Math.round(t / headway)) };
 }
-/** A train every ~45 s each way on the East-West Line; three shuttles on the airport branch. */
-const SCHEDS = [schedule(LINES[0], 45), schedule(LINES[1], 0, 3)];
+/** A train every ~45 s each way on both lines. */
+const SCHEDS = [schedule(LINES[0], 45), schedule(LINES[1], 45)];
 
 interface TrainState {
   s: number;
@@ -312,7 +312,7 @@ function carRide(): Ride {
           const [wx, wz] = toWorld(c, lx, lz);
           player.x = wx;
           player.z = wz;
-          player.y = FLOOR;
+          player.y = ride.tr.sc.line.floor;
           leave();
           return;
         }
@@ -352,7 +352,7 @@ function place() {
   const [x, z] = toWorld(c, ride.lx, ride.lz);
   player.x = x;
   player.z = z;
-  player.y = FLOOR;
+  player.y = ride.tr.sc.line.floor;
   let d = c.ry - ride.ry;
   if (d > Math.PI) d -= Math.PI * 2;
   if (d < -Math.PI) d += Math.PI * 2;
@@ -398,6 +398,7 @@ export function updateTrains(dt: number) {
       continue;
     }
     tr.hidden = far;
+    const FLOOR = tr.sc.line.floor;
     poseCars(tr);
     for (let j = 0; j < CARS; j++) {
       const c = tr.cars[j];
@@ -470,6 +471,7 @@ function updateScreenDoors() {
   for (const ps of platformSides) {
     const near = Math.hypot(ps.station.x - player.x, ps.station.z - player.z) < 250;
     const ry = Math.atan2(-ps.station.dz, ps.station.dx);
+    const FLOOR = ps.line.floor;
     for (const o of ps.openings) {
       o.col.on = !ps.open;
       for (const half of [-1, 1]) {
@@ -491,9 +493,8 @@ function updateScreenDoors() {
 
 /** Walking into a car through its open doors puts Aldi aboard. */
 function tryBoard() {
-  if (Math.abs(player.y - FLOOR) > 0.6) return;
   for (const tr of liveTrains) {
-    if (!tr.st.doors || tr.hidden) continue;
+    if (!tr.st.doors || tr.hidden || Math.abs(player.y - tr.sc.line.floor) > 0.6) continue;
     for (let j = 0; j < CARS; j++) {
       const c = tr.cars[j];
       const dx = player.x - c.x,
@@ -585,7 +586,8 @@ function announce() {
 export const rideLabel = () => (ride ? (player.ride?.label() ?? null) : null);
 /** The station a player on a platform is at (for the HUD). */
 export function stationAt(x: number, z: number, y: number) {
-  if (y < FLOOR - 1) return null;
-  for (const l of LINES) for (const st of l.stations) if (Math.hypot(x - st.x, z - st.z) < 40) return { line: l, st };
+  for (const l of LINES)
+    for (const st of l.stations)
+      if (y > l.floor - 1 && y < l.floor + 3 && Math.hypot(x - st.x, z - st.z) < 40) return { line: l, st };
   return null;
 }
