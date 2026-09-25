@@ -29,6 +29,7 @@ import { dateOf, weekday } from './calendar';
 import { markTo } from './marker';
 import { goalLines } from './work';
 import { townAt } from '../city/geo';
+import { nearestNode, nodes } from '../city/roadgraph';
 import { carBody, carCabin } from '../city/traffic';
 import { home } from '../places/homes';
 import { DRIVE_CENTRE, DEALER, PETROL, ERP } from '../places/sites';
@@ -471,20 +472,39 @@ function own(m: Model, now: number, loan: number) {
     return toast('No licence yet', '"Get the licence first, then come back. The car will wait for you."');
   if (!spend(now)) return toast('Not enough money', `That's ${sgd(now)}.`);
   closePanel();
+  // Parked on the road outside, pointing along it, on the left.
+  const n = nearestNode(DEALER.x, DEALER.z, 150);
+  let px = DEALER.x + 18,
+    pz = DEALER.z + 3,
+    pry = 0;
+  if (n && n.out.length) {
+    const o = nodes[n.out[0].to];
+    const l = Math.hypot(o.x - n.x, o.z - n.z) || 1;
+    const dx = (o.x - n.x) / l,
+      dz = (o.z - n.z) / l;
+    px = n.x + dx * 6 + dz * 1.8;
+    pz = n.z + dz * 6 - dx * 1.8;
+    pry = Math.atan2(-dz, dx);
+  }
   Object.assign(car, {
     model: m.id,
     loan,
     monthly: loan / (YEARS * 12),
     fuel: 100,
-    x: DEALER.x + 18,
-    z: DEALER.z + 3,
-    ry: 0,
+    x: px,
+    z: pz,
+    ry: pry,
     parkedAt: -1,
   });
-  Object.assign(parked, { x: car.x, z: car.z, ry: 0 });
+  Object.assign(parked, { x: car.x, z: car.z, ry: car.ry });
   show();
   addMood(20);
-  toast(`The ${m.name} is Aldi's!`, "The keys, a full tank and a ribbon on the bonnet. It's parked out front.", 'good');
+  toast(
+    `The ${m.name} is Aldi's!`,
+    "The keys, a full tank and a ribbon on the bonnet. It's parked on the road outside.",
+    'good',
+  );
+  findUntil = performance.now() + 60000;
 }
 
 /* ---------- petrol, ERP ---------- */
