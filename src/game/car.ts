@@ -71,6 +71,8 @@ const model = () => MODELS.find(m => m.id === car.model) ?? null;
 /* ---------- the car in the world ---------- */
 
 let mesh: THREE.Group;
+/** What Aldi sees of the car from the driver's seat (the outside boxes are solid). */
+let cockpit: THREE.Group;
 let bodyMat: THREE.MeshLambertMaterial;
 const drive = { v: 0, active: false, test: false, lastRy: 0 };
 
@@ -84,6 +86,30 @@ export function buildCar() {
   mesh.visible = false;
   mesh.traverse(o => (o.castShadow = true));
   scene.add(mesh);
+  const dark = new THREE.MeshLambertMaterial({ color: 0x24282c });
+  const box = (m: THREE.Material, x0: number, x1: number, y0: number, y1: number, z0: number, z1: number) => {
+    const b = new THREE.Mesh(new THREE.BoxGeometry(x1 - x0, y1 - y0, z1 - z0), m);
+    b.position.set((x0 + x1) / 2, (y0 + y1) / 2, (z0 + z1) / 2);
+    return b;
+  };
+  const wheel = new THREE.Mesh(new THREE.TorusGeometry(0.16, 0.022, 6, 16), dark);
+  wheel.rotation.y = Math.PI / 2;
+  wheel.rotation.x = 0.35;
+  wheel.position.set(0.6, 0.9, 0.42);
+  cockpit = new THREE.Group();
+  cockpit.add(
+    box(bodyMat, 0.95, 2.15, 0.3, 0.98, -0.9, 0.9), // the bonnet
+    box(dark, 0.62, 0.95, 0.3, 0.92, -0.85, 0.85), // the dashboard
+    box(dark, -1.3, 0.8, 1.44, 1.5, -0.85, 0.85), // the roof
+    box(bodyMat, 0.78, 0.86, 0.92, 1.46, -0.85, -0.77), // the pillars
+    box(bodyMat, 0.78, 0.86, 0.92, 1.46, 0.77, 0.85),
+    box(bodyMat, -1.3, 0.8, 0.3, 0.9, -0.9, -0.84), // the doors
+    box(bodyMat, -1.3, 0.8, 0.3, 0.9, 0.84, 0.9),
+    box(bodyMat, -2.15, -1.3, 0.3, 1.0, -0.9, 0.9), // the boot
+    wheel,
+  );
+  cockpit.visible = false;
+  scene.add(cockpit);
   buildCentre();
   buildDealer();
   buildPetrol();
@@ -114,10 +140,13 @@ export function buildCar() {
 
 function show() {
   const m = model();
-  mesh.visible = !!m || drive.test;
+  mesh.visible = (!!m || drive.test) && !drive.active;
+  cockpit.visible = drive.active;
   if (m && !drive.test) bodyMat.color.set(m.color);
-  mesh.position.set(car.x, 0, car.z);
-  mesh.rotation.y = car.ry;
+  for (const g of [mesh, cockpit]) {
+    g.position.set(car.x, 0, car.z);
+    g.rotation.y = car.ry;
+  }
 }
 
 function getIn(test: boolean) {
@@ -129,6 +158,7 @@ function getIn(test: boolean) {
     );
   drive.active = true;
   drive.test = test;
+  show();
   drive.v = 0;
   drive.lastRy = car.ry;
   player.ride = driverSeat();
@@ -146,6 +176,7 @@ function getIn(test: boolean) {
 function getOut() {
   if (Math.abs(drive.v) > 1) return toast('Stop first', 'Brake (S) until the car stands still.');
   drive.active = false;
+  show();
   player.ride = null;
   // Out on the right, by the driver's door.
   player.x = car.x + Math.sin(car.ry) * 1.8;
@@ -212,7 +243,7 @@ function driverSeat(): Ride {
       // The driver's seat: front right.
       player.x = car.x + fx * 0.1 + Math.sin(car.ry) * 0.42;
       player.z = car.z + fz * 0.1 + Math.cos(car.ry) * 0.42;
-      player.y = -0.55;
+      player.y = -0.45;
       player.vx = player.vz = 0;
       let dr = car.ry - drive.lastRy;
       if (dr > Math.PI) dr -= Math.PI * 2;

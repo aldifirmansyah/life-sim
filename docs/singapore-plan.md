@@ -164,7 +164,7 @@ Same budget (spec §9): under 150 draw calls, under 300k triangles, under 8 ms o
 8. **The calendar (done: National Day with flags and fireworks, the holiday in lieu, 17 Agustus at the embassy with the ceremony and the lomba, getai in Hungry Ghost month, Mid-Autumn lanterns, the night race, Deepavali, holidays without stand-ups, a Calendar app, afternoon thunderstorms).** National Day, 17 Agustus and the first months' festivals; everyday rituals; balancing money and time.
 9. **(done: Katong's Peranakan row, East Coast Lagoon and the beach, the cable car to Sentosa, Uniworsal Studios, Siloso Beach, Mandai Zoo, the MacRitchie trail, the Causeway to Johor, buses 12 and 138)** **The East** (Changi, Katong, East Coast Park) and **Sentosa** (the beach, Uniworsal Studios, the cable car), then **the North** (forest, the zoo, Woodlands and the Causeway): one district per step, each with its people.
 10. **(done: the road graph from the roads and their crossings, traffic driving it, six taxi stands and the Nab app, riding in the back to 17 destinations with fares by distance)** **Cars as a passenger:** taxis and ride-hail, and the traffic they drive in.
-11. **Aldi's own car:** saving up, the licence tests, the dealer and buying, driving, parking, ERP and running costs.
+11. **(done: BB Drive Centre's theory test and circuit, Leng Kee Autos with three cars and a loan, driving from the driver's seat, petrol, ERP gantries, street and season parking, the monthly costs, the My car app)** **Aldi's own car:** saving up, the licence tests, the dealer and buying, driving, parking, ERP and running costs.
 12. **Performance pass and docs.**
 
 ## Open questions
