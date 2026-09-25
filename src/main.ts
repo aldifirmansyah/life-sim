@@ -173,10 +173,12 @@ function loop(now: number) {
   lap('vehicles');
   if (S.started) {
     updatePeople(dt);
+    lap('people');
     updateCrowds(dt);
+    lap('crowds');
     updateTraffic(dt);
   }
-  lap('people');
+  lap('traffic');
   updateStream(player.x, player.z);
   lap('stream');
   applyCamera();

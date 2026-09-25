@@ -1202,6 +1202,8 @@ function spotNow(p: Person): Spot | null {
 
 let talking: Person | null = null;
 let lastDay = -1;
+/** The game minute the spots were last worked out for (plans change by the minute at most). */
+let spotKey = -1;
 /** Every frame: who is where; pose the ones near Aldi. */
 export function updatePeople(dt: number) {
   if (S.day !== lastDay) {
@@ -1213,8 +1215,11 @@ export function updatePeople(dt: number) {
     lastDay = S.day;
   }
   let dirty = false;
+  const key = S.day * 1440 + Math.floor(S.time);
+  const fresh = key !== spotKey;
+  spotKey = key;
   for (const p of people) {
-    p.at = spotNow(p);
+    if (fresh) p.at = spotNow(p);
     const s = p.at;
     const near = !!s && Math.hypot(s.x - player.x, s.z - player.z) < 70 && Math.abs(s.y - player.y) < 30;
     if (!near) {
