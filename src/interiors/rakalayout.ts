@@ -22,15 +22,16 @@ export const KAMAR_DOOR = -1.9,
 
 type P2 = [number, number];
 
-/* Ruang tamu: the kursi tamu round a low table, the desk under the right-hand window, a bufet with the
-   radio against the right wall, a calendar by the door. */
-export const TABLE = { x: -0.2, z: 1.72, w: 1.0, d: 0.55, h: 0.45 };
-/** The long wooden bench (Raka's side), back to the partition, facing the front. */
-export const BENCH = { x: -0.2, z: 0.75, w: 1.3, d: 0.55, seats: [-0.5, 0.1] as number[] };
-/** Two armchairs for guests, backs to the front wall, facing the bench. */
-export const CHAIRS: { x: number; z: number; approach: P2 }[] = [
-  { x: -0.75, z: 2.4, approach: [-1.3, 2.25] },
-  { x: 0.35, z: 2.4, approach: [0.9, 2.25] },
+/* Ruang tamu: a compact kursi tamu set against the partition (left of centre), the desk under the right-hand
+   window, a bufet with the radio against the right wall, a calendar by the door. The front of the room is left
+   clear, so you can walk from the door to the desk. */
+export const TABLE = { x: -0.4, z: 1.45, w: 0.8, d: 0.45, h: 0.42 };
+/** The wooden bench (Raka's side), back to the partition, facing the front. */
+export const BENCH = { x: -0.4, z: 0.65, w: 1.1, d: 0.5, seats: [-0.27, 0.27] as number[] };
+/** Two armchairs for guests at the ends of the table, facing each other across it (face: +1 looks toward +x). */
+export const CHAIRS: { x: number; z: number; face: 1 | -1; approach: P2 }[] = [
+  { x: -1.25, z: 1.45, face: 1, approach: [-1.25, 2.0] },
+  { x: 0.45, z: 1.45, face: -1, approach: [0.45, 2.0] },
 ];
 export const SEAT_Y = 0.55;
 export const DESK = { x: 2.4, z: 2.65, w: 1.2, d: 0.55, h: 0.76 };
@@ -41,7 +42,7 @@ export const CALENDAR: [number, number, number] = [-3.36, 1.55, 1.7];
 export const GUITAR: P2 = [-3.1, 0.62];
 export const LAMP: P2 = [0, 1.55];
 /** The leak (until the roof is redone): a stain on the plafon and a bucket under it. */
-export const LEAK: P2 = [-1.25, 1.25];
+export const LEAK: P2 = [1.7, 1.0];
 export const LEAK_KAMAR: P2 = [-1.0, -2.35];
 
 /* Kamar: a wooden dipan in the back-left corner, a bedside table, the lemari against the partition. */

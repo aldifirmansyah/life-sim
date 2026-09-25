@@ -3,6 +3,7 @@
 import { SETTINGS } from './settings';
 import { collide, collideCircles } from './collision';
 import { camera } from '../render/context';
+import { S } from './state';
 
 export const player = {
   x: 0,
@@ -37,6 +38,12 @@ export const joy: { id: number | null; ox: number; oy: number; x: number; y: num
 export const look: { id: number | null; x: number; y: number } = { id: null, x: 0, y: 0 };
 
 export function updatePlayer(dt: number) {
+  // Sitting: no walking, only looking around.
+  if (S.seated) {
+    player.vx = player.vz = player.speed = 0;
+    player.running = false;
+    return;
+  }
   let fx = 0,
     fz = 0;
   if (keys.has('KeyW') || keys.has('ArrowUp')) fz += 1;

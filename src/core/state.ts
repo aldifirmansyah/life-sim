@@ -17,6 +17,8 @@ export const S = {
   game: false,
   /** Raka is busy with an animated action (paying, sitting, eating); input and movement wait. */
   acting: false,
+  /** Sitting down (on a chair or bench): Raka can look around; E stands him up. */
+  seated: false,
   locked: false,
   lastZone: '',
   /** The room Raka is in ("Rumah Raka · Dapur"), or '' outdoors. */

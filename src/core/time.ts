@@ -59,6 +59,8 @@ export function sleep() {
     S.day++;
     S.time = 6 * 60;
     player.vx = player.vz = 0;
+    S.seated = false;
+    player.eye = 1.7;
     wake.place();
     setTimeout(() => {
       f.classList.remove('on');

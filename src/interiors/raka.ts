@@ -197,12 +197,13 @@ function buildShell(set: PropSet) {
   }
   legs(bench.x - bench.w / 2, bench.x + bench.w / 2, bz0, bz1, 0.4);
   colOnly(bench.x - bench.w / 2, bench.x + bench.w / 2, bz0, bz1);
+  // Armchairs: 0.46 deep (along x, the way they face), 0.5 wide.
   for (const c of L.CHAIRS) {
-    P(c.x, FL + 0.42, c.z - 0.02, 0.6, 0.05, 0.5, WOOD);
-    P(c.x, FL + 0.72, c.z + 0.24, 0.6, 0.5, 0.04, WOOD);
-    for (const sx of [-1, 1]) P(c.x + sx * 0.28, FL + 0.6, c.z, 0.05, 0.05, 0.55, WOOD_D);
-    legs(c.x - 0.3, c.x + 0.3, c.z - 0.27, c.z + 0.27, 0.4);
-    colOnly(c.x - 0.3, c.x + 0.3, c.z - 0.27, c.z + 0.27);
+    P(c.x, FL + 0.42, c.z, 0.44, 0.05, 0.46, WOOD);
+    P(c.x - c.face * 0.21, FL + 0.72, c.z, 0.04, 0.5, 0.48, WOOD);
+    for (const sz of [-1, 1]) P(c.x, FL + 0.6, c.z + sz * 0.23, 0.46, 0.05, 0.05, WOOD_D);
+    legs(c.x - 0.23, c.x + 0.23, c.z - 0.25, c.z + 0.25, 0.4);
+    colOnly(c.x - 0.23, c.x + 0.23, c.z - 0.25, c.z + 0.25);
   }
   // The bufet against the right wall, with the radio on it.
   const bf = L.BUFET;
@@ -327,7 +328,7 @@ function buildState() {
     P(t.x, FL + t.h / 2 + 0.01, t.z, t.w + 0.08, t.h + 0.02, t.d + 0.08, SHEET, set.cloth);
     P(bench.x, FL + 0.5, bench.z, bench.w + 0.1, 0.98, bench.d + 0.08, SHEET, set.cloth);
     P(bench.x - 0.3, FL + 0.99, bench.z - 0.1, 0.5, 0.06, 0.3, '#d8d1c0', set.cloth, 0.2);
-    for (const c of L.CHAIRS) P(c.x, FL + 0.5, c.z, 0.68, 0.98, 0.6, SHEET, set.cloth);
+    for (const c of L.CHAIRS) P(c.x, FL + 0.5, c.z, 0.54, 0.98, 0.58, SHEET, set.cloth);
     for (const [x, z, w, d, r] of [
       [1.2, 1.3, 0.9, 0.6, 0.3],
       [-2.4, 1.6, 0.7, 0.5, -0.4],
@@ -339,11 +340,11 @@ function buildState() {
     P(IX - 0.1, CE - 0.1, IZ - 0.1, 0.25, 0.004, 0.25, '#f2f2f2', set.cloth, Math.PI / 4, 0.5);
   } else {
     // Cushions, a lace taplak, a jar of kue kering and a rug.
-    for (const o of bench.seats) P(bench.x + o + 0.03, FL + 0.48, bench.z + 0.05, 0.52, 0.07, 0.44, '#9a3b2a');
+    for (const o of bench.seats) P(bench.x + o, FL + 0.48, bench.z + 0.04, 0.48, 0.07, 0.4, '#9a3b2a');
     P(bench.x, FL + 0.72, bench.z - bench.d / 2 + 0.09, bench.w - 0.2, 0.36, 0.06, '#b0503a');
     for (const c of L.CHAIRS) {
-      P(c.x, FL + 0.48, c.z - 0.02, 0.5, 0.07, 0.44, '#9a3b2a');
-      P(c.x, FL + 0.72, c.z + 0.19, 0.5, 0.36, 0.06, '#b0503a');
+      P(c.x + c.face * 0.02, FL + 0.48, c.z, 0.38, 0.07, 0.42, '#9a3b2a');
+      P(c.x - c.face * 0.17, FL + 0.72, c.z, 0.06, 0.36, 0.42, '#b0503a');
     }
     P(t.x, FL + t.h + 0.003, t.z, t.w - 0.1, 0.004, t.d + 0.1, '#f4efe4', set.cloth);
     P(t.x - 0.25, FL + t.h + 0.08, t.z, 0.07, 0.15, 0.07, '#d8e8e8', set.cyl);
@@ -354,8 +355,8 @@ function buildState() {
       [0.04, '#f2c14e'],
     ] as const)
       P(t.x + 0.25 + o, FL + t.h + 0.2, t.z - 0.05, 0.05, 0.05, 0.05, c, set.cone);
-    floorPatch(t.x, (bench.z + L.CHAIRS[0].z) / 2, 2.0, 1.9, '#8a4a3a');
-    floorPatch(t.x, (bench.z + L.CHAIRS[0].z) / 2, 1.8, 1.7, '#a8664a');
+    floorPatch(t.x, t.z - 0.2, 2.1, 1.3, '#8a4a3a');
+    floorPatch(t.x, t.z - 0.2, 1.9, 1.1, '#a8664a');
     // Curtains in the front windows, tied back.
     for (const wx of windowSlots())
       if (Math.abs(wx - rakaHouse.dx) > 0.01) {

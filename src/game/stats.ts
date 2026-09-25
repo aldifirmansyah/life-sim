@@ -115,7 +115,8 @@ export function updateStats(dt: number) {
   const dm = lastT < 0 || t < lastT || t - lastT > 30 ? 0 : t - lastT;
   lastT = t;
   // Being awake tires you a little; mood drifts back toward neutral.
-  addEnergy(-dm * (1.2 / 60));
+  // Sitting down is restful: a little energy comes back instead.
+  addEnergy(S.seated ? dm * (4 / 60) : -dm * (1.2 / 60));
   addMood(((50 - stats.mood) / 50) * dm * (1 / 60));
 
   const moved = Math.hypot(player.x - lx, player.z - lz);

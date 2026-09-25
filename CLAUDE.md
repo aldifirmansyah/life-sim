@@ -156,8 +156,8 @@ Colours are per-instance. The current view draws about 22–35 calls and about 6
   - laptop: `freelanceMenu(atDesk)`, seated at the desk (`sitFor`)
   - stove: `cookMenu(atStove)`, standing at it (`standFor`)
   - bed: rest 1 h, nap 2 h, sleep after 20:00. Raka lies down with the camera on the plafon (`lieFor`); mornings start in bed and he gets up (`setWake(place, after, text)` in `core/time.ts`).
-  - kursi: sit and rest 1 h (the `raka.sofa` and `raka.tamu` POI slots)
-  - bak: mandi with the gayung (`useTool`, splash per pour), mood +5, or +8 within 5 h of a jog, futsal, kerja, shift or lomba; once per 3 h
+  - kursi (a compact set against the partition, leaving the front of the room clear): sit down and stay (`sitDown`; `S.seated` stops walking but not looking; energy +4 per game-hour instead of draining; E, via the "Stand up" prompt, calls `standUp`). Seats are the `raka.sofa` and `raka.tamu` POI slots.
+  - bak: mandi with the gayung (`useTool`, a splash per pour), then done on the spot (15 game-min, no fade). Mood +5, or +8 within 5 h of a jog, futsal, kerja, shift or lomba; once per 3 h
   - radio: `setRadio` in `audio.ts` plays a synthesised keroncong loop; +1 mood per 30 game-min at home, up to +4 a day
   - lemari: storage (`lemari` map, saved as `home`)
   - calendar: `restoreMenu()`

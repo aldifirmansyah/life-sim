@@ -47,6 +47,12 @@ function next() {
 
 /** Every frame. */
 export function updateActions() {
+  // Woken somewhere else (the 02:00 sleep) while sitting: give the seat back.
+  if (seated && !S.seated) {
+    if (seated.slot?.claimedBy === PLAYER) seated.slot.claimedBy = -1;
+    seated.taken = false;
+    seated = null;
+  }
   if (!cur) return;
   const k = Math.min(1, (performance.now() - cur.t0) / 1000 / cur.step.dur);
   cur.step.update?.(k);
@@ -258,6 +264,8 @@ export function buyAndConsume(
 /** Eat or drink something from the bag. Meals and home cooking are eaten sitting down if a seat is close. */
 export function consumeFromBag(id: string, seat: Seat | null, done: () => void) {
   const it = item(id);
+  // Already sitting: eat where he is.
+  if (seated) seat = null;
   const steps: Step[] = [];
   if (seat) steps.push(...sitSteps(seat));
   steps.push(move(0.4, 'R', POSES.hiddenR, POSES.holdR, { start: () => hands.hold(id, it.cat) }));
@@ -286,6 +294,24 @@ export function useTool(
 }
 
 /* ================= at home ================= */
+
+/** Where Raka is sitting, if he is. */
+let seated: Seat | null = null;
+export const seatedOn = () => seated;
+/** Sit down and stay there: look around freely; E (`standUp`) gets up again. */
+export function sitDown(seat: Seat) {
+  run(sitSteps(seat), () => {
+    seated = seat;
+    S.seated = true;
+  });
+}
+export function standUp() {
+  if (!seated) return;
+  const s = seated;
+  seated = null;
+  S.seated = false;
+  run(standSteps(s));
+}
 
 /** Sit down, do something (which calls `standUp` when it's over), then get up. */
 export function sitFor(seat: Seat, during: (standUp: () => void) => void) {

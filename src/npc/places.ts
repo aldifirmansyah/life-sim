@@ -263,15 +263,15 @@ function rakaPoi() {
     work: [stand(F(dx + 1.3, fz + 0.8), F(dx + 1.3, fz - 1), { via: [F(dx, fz + 1.0)] })],
     // Inside, in the ruang tamu (interiors/rakalayout.ts): guests in the armchairs, through the front door.
     tamu: RL.CHAIRS.map(c =>
-      sit(F(c.x, c.z - 0.05), F(c.x, c.z - 2), RL.SEAT_Y, {
+      sit(F(c.x - c.face * 0.03, c.z), F(c.x + c.face * 2, c.z), RL.SEAT_Y, {
         approach: F(c.approach[0], c.approach[1]),
         via: [F(dx, fz - 0.8), F(dx, fz + 0.5)],
       }),
     ),
     // The long bench, facing them: Raka's side (NPCs don't take it).
     sofa: RL.BENCH.seats.map(o =>
-      sit(F(RL.BENCH.x + o, RL.BENCH.z + 0.05), F(RL.BENCH.x + o, RL.BENCH.z + 2), RL.SEAT_Y, {
-        approach: F(RL.BENCH.x + o, RL.BENCH.z + 0.5),
+      sit(F(RL.BENCH.x + o, RL.BENCH.z + 0.03), F(RL.BENCH.x + o, RL.BENCH.z + 2), RL.SEAT_Y, {
+        approach: F(RL.BENCH.x + o, RL.BENCH.z + 0.45),
       }),
     ),
   });

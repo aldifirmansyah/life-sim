@@ -4,7 +4,7 @@
    - the stove: cook, standing at it
    - the bed: rest, nap, sleep (lying down, looking at the plafon); mornings
      start in it
-   - the kursi tamu: sit and rest
+   - the kursi tamu: sit down and look around; E stands up again
    - the bak mandi: mandi with the gayung (fresh again, and better after sweat)
    - Mbah's radio: an old keroncong tune while you're home
    - the lemari: keep things out of your bag
@@ -18,7 +18,7 @@ import { S } from '../core/state';
 import { player } from '../core/player';
 import { sleep, setWake } from '../core/time';
 import { interactables } from '../game/interact';
-import { sitFor, standFor, lieFor, placeInBed, getUp, useTool, type Bed, type Seat } from '../game/actions';
+import { sitFor, sitDown, standFor, lieFor, placeInBed, getUp, useTool, type Bed, type Seat } from '../game/actions';
 import { POSES } from '../render/hands';
 import { poiById } from '../npc/places';
 import { rakaHouse } from '../world/landmarks';
@@ -110,24 +110,13 @@ export function registerHome() {
       size: 0.45,
       reach: 2.0,
       inside,
-      label: () => (p.seats.some(s => s.claimedBy === -1) ? 'Sit down and rest' : null),
+      label: () => (p.seats.some(s => s.claimedBy === -1) ? 'Sit down' : null),
       run: () => {
         const s = p.seats
           .filter(s => s.claimedBy === -1)
           .sort((a, b) => Math.hypot(a.x - player.x, a.z - player.z) - Math.hypot(b.x - player.x, b.z - player.z))[0];
         if (!s) return;
-        const seat: Seat = { x: s.x, z: s.z, y: s.y, ry: s.ry, approach: s.approach, slot: s };
-        sitFor(seat, up =>
-          passTime(60, 'An hour later…', () => {
-            st.addEnergy(12);
-            st.addMood(hasRoom('ruangtamu') ? 3 : 1);
-            toast(
-              'A good rest',
-              `+12 energy${hasRoom('ruangtamu') ? ' · the cushions help' : ' · the dust sheet is scratchy'}`,
-            );
-            up();
-          }),
-        );
+        sitDown({ x: s.x, z: s.z, y: s.y, ry: s.ry, approach: s.approach, slot: s });
       },
     });
 
@@ -370,26 +359,26 @@ function mandi(bx: number, bz: number, y: number) {
     return;
   }
   const sweaty = abs() - sweatAt < 300;
-  standFor(W(L.BATHE_AT[0], L.BATHE_AT[1]), [bx, y - 0.1, bz], back =>
+  // Scoop and pour a few times, then that's it: fresh, a quarter of an hour later.
+  standFor(W(L.BATHE_AT[0], L.BATHE_AT[1]), [bx, y - 0.1, bz], () =>
     useTool(
       'gayung',
       POSES.dipR,
       POSES.pourR,
       4,
       0.42,
-      () =>
-        passTime(15, 'Byur… byur…', () => {
-          lastBath = abs();
-          st.addMood(sweaty ? 8 : 5);
-          st.addEnergy(3);
-          toast(
-            'Segar!',
-            sweaty
-              ? 'The cold water after all that sweat: wonderful. Mood +8'
-              : 'Cold water from the bak wakes you right up. Mood +5',
-          );
-          back();
-        }),
+      () => {
+        lastBath = abs();
+        S.time = Math.min(S.time + 15, 26 * 60 - 0.5);
+        st.addMood(sweaty ? 8 : 5);
+        st.addEnergy(3);
+        toast(
+          'Segar!',
+          sweaty
+            ? 'The cold water after all that sweat: wonderful. Mood +8'
+            : 'Cold water from the bak wakes you right up. Mood +5',
+        );
+      },
       () => sfx('splash'),
     ),
   );
