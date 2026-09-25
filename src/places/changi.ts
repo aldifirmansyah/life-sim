@@ -14,7 +14,7 @@ import { register } from '../game/interact';
 import { openPanel, closePanel } from '../ui/panel';
 import { toast } from '../ui/hud';
 import { wallet, spend, sgd } from '../game/stats';
-import { markDone } from '../game/arrival';
+import { markDone, setTarget } from '../game/arrival';
 import { envHooks } from '../render/lighting';
 import { EWL } from '../city/mrtdata';
 
@@ -160,6 +160,7 @@ function buildT3() {
     showWithin: 150,
   });
   // The counter: buy what a new arrival needs.
+  setTarget('cards', [SHOP.x, 1.5, SHOP.z]);
   register({
     x: sx,
     y: 1.2,
