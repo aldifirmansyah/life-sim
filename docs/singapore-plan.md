@@ -20,7 +20,24 @@ The last kampung version is kept on the branch **`kampung-v1`** (commit `18dfd08
 
 ## Real Singapore, compressed
 
-Real place names for public places: areas, roads, MRT lines and stations, parks, landmarks, shaped after the real ones. **Businesses and brands are fictional**: the hotel with three towers and a sky park, the malls, the airport's glass dome with the indoor waterfall, the hawker stalls, banks, telcos and ride-hail apps all get invented names. The same goes for Aldi's employer, and for the tech companies at Science Park Drive: an invented e-commerce company can stand there, but not a real one by name.
+Real place names for public places: areas, roads, MRT lines and stations, parks, landmarks, shaped after the real ones. **Businesses and brands get pun names** on the real ones, so a Singaporean recognises them at a glance but none is used by its real name or logo. The first ones:
+
+| Real | In the game |
+|---|---|
+| Shopee (Science Park Drive) | **Chopee**, the e-commerce company on Science Park Drive (a pun on *chope*, reserving a seat) |
+| Marina Bay Sands | Marina Bay Stands |
+| Jewel Changi | Jool |
+| Grab | Nab |
+| EZ-Link | EZ-Lah |
+| ION Orchard | EON Orchard |
+| Lucky Plaza | Lucky Place |
+| VivoCity | VivaCity |
+| FairPrice | FairlyPrice |
+| 7-Eleven | 8-Twelve |
+| Singtel | SingaTel |
+| Universal Studios (Sentosa) | Uniworsal Studios |
+
+More are named the same way as they come up. Signs and logos use the game's own colours and shapes, not the real brand's.
 
 The island is about 50 × 27 km. The game compresses it unevenly:
 - **Inside a neighbourhood** (Clementi, Chinatown, Marina Bay…), about **1:3**, so a town centre, its MRT station, hawker centre, mall and HDB blocks are a few minutes' walk apart, as they feel in real life.
@@ -48,7 +65,7 @@ Aldi is a product designer at a fictional regional tech company with its office 
 - **Work is a weekly set of deliverables**, not hours. Each week brings 3–5 design tasks with deadlines (a screen flow, an icon set, a user test report). Aldi works on them with the laptop anywhere: at home, in a café, at a co-working space, or at the office desk.
 - **The office is the social and focus place.** Two fixed meetings a week (a Monday stand-up and a Thursday review) are in person; otherwise going in is optional. At the office: colleagues (named people), the pantry and free coffee, focus (tasks go faster), lunch with the team at the hawker market, after-work drinks at Boat Quay on Fridays, the lift lobby small talk.
 - **Pay** comes on the 25th; missing deadlines hurts the quarterly review and bonus; good reviews raise the pay. Freelance side jobs stay possible from the laptop.
-- **Science Park Drive** is where the company's partner (a fictional e-commerce company) has its campus: design workshops there some weeks, a career path later (Aldi can move jobs to Science Park, close to Clementi), and one of the best reasons to live in the west.
+- **Science Park Drive** is where the company's partner, **Chopee** (the e-commerce company), has its campus: design workshops there some weeks, a career path later (Aldi can move jobs to Science Park, close to Clementi), and one of the best reasons to live in the west.
 
 ### A place to live
 The property app lists rooms and flats. Viewings happen in person at a set time with the landlord or agent. Signing means a deposit and monthly rent on the 1st; Aldi can move later. The first choices:
@@ -134,5 +151,5 @@ Same budget (spec §9): under 150 draw calls, under 300k triangles, under 8 ms o
 
 ## Open questions
 
-- **Aldi's company and the partner at Science Park** get invented names. Any names you'd like, or should I make them up?
+- **Aldi's CBD employer** needs a name too (a small design and tech company, so not a pun on a known one unless you have one in mind). Any name you'd like, or should I make one up?
 - **Where to stay after the serviced apartment:** the five homes above, or others you'd add (Clementi first, as you live there)?
