@@ -11,7 +11,7 @@ import { addRoad, allSegs, nearRoad, type Road } from './roads';
 import { nearTrack, EWL } from './mrtdata';
 import { sign } from '../render/signs';
 import { STYLE } from './facade';
-import { CHOPEE_HQ, CLEMENTI_HAWKER } from '../places/sites';
+import { CHOPEE_HQ, CLEMENTI_HAWKER, LAU_PA_SAT, CITY_OFFICE, BOAT_QUAY } from '../places/sites';
 
 export const CHUNK = 128;
 export const LOT = 36;
@@ -681,15 +681,43 @@ function landmarks() {
     reserve(t.x, t.z, 22);
     landmarkSign('Buddha Tooth Temple', 'Chinatown', t.x, 5, t.z - 12.3, 0, '#8a1f17', '#f2d27a');
   }
-  // The octagonal hawker market and its clock tower.
+  // Lau Pa Sat (places/cbd.ts builds the hall): its clock tower over the roof.
   {
-    const [x, z] = [200, 555];
-    put({ p: 'cyl', x, y: 3.5, z, sx: 16, sy: 7, sz: 16, ry: 0, c: '#c9c2b0' });
-    put({ p: 'cyl', x, y: 8, z, sx: 12, sy: 2, sz: 12, ry: 0, c: '#8a6a4a' });
-    put({ p: 'cyl', x, y: 12, z, sx: 2.6, sy: 8, sz: 2.6, ry: 0, c: '#d9d2c3' });
-    putCol(x, z, 16, 16);
+    const { x, z } = LAU_PA_SAT;
+    put({ p: 'cyl', x, y: 11, z, sx: 2.6, sy: 8, sz: 2.6, ry: 0, c: '#d9d2c3' });
+    put({ p: 'crown', x, y: 15.5, z, sx: 2.2, sy: 1.6, sz: 2.2, ry: 0, c: '#8a6a4a' });
+    reserve(x, z, 22);
+  }
+  // Chopee's city office tower at Raffles Place (the lobby and Level 30 are places/cbd.ts).
+  {
+    const { x0, x1, z0, z1, lobby, top } = CITY_OFFICE;
+    const [x, z] = [(x0 + x1) / 2, (z0 + z1) / 2];
+    put({
+      p: 'bldg',
+      x,
+      y: (lobby + 0.35 + top) / 2,
+      z,
+      sx: x1 - x0,
+      sy: top - lobby - 0.35,
+      sz: z1 - z0,
+      ry: 0,
+      c: '#9fb2bd',
+      st: STYLE.glass,
+    });
     reserve(x, z, 24);
-    landmarkSign('Lau Pa Sat', 'Hawker market · Satay street', x, 9, z - 16.5, 0, '#6b3a2a', '#f2d27a');
+  }
+  // Boat Quay: shophouses along the river's south bank.
+  {
+    const { x0, x1, z0, z1 } = BOAT_QUAY;
+    const cols = ['#e8c07a', '#d98a6a', '#9fc4b8', '#e6d3a8', '#c9a0c0', '#f0e2c4'];
+    let k = 0;
+    for (let x = x0 + 3; x < x1 - 2; x += 6, k++) {
+      const h = 9 + (k % 3);
+      building(x, (z0 + z1) / 2, 5.8, z1 - z0, h, cols[k % cols.length], STYLE.shophouse);
+      put({ p: 'roof', x, y: h, z: (z0 + z1) / 2, sx: 6, sy: 2, sz: z1 - z0 + 0.6, ry: Math.PI / 2, c: '#b5553a' });
+    }
+    reserve((x0 + x1) / 2, (z0 + z1) / 2, 8);
+    for (let x = x0 + 10; x < x1; x += 20) reserve(x, (z0 + z1) / 2, 12);
   }
   // The Raffles Hotel: long, white, red roofs.
   {

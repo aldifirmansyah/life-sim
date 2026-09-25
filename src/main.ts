@@ -33,6 +33,7 @@ import { updateMarker } from './game/marker';
 import { buildBuses, updateBuses, busMenu } from './city/buses';
 import { buildChopee } from './places/chopee';
 import { buildClementi } from './places/clementi';
+import { buildCbd, updateCbd } from './places/cbd';
 import { showMoney, showVitals, resetStats, drain, addEnergy, addMood } from './game/stats';
 import { buildChangi, updateChangi, ARRIVAL } from './places/changi';
 import { buildOneNorth, loadOneNorth } from './places/onenorth';
@@ -61,6 +62,7 @@ buildChangi();
 buildOneNorth();
 buildChopee();
 buildClementi();
+buildCbd();
 buildBuses();
 initStream();
 const genMs = performance.now() - tGen;
@@ -130,6 +132,7 @@ function loop(now: number) {
   applyCamera();
   updateInteriors(dt);
   updateChangi(dt);
+  updateCbd();
   updateFares();
   updateInteraction();
   if (S.started) {
@@ -273,6 +276,8 @@ if (import.meta.env.DEV) {
     import('./game/work'),
     import('./city/buses'),
     import('./places/sites'),
+    import('./places/cbd'),
+    import('./places/hawker'),
   ]).then(
     ([
       geo,
@@ -291,6 +296,8 @@ if (import.meta.env.DEV) {
       work,
       buses,
       sites,
+      cbd,
+      hawker,
     ]) => {
       (window as unknown as Record<string, unknown>).__sg = {
         S,
@@ -311,6 +318,8 @@ if (import.meta.env.DEV) {
         work,
         buses,
         sites,
+        cbd,
+        hawker,
         renderer,
         parts,
       };

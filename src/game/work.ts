@@ -22,7 +22,7 @@ import { weekday, dateOf, shortDate, DAYS, isWeekend } from './calendar';
 import { earn, addEnergy, addMood, tired, sgd } from './stats';
 import { arrivalDone } from './arrival';
 import { markTo } from './marker';
-import { CHOPEE_HQ } from '../places/sites';
+import { CHOPEE_HQ, CITY_OFFICE } from '../places/sites';
 
 export interface Ticket {
   id: string;
@@ -74,6 +74,11 @@ export const job = {
   settled: 0,
   /** The day the review happened (so it happens once). */
   reviewed: 0,
+  /** City-office extras this sprint (a seller meeting attended), and the months whose all-hands Aldi went to. */
+  bonus: 0,
+  allhands: [] as number[],
+  /** The day the seller meeting was attended. */
+  seller: 0,
   /** Performance so far, 1–5, and the last review's words. */
   rating: 3,
   lastReview: '',
@@ -93,6 +98,7 @@ function newSprint(start: number) {
   job.start = start;
   job.review = start + 11;
   job.went = job.missed = 0;
+  job.bonus = 0;
   const r = rng(hash('sprint', job.sprint));
   const pool = TEMPLATES.slice();
   const picked: [string, number][] = [];
@@ -310,7 +316,7 @@ function review(inPerson: boolean) {
     all = pointsAll();
   const q = job.tickets.reduce((a, t) => a + (t.n ? t.q / t.n : 0), 0) / Math.max(1, job.tickets.length);
   const shows = job.went / Math.max(1, job.went + job.missed);
-  const score = (done / Math.max(1, all)) * 0.6 + q * 0.2 + shows * 0.2 - (inPerson ? 0 : 0.1);
+  const score = (done / Math.max(1, all)) * 0.6 + q * 0.2 + shows * 0.2 + job.bonus - (inPerson ? 0 : 0.1);
   const stars = Math.max(1, Math.min(5, Math.round(1 + score * 4)));
   job.rating = job.rating * 0.6 + stars * 0.4;
   job.lastReview =
@@ -333,6 +339,66 @@ function review(inPerson: boolean) {
       rows: [{ label: 'OK', run: () => (closePanel(), passTime(60, 'Review and planning…')) }],
     });
   } else toast(`Sprint ${job.sprint - 1} review (joined by phone)`, `${summary}. ${job.lastReview}`, 'msg');
+}
+
+/* ---------- the city office (Won Raffles Place, Level 30) ---------- */
+
+/** The seller meeting: the Wednesday of the sprint's second week, 14:00–15:30. */
+const sellerDay = () => job.start + 9;
+const sellerNow = () =>
+  job.pass && S.day === sellerDay() && job.seller !== S.day && S.time >= 13.75 * 60 && S.time < 15.5 * 60;
+/** The all-hands: the last Friday of the month, 16:00–17:00. */
+function lastFriday(day: number) {
+  const { d, m } = dateOf(day);
+  return weekday(day) === 5 && dateOf(day + 7).m !== m && d > 20;
+}
+const allhandsNow = () =>
+  job.pass && lastFriday(S.day) && !job.allhands.includes(dateOf(S.day).m) && S.time >= 15.75 * 60 && S.time < 17 * 60;
+
+export function cityLabel() {
+  if (allhandsNow()) return 'Join the Chopee all-hands';
+  if (sellerNow()) return 'Seller meeting with the Checkout partners';
+  return null;
+}
+export function cityMeeting() {
+  if (allhandsNow()) {
+    job.allhands.push(dateOf(S.day).m);
+    closePanel();
+    passTime(60, 'All-hands…', () => {
+      addMood(6);
+      toast(
+        'All-hands',
+        'The CEO on stage: orders up, a new logistics hub, free bubble tea for everyone. Aldi claps with the rest.',
+        'good',
+      );
+    });
+    return;
+  }
+  if (!sellerNow()) return;
+  openPanel({
+    title: 'Seller meeting',
+    sub: 'Marina room · Level 30',
+    body: 'Three big sellers want faster payouts at checkout. Wei Jie looks at Aldi: "You know the flow best. Want to explain?"',
+    rows: [
+      {
+        label: 'Walk them through the new checkout',
+        run: () => seller(0.12, 5, 'The sellers nod. One asks for your card.'),
+      },
+      {
+        label: 'Let Wei Jie do the talking, take notes',
+        run: () => seller(0.05, 2, 'Quiet but useful: the notes go to the whole team.'),
+      },
+    ],
+  });
+}
+function seller(bonus: number, mood: number, text: string) {
+  job.seller = S.day;
+  job.bonus += bonus;
+  closePanel();
+  passTime(75, 'Meeting…', () => {
+    addMood(mood);
+    toast('Seller meeting done', text, null);
+  });
 }
 
 /* ---------- the day ---------- */
@@ -372,18 +438,27 @@ function minute() {
   // Reminders.
   if (isOfficeDay(S.day) && S.day !== job.joined && Math.floor(S.time) === 8 * 60 + 45)
     toast('Office day', 'Stand-up at 10:00 at Chopee, Science Park Drive.', null);
+  if (S.day === sellerDay() && Math.floor(S.time) === 9 * 60)
+    toast('Seller meeting at 2pm', 'At the city office: Won Raffles Place, Level 30 (Raffles Place MRT).', null);
+  if (lastFriday(S.day) && Math.floor(S.time) === 9 * 60)
+    toast('All-hands at 4pm', 'The whole company at the city office, Won Raffles Place.', null);
   if (S.day === job.review && Math.floor(S.time) === 13 * 60)
     toast('Sprint review at 3pm', 'In the Merlion room at Chopee.', null);
 }
 
 const RECEPTION: [number, number, number] = [CHOPEE_HQ.x0 + 8, 1.2, CHOPEE_HQ.z1 - 5];
 const MEETING: [number, number, number] = [CHOPEE_HQ.x0 + 5, CHOPEE_HQ.l2 + 1, CHOPEE_HQ.z0 + 4];
+const CITY: [number, number, number] = [(CITY_OFFICE.x0 + CITY_OFFICE.x1) / 2, 2, CITY_OFFICE.z1];
 function target(): [string, [number, number, number]] | null {
   if (!job.pass) return S.day >= 2 && !isWeekend(S.day) ? ['Chopee reception', RECEPTION] : null;
   if (reviewNow() || (S.day === job.review && S.time > 13 * 60 && job.reviewed !== S.day))
     return ['Sprint review', MEETING];
   if (isOfficeDay(S.day) && S.day !== job.joined && job.settled !== S.day && S.time > 8 * 60)
     return ['Stand-up', MEETING];
+  if (S.day === sellerDay() && job.seller !== S.day && S.time > 12 * 60 && S.time < 15.5 * 60)
+    return ['Seller meeting', CITY];
+  if (lastFriday(S.day) && !job.allhands.includes(dateOf(S.day).m) && S.time > 14 * 60 && S.time < 17 * 60)
+    return ['All-hands', CITY];
   return null;
 }
 
@@ -402,6 +477,7 @@ function renderGoals() {
   const lines = [
     `Tickets: ${pointsDone()} / ${pointsAll()} points (review ${shortDate(job.review)}, 3pm)`,
     `Office days: ${officeLabel()} · stand-up 10:00`,
+    `Seller meeting ${shortDate(sellerDay())}, 2pm · city office (Raffles Place)`,
   ];
   for (const l of lines) {
     const s = document.createElement('span');
@@ -425,6 +501,9 @@ export function loadWork(d: Partial<typeof job> | undefined) {
     missed: 0,
     settled: 0,
     reviewed: 0,
+    bonus: 0,
+    allhands: [],
+    seller: 0,
     rating: 3,
     lastReview: '',
     paid: [],
