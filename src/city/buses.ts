@@ -90,6 +90,44 @@ export const R96 = route(
   ],
 );
 
+/** Bus 12: Paya Lebar – Katong – East Coast Park (Joo Chiat Road). */
+export const R12 = route(
+  '12',
+  [
+    [780, 76],
+    [795, 250],
+    [808, 400],
+    [880, 450],
+    [975, 503],
+  ],
+  [
+    ['Paya Lebar', 780, 76],
+    ['Joo Chiat', 797, 260],
+    ['Katong', 812, 404],
+    ['East Coast Park', 975, 503],
+  ],
+);
+/** Bus 138: Ang Mo Kio – Mandai Zoo – Woodlands (Woodlands Avenue). */
+export const R138 = route(
+  '138',
+  [
+    [150, -640],
+    [-380, -760],
+    [-700, -797],
+  ],
+  [
+    ['Ang Mo Kio', 150, -640],
+    ['Mandai Zoo', -380, -760],
+    ['Woodlands', -700, -797],
+  ],
+);
+/** The routes and how many buses each runs. */
+const ROUTES: [Route, number][] = [
+  [R96, 3],
+  [R12, 2],
+  [R138, 2],
+];
+
 /** Point and direction of the route at arc length s. */
 function at(r: Route, s: number): [number, number, number, number] {
   s = Math.max(0, Math.min(r.len, s));
@@ -205,7 +243,7 @@ function lateral(r: Route, s: number, dir: number, off: number): [number, number
 
 export function buildBuses() {
   const p = new PropSet('bus-stops');
-  for (const r of [R96]) {
+  for (const [r] of ROUTES) {
     r.stops.forEach((st, i) => {
       for (const dir of [1, -1]) {
         // The interchange has one pole, where the buses leave from.
@@ -287,17 +325,29 @@ export function buildBuses() {
   });
   const geo = busGeometry(),
     glass = glassGeometry();
-  for (let k = 0; k < 3; k++) {
+  for (const [R, n] of ROUTES) for (let k = 0; k < n; k++) addBus(R, k, n, geo, glass, mat, glassMat);
+}
+
+function addBus(
+  R: Route,
+  k: number,
+  n: number,
+  geo: THREE.BufferGeometry,
+  glass: THREE.BufferGeometry,
+  mat: THREE.Material,
+  glassMat: THREE.Material,
+) {
+  {
     const g = new THREE.Group();
     const m = new THREE.Mesh(geo, mat);
     m.castShadow = true;
     g.add(m, new THREE.Mesh(glass, glassMat));
     scene.add(g);
-    const u = (k / 3) * 2 * R96.len;
-    const dir = u < R96.len ? 1 : -1;
-    const s = dir === 1 ? u : 2 * R96.len - u;
-    const b: Bus = { r: R96, s, dir, v: V * 0.5, dwell: 0, stop: -1, x: 0, z: 0, hx: 1, hz: 0, ry: 0, mesh: g };
-    const [, , hx, hz] = lateral(R96, s, dir, 0);
+    const u = (k / n) * 2 * R.len;
+    const dir = u < R.len ? 1 : -1;
+    const s = dir === 1 ? u : 2 * R.len - u;
+    const b: Bus = { r: R, s, dir, v: V * 0.5, dwell: 0, stop: -1, x: 0, z: 0, hx: 1, hz: 0, ry: 0, mesh: g };
+    const [, , hx, hz] = lateral(R, s, dir, 0);
     b.hx = hx;
     b.hz = hz;
     buses.push(b);

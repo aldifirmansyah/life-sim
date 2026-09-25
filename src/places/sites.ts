@@ -62,3 +62,21 @@ export const LUCKY = { x0: -7, x1: 23, z0: -5, z1: 21, h: 5 };
 export const EMBASSY = { x: -170, z: 60, w: 30, d: 24 };
 /** The getai stage by Blk 420, in Hungry Ghost month. */
 export const GETAI = { x: -1013, z: 200 };
+
+/* Step 9: the East, Sentosa and the North. */
+/** Katong's Peranakan shophouses (laksa, kueh), facing north. */
+export const KATONG_ROW = { x0: 820, x1: 856, z0: 408, z1: 416 };
+/** East Coast Lagoon Food Village, and the beach by it (the bike kiosk, the sea). */
+export const LAGOON = { x: 986, z: 492, w: 30, d: 22 };
+export const BEACH = { x: 1050, z: 535 };
+/** The cable car from HarbourFront to Sentosa: the two stations (towers) and their height. */
+export const CABLE = { ax: -40, az: 664, bx: 60, bz: 790, h: 30 };
+/** Uniworsal Studios' gate (north of the globe) and Siloso Beach's bar. */
+export const UNIWORSAL = { x: 120, z: 818 };
+export const SILOSO = { x: 40, z: 908 };
+/** Mandai Zoo (fenced, the gate on the south side by Woodlands Avenue). */
+export const ZOO = { x: -380, z: -794, w: 70, d: 40 };
+/** The MacRitchie trailhead, in the forest. */
+export const TRAIL = { x: -150, z: -380 };
+/** Woodlands Checkpoint, for the Causeway to Johor Bahru. */
+export const CHECKPOINT = { x: -686, z: -906, w: 30, d: 16 };

@@ -42,6 +42,7 @@ import { buildCentre, loadCentre } from './places/centre';
 import { updateNear } from './places/shops';
 import { buildEvents, updateEvents, calendarApp, loadEvents } from './game/events';
 import { buildWeather, updateWeather } from './game/weather';
+import { buildRegions, updateRegions, loadRegions } from './places/regions';
 import { properName } from './social/social';
 import { showMoney, showVitals, resetStats, drain, addEnergy, addMood } from './game/stats';
 import { buildChangi, updateChangi, ARRIVAL } from './places/changi';
@@ -77,6 +78,7 @@ buildCbd();
 buildHomes();
 buildCentre();
 buildEvents();
+buildRegions();
 buildWeather();
 apps.push({ label: 'HomeLah', note: 'rooms for rent', run: homeApp });
 buildPeople();
@@ -105,6 +107,7 @@ function newGame() {
   loadPeople(undefined);
   loadCentre(undefined);
   loadEvents(undefined);
+  loadRegions(undefined);
 }
 
 /** Energy runs down with the hours awake; a night's sleep fills it up. */
@@ -152,6 +155,7 @@ function loop(now: number) {
   lap('player');
   updateTrains(dt);
   updateBuses(dt);
+  updateRegions(dt);
   lap('trains');
   if (S.started) {
     updatePeople(dt);
@@ -320,6 +324,7 @@ if (import.meta.env.DEV) {
     import('./places/centre'),
     import('./game/events'),
     import('./game/weather'),
+    import('./places/regions'),
   ]).then(
     ([
       geo,
@@ -346,6 +351,7 @@ if (import.meta.env.DEV) {
       centre,
       events,
       weather,
+      regions,
     ]) => {
       (window as unknown as Record<string, unknown>).__sg = {
         S,
@@ -374,6 +380,7 @@ if (import.meta.env.DEV) {
         centre,
         events,
         weather,
+        regions,
         renderer,
         parts,
       };

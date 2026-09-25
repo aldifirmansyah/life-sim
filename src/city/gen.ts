@@ -26,6 +26,11 @@ import {
   LUCKY,
   EMBASSY,
   GETAI,
+  KATONG_ROW,
+  LAGOON,
+  CABLE,
+  ZOO,
+  CHECKPOINT,
 } from '../places/sites';
 
 export const CHUNK = 128;
@@ -704,6 +709,13 @@ function landmarks() {
     reserve(x, z, 24);
     landmarkSign('Masjid Sultan', 'Kampong Glam', x, 8, z + d / 2 + 3.2, 0, '#2f5d3a', '#e8d9a8');
   }
+  // The East, Sentosa and the North (places/regions.ts builds them).
+  reserve((KATONG_ROW.x0 + KATONG_ROW.x1) / 2, (KATONG_ROW.z0 + KATONG_ROW.z1) / 2, 21);
+  reserve(LAGOON.x, LAGOON.z, 22);
+  reserve(CABLE.ax, CABLE.az, 8);
+  reserve(CABLE.bx, CABLE.bz, 8);
+  reserve(ZOO.x, ZOO.z, 42);
+  reserve(CHECKPOINT.x, CHECKPOINT.z, 18);
   // The embassy's compound and the getai field keep their ground clear.
   reserve(EMBASSY.x, EMBASSY.z, 20);
   reserve(GETAI.x, GETAI.z, 11);

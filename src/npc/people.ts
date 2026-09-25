@@ -59,6 +59,9 @@ import {
   TB_MARKET,
   EMBASSY,
   GETAI,
+  KATONG_ROW,
+  BEACH,
+  ZOO,
 } from '../places/sites';
 
 /** Slots in the shared crowd: named people first, then the passers-by (npc/crowds.ts). */
@@ -244,6 +247,9 @@ function buildSpots() {
   }
   for (let i = 0; i < 2; i++)
     add(`g.seat.${i}`, { x: GETAI.x - 1.2 + i * 2.4, y: 0, z: GETAI.z, ry: Math.PI, sit: 0.45, where: 'The getai' });
+  add('e.kueh', { x: KATONG_ROW.x0 + 16.5, y: 0, z: KATONG_ROW.z0 - 1.3, ry: -Math.PI / 2, where: 'Katong' });
+  add('e.bikes', { x: BEACH.x + 2.8, y: 0, z: BEACH.z + 2.4, ry: 0, where: 'East Coast Park' });
+  add('n.keeper', { x: ZOO.x - 22, y: 0, z: ZOO.z + 7.8, ry: Math.PI, where: 'Mandai Zoo' });
   add('tb.bakery', {
     x: tb.x - tb.w / 2 + (tb.w / 4) * 2.5,
     y: 0,
@@ -1049,6 +1055,69 @@ const DEFS: Def[] = [
     gifts: ['bbt'],
     look: { skin: '#e8c4a0', hair: 'bun', top: '#2c3e50', bottom: '#6b5a45' },
     ties: { junhao: 20 },
+  },
+  {
+    id: 'ivy',
+    name: 'Ivy',
+    address: 'Aunty',
+    age: 63,
+    gender: 'f',
+    role: 'Nyonya kueh shop, Katong',
+    birthday: '4 October',
+    traits: ['caring', 'gossip'],
+    likes: ['food', 'old days', 'family'],
+    dislikes: ['tech'],
+    plan: daily(['06:00', 'away'], ['08:00', 'e.kueh'], ['18:00', 'away']),
+    stories: [
+      'My grandmother was a Nyonya from Penang. Her recipes, all in my head. Nothing written down. My daughter must learn fast.',
+      'Katong last time was by the sea. The rich people had seaside bungalows here. Then they reclaimed land, now the sea is far.',
+    ],
+    loves: ['tea'],
+    gifts: ['flowers'],
+    look: { skin: '#dcb08a', hair: 'bun', hairColor: '#a39c92', top: '#e07a1f', bottom: '#2f5d8a', skirt: true },
+    ties: { lily: 20 },
+  },
+  {
+    id: 'firdaus',
+    name: 'Firdaus',
+    address: '',
+    age: 23,
+    gender: 'm',
+    role: 'Bike rental, East Coast Park',
+    birthday: '12 July',
+    traits: ['sporty', 'cheerful'],
+    likes: ['football', 'music', 'weather'],
+    dislikes: ['work'],
+    plan: daily(['06:00', 'away'], ['07:00', 'e.bikes'], ['19:30', 'away']),
+    stories: [
+      'Weekdays I study at the poly, weekends I rent bikes. Every Sunday, one uncle rides a bike older than me.',
+      'Best time here is sunrise. The ships all lit up, nobody around. You should come one day.',
+    ],
+    loves: ['bbt'],
+    gifts: ['puff'],
+    look: { skin: '#b67d55', hair: 'cap', headwear: '#2f6fb3', top: '#f2c14e', bottom: '#1f2a36' },
+    ties: { hafiz: 20 },
+  },
+  {
+    id: 'joanne',
+    name: 'Joanne',
+    address: '',
+    age: 32,
+    gender: 'f',
+    role: 'Zookeeper, the orangutans',
+    birthday: '22 February',
+    traits: ['caring', 'curious'],
+    likes: ['family', 'travel', 'weather'],
+    dislikes: ['shopping'],
+    plan: daily(['06:00', 'away'], ['08:30', 'n.keeper'], ['17:30', 'away']),
+    stories: [
+      'The big male is Budi. He came from Sumatra thirty years ago. Grumpy, but he loves papaya.',
+      'I went to Borneo for a rescue programme once. Seeing them in the wild… I cried the whole first day.',
+    ],
+    loves: ['croissant'],
+    gifts: ['kueh'],
+    look: { skin: '#e8c4a0', hair: 'bun', top: '#3f7d3a', bottom: '#6b5a45' },
+    ties: {},
   },
 ];
 
