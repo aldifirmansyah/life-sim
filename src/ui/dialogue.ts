@@ -18,6 +18,7 @@ import { toast } from './hud';
 import { tryLock } from './overlays';
 import { answeredCallout } from '../social/life';
 import * as arcs from '../social/arcs';
+import { tutorialScene, startWalk, startGoals } from '../game/tutorial';
 import * as jobs from '../game/jobs';
 import { emit } from '../game/bus';
 import { OUTINGS, invite, nextSlot, rakaBusy, when, appointments, type Outing } from '../social/plans';
@@ -264,6 +265,17 @@ export async function openDialogue(r: Resident) {
     renderHeader(c);
   }
   if (answered) apply(c, 2);
+  // The first morning: Pak RT at the gapura, then at the house.
+  const tutorial = tutorialScene(r);
+  if (tutorial) {
+    await more(c);
+    await scene(c, `tutorial.${tutorial}`);
+    await new Promise(res => setTimeout(res, 500));
+    close(c);
+    if (tutorial === 'gate') startWalk();
+    else startGoals();
+    return;
+  }
   await storyBeat(c);
   c.busy = false;
   if (social.social(npc).greetedDay !== S.day) greetMenu(c);

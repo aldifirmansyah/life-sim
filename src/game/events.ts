@@ -125,8 +125,14 @@ function plan(r: Resident, start: number, end: number, location: string, activit
 let plannedDay = -1;
 function planDay() {
   plannedDay = S.day;
-  sweptToday = 0;
-  swept.clear();
+  if (sweptDay !== S.day) {
+    sweptDay = S.day;
+    sweptToday = 0;
+    swept.clear();
+    // Fresh litter for the new week.
+    for (const p of piles) pileMesh?.setMatrixAt(p.i, pileMatrix(p));
+    if (pileMesh) pileMesh.instanceMatrix.needsUpdate = true;
+  }
   if (isKerjaBakti(S.day)) {
     // Everyone sweeps the stretch of lane nearest their own house, two to a stretch.
     const spots = groups.get('kerja') ?? [];
@@ -203,6 +209,7 @@ interface Pile {
 }
 const piles: Pile[] = [];
 const swept = new Set<number>();
+let sweptDay = -1;
 let sweptToday = 0;
 let pileMesh: THREE.InstancedMesh;
 const ZERO = new THREE.Matrix4().makeScale(0, 0, 0);
@@ -222,15 +229,9 @@ function buildPiles() {
     new THREE.MeshLambertMaterial({ color: 0xffffff, flatShading: true }),
     piles.length,
   );
-  const m = new THREE.Matrix4(),
-    c = new THREE.Color();
+  const c = new THREE.Color();
   for (const p of piles) {
-    m.compose(
-      new THREE.Vector3(p.x, 0.06, p.z),
-      new THREE.Quaternion().setFromEuler(new THREE.Euler(0, p.i, 0)),
-      new THREE.Vector3(0.32, 0.1, 0.24),
-    );
-    pileMesh.setMatrixAt(p.i, m);
+    pileMesh.setMatrixAt(p.i, pileMatrix(p));
     pileMesh.setColorAt(p.i, c.set(['#6b5a3a', '#8a7a52', '#5e6b3a'][p.i % 3]));
   }
   pileMesh.visible = false;
@@ -244,6 +245,13 @@ function buildPiles() {
       label: () => (kerjaOn() && !swept.has(p.i) ? 'Sweep up the litter' : null),
       run: () => sweep(p),
     });
+}
+function pileMatrix(p: Pile) {
+  return new THREE.Matrix4().compose(
+    new THREE.Vector3(p.x, 0.06, p.z),
+    new THREE.Quaternion().setFromEuler(new THREE.Euler(0, p.i, 0)),
+    new THREE.Vector3(0.32, 0.1, 0.24),
+  );
 }
 const kerjaOn = () => isKerjaBakti(S.day) && S.time >= h(6, 45) && S.time < h(9);
 
@@ -627,4 +635,24 @@ export function updateEvents(dt: number) {
     kerjaChecked = S.day;
     kerjaOver();
   }
+}
+
+/* ================= save ================= */
+
+export const saveEvents = () => ({ joined: [...joined], missedKerja, kerjaChecked, sweptDay, swept: [...swept] });
+export function loadEvents(d: ReturnType<typeof saveEvents>) {
+  joined.clear();
+  for (const k of d.joined) joined.add(k);
+  missedKerja = d.missedKerja;
+  kerjaChecked = d.kerjaChecked;
+  sweptDay = d.sweptDay;
+  swept.clear();
+  for (const i of d.swept) {
+    swept.add(i);
+    pileMesh.setMatrixAt(i, ZERO);
+  }
+  sweptToday = sweptDay === S.day ? swept.size : 0;
+  pileMesh.instanceMatrix.needsUpdate = true;
+  // Plan the day again (residents' plans aren't saved), without resetting the sweeping.
+  plannedDay = -1;
 }

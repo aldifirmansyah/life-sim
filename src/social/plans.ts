@@ -319,3 +319,16 @@ export const upcoming = () =>
 
 /** For lines: "Pak Slamet", "the warkop", etc. */
 export const withWhom = (a: Appointment) => properName(resident(a.npc).npc);
+
+/* ================= save ================= */
+
+export const savePlans = () => ({ appointments, nextId });
+/** Restore appointments, and lay the planned ones back over the residents' schedules. */
+export function loadPlans(d: ReturnType<typeof savePlans>) {
+  appointments.length = 0;
+  appointments.push(...d.appointments);
+  nextId = d.nextId;
+  for (const a of appointments)
+    if (a.state === 'planned' && a.block && a.day >= S.day && OUTINGS.some(o => o.id === a.outing))
+      setPlan(resident(a.npc), a.day, a.block);
+}

@@ -1601,3 +1601,75 @@ input[type='checkbox'] {
     grid-template-columns: 1fr;
   }
 }
+
+/* first goals and the follow marker */
+#goals {
+  position: absolute;
+  left: 16px;
+  top: 92px;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  max-width: 300px;
+  padding: 9px 12px 10px;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: var(--glass);
+  font-size: 13px;
+  pointer-events: none;
+}
+#goals b {
+  font: 700 11px/1.4 var(--ui);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--kunyit);
+}
+#goals span::before {
+  content: '○ ';
+  color: var(--ink-faint);
+}
+#goals span.done {
+  color: var(--ink-faint);
+  text-decoration: line-through;
+}
+#goals span.done::before {
+  content: '● ';
+  color: var(--teal);
+}
+#marker {
+  position: absolute;
+  left: 0;
+  top: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  pointer-events: none;
+}
+#marker span {
+  padding: 2px 8px 3px;
+  border-radius: 999px;
+  background: var(--kunyit);
+  color: #2a1f16;
+  font: 800 12px/1.4 var(--ui);
+  white-space: nowrap;
+}
+#marker i {
+  width: 0;
+  height: 0;
+  border: 7px solid transparent;
+  border-top-color: var(--kunyit);
+}
+.skip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--ink-dim);
+  font-size: 13px;
+}
+@media (max-width: 640px) {
+  #goals {
+    top: 76px;
+    max-width: 220px;
+    font-size: 12px;
+  }
+}

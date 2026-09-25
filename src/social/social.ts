@@ -402,3 +402,27 @@ export function badWord(npc: NPC, other: NPC, day: number) {
   if (npc.address === 'Ustadz' || npc.traits.includes('caring') || v >= 50) return { outcome: 'disapprove', delta: -3 };
   return { outcome: 'uneasy', delta: -1 };
 }
+
+/* ================= save ================= */
+
+/** What Raka knows of everyone, and how everyone feels (about him and each other). */
+export function saveSocial(npcs: NPC[]) {
+  return {
+    socials: [...socials.entries()],
+    mended: [...mended],
+    npcs: npcs.map(n => ({ id: n.id, rel: n.relationships, pr: n.playerRelationship, mood: n.mood })),
+  };
+}
+export function loadSocial(d: ReturnType<typeof saveSocial>, npcs: NPC[]) {
+  socials.clear();
+  for (const [id, s] of d.socials) socials.set(id, s);
+  mended.clear();
+  for (const k of d.mended) mended.add(k);
+  for (const x of d.npcs) {
+    const n = npcs.find(n => n.id === x.id);
+    if (!n) continue;
+    n.relationships = x.rel;
+    n.playerRelationship = x.pr;
+    n.mood = x.mood;
+  }
+}

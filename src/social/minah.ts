@@ -18,3 +18,9 @@ export function addMinah(m: Omit<MinahMemory, 'day'>, day: number) {
   minah.push({ ...m, day });
   toast(`Mbah Minah: ${m.title}`, 'A new memory in your Journal (Tab).');
 }
+
+export const saveMinah = () => minah;
+export function loadMinah(d: MinahMemory[]) {
+  minah.length = 0;
+  minah.push(...d);
+}

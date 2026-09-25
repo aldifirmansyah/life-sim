@@ -46,6 +46,8 @@
           <span><kbd>F3</kbd> performance</span>
           <span><kbd>Esc</kbd> pause</span>
         </div>
+        <div id="goals" hidden></div>
+        <div id="marker" hidden><span></span><i></i></div>
         <div id="bubbles"></div>
         <div id="npctags" hidden></div>
         <pre id="debug" hidden></pre>
@@ -61,13 +63,15 @@
           <p class="eyebrow">Kampung Sukamaju · RT 04 / RW 07</p>
           <h1>Kampung</h1>
           <p class="lede">
-            Raka is back in the kampung he left at ten, moving into his late grandmother's house on Gang Mawar. Walk the
-            gangs, watch the day turn, and learn your way around before the neighbours come out to say hello.
+            Raka is back in the kampung he left at ten, moving into his late grandmother's house on Gang Mawar. An ojek
+            drops him at the gapura with one suitcase, and Pak RT is waiting.
           </p>
           <div class="actions">
+            <button id="cont" class="primary" type="button" hidden>Continue</button>
             <button id="go" class="primary" type="button">Masuk kampung</button>
-            <span class="build">Build 1 of 7 · The neighbourhood</span>
+            <label class="skip"><input id="skipintro" type="checkbox" /> Skip the introduction</label>
           </div>
+          <p id="continfo" class="build" hidden></p>
           <dl class="keys" id="keys">
             <div>
               <dt><kbd>W</kbd><kbd>A</kbd><kbd>S</kbd><kbd>D</kbd></dt>
@@ -112,7 +116,10 @@
           <div class="actions">
             <button id="resume" class="primary" type="button">Resume</button>
             <button id="openmap" class="ghost" type="button">Open map</button>
+            <button id="savenow" class="ghost" type="button">Save</button>
+            <button id="newgame" class="ghost" type="button">New game</button>
           </div>
+          <p id="savemsg" class="build"></p>
           <div class="settings">
             <div class="set">
               <span class="lbl" id="qlbl">Graphics</span>

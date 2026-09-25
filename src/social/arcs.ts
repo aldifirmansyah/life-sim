@@ -614,21 +614,22 @@ export function begin(r: Resident) {
   s.progress = 0;
   s.asked = false;
   toast(`✦ ${ARCS[id].title}: ${step.title}`, step.hint);
-  if (step.task.kind === 'meet') arrange(r, step.task, s.step);
+  if (step.task.kind === 'meet') arrange(r, s.step);
   if (step.task.kind === 'give' && step.task.cat === 'dish') {
     // (handled in the Give menu)
   }
 }
 
-/** A story meeting is set for the next time it can happen. */
-function arrange(r: Resident, t: Extract<Task, { kind: 'meet' }>, n: number) {
-  const id = `arc-${r.npc.id}-${n}`;
-  let o = OUTINGS.find(x => x.id === id);
+/** The outing behind a story meeting (made up front, so saved plans can find it). */
+function arcOuting(id: string, n: number) {
+  const oid = `arc-${id}-${n}`;
+  let o = OUTINGS.find(x => x.id === oid);
+  const t = ARCS[id].steps[n].task as Extract<Task, { kind: 'meet' }>;
   if (!o) {
     o = {
-      id,
-      name: `${ARCS[r.npc.id].steps[n].title}`,
-      short: ARCS[r.npc.id].steps[n].title.toLowerCase(),
+      id: oid,
+      name: ARCS[id].steps[n].title,
+      short: ARCS[id].steps[n].title.toLowerCase(),
       location: t.location,
       activity: t.activity ?? 'chat',
       times: [t.time],
@@ -638,6 +639,12 @@ function arrange(r: Resident, t: Extract<Task, { kind: 'meet' }>, n: number) {
     };
     OUTINGS.push(o);
   }
+  return o;
+}
+
+/** A story meeting is set for the next time it can happen. */
+function arrange(r: Resident, n: number) {
+  const o = arcOuting(r.npc.id, n);
   let { day, start } = nextSlot(o, 90);
   while (rakaBusy(day, start, o.minutes)) day++;
   const a = plan(r, o as Outing, day, start, 'npc');
@@ -754,6 +761,8 @@ export const secrets = new Set<string>();
 /* ================= wiring ================= */
 
 export function initArcs(dinner: (r: Resident) => void) {
+  for (const [id, arc] of Object.entries(ARCS))
+    arc.steps.forEach((st, n) => st.task.kind === 'meet' && arcOuting(id, n));
   const events: GameEvent[] = [
     'shift',
     'cook',
@@ -824,4 +833,26 @@ export function journal() {
       };
     })
     .filter(x => x.step > 0 || x.active);
+}
+
+/* ================= save ================= */
+
+export const saveArcs = () => ({
+  states: [...states.entries()],
+  flags: [...flags],
+  secrets: [...secrets],
+  milestone: [...milestone.entries()],
+});
+export function loadArcs(d: ReturnType<typeof saveArcs>) {
+  states.clear();
+  for (const [k, v] of d.states) states.set(k, v);
+  secrets.clear();
+  for (const k of d.secrets) secrets.add(k);
+  milestone.clear();
+  for (const [k, v] of d.milestone) milestone.set(k, v);
+  for (const f of d.flags)
+    if (!flags.has(f)) {
+      flags.add(f);
+      for (const fn of flagListeners) fn(f);
+    }
 }

@@ -221,3 +221,16 @@ export const houseStatus = () =>
     state: restored.has(r.id) ? 'done' : job?.room === r.id ? 'booked' : 'todo',
     when: job?.room === r.id ? job.day : undefined,
   }));
+
+/* ================= save ================= */
+
+export const saveHouse = () => ({ restored: [...restored], job });
+export function loadHouse(d: ReturnType<typeof saveHouse>) {
+  restored.clear();
+  for (const r of d.restored) restored.add(r);
+  job = d.job;
+  refresh();
+  // Pak Karyo's booked morning goes back on his schedule.
+  if (job && job.day >= S.day)
+    setPlan(karyo(), job.day, { start: START, end: END, location: 'raka.work', activity: 'work' });
+}

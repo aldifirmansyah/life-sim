@@ -58,7 +58,6 @@ export function closeMap() {
 }
 
 export function bindOverlayButtons() {
-  $('go').onclick = play;
   $('resume').onclick = play;
   $('openmap').onclick = openMap;
   $('closemap').onclick = closeMap;

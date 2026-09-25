@@ -83,3 +83,11 @@ export function refreshGarden() {
   plants.instanceMatrix.needsUpdate = true;
   if (plants.instanceColor) plants.instanceColor.needsUpdate = true;
 }
+
+/* ================= save ================= */
+
+export const saveGarden = () => pots.map(p => ({ seed: p.seed, growth: p.growth, wateredDay: p.wateredDay }));
+export function loadGarden(d: ReturnType<typeof saveGarden>) {
+  d.forEach((p, i) => pots[i] && Object.assign(pots[i], p));
+  refreshGarden();
+}

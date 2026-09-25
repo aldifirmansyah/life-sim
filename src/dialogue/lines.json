@@ -1939,5 +1939,29 @@
     "Duduk sini. Tonight you're family.",
     "Eat, eat! You're too thin for a kampung boy.",
     "Welcome! Mbah Minah ate here many times, you know."
+  ],
+  "arc.tutorial.gate": [
+    "So you're Mbah Minah's cucu. You've grown! You used to be this high, always running to the kali.",
+    "Welcome home, {raka}. I'm Pak Bambang, the Ketua RT. Here we look after each other.",
+    "First things first: you have to report as a new resident. Lapor diri. I'll need your KTP at the balai some time this week.",
+    "Now, your grandmother's house. It's been empty two years, but it's still standing. Come, follow me. I'll walk you there."
+  ],
+  "arc.tutorial.walk": [
+    "That's the pos ronda. The night watch sits there. You'll take your turn one day, hehe.",
+    "Warung Bu Sri is up on Gang Kenanga. Everything you need, and all the news besides.",
+    "Morning pasar on the jalan until half past nine. Cheapest vegetables in the RW.",
+    "This is Gang Mawar. Your gang. Everyone here knew your grandmother.",
+    "Almost there. Mind the potholes; kerja bakti is on Sunday, you'll see."
+  ],
+  "arc.tutorial.house": [
+    "Here we are. Rumah Mbah Minah. The key is under the third flowerpot, like always.",
+    "The house needs work. Pak Karyo the tukang can help you when you're settled. Tell him I sent you.",
+    "Now, a little homework, {raka}. Go and say hello to every household on Gang Mawar. Properly: Pak, Bu, Mas, Mbak.",
+    "And bring something to Bu Sri at the warung. She was your grandmother's closest friend. That's how we do it here.",
+    "If you need me, I'm at the balai most days. Selamat datang, Nak."
+  ],
+  "text.tutorial_done": [
+    "{raka}, I hear you've greeted the whole of Gang Mawar and brought something to Bu Sri. Mbah Minah would be proud 🙏 A small welcome from the RT: Rp 50.000.",
+    "The whole gang is talking about the polite new neighbour 😄 Welcome to RT 04, {raka}. Here's a little welcome envelope from the RT 🙏"
   ]
 }

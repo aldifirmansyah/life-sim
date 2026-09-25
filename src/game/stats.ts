@@ -166,3 +166,19 @@ export function sleepRestore(fromTime: number) {
   addEnergy(Math.min(100, hours * 14 * perks.sleep));
   addMood((hours >= 7 ? 6 : hours < 4 ? -6 : 0) + (perks.sleep > 1 ? 3 : 0));
 }
+
+/* ================= save ================= */
+
+export const saveStats = () => ({
+  stats: { ...stats },
+  skillXp: { ...skillXp },
+  bag: [...bag.entries()],
+  perks: { ...perks },
+});
+export function loadStats(d: ReturnType<typeof saveStats>) {
+  Object.assign(stats, d.stats);
+  Object.assign(skillXp, d.skillXp);
+  bag.clear();
+  for (const [id, e] of d.bag) bag.set(id, e);
+  Object.assign(perks, d.perks);
+}

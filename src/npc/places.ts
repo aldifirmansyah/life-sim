@@ -289,6 +289,8 @@ function eventPois() {
   const audience: SlotSpec[] = [];
   for (const z of [7.6, 6.3, 5.0])
     for (let x = -49.2; x <= -40.4; x += 1.1) audience.push(stand([x + (z === 6.3 ? 0.5 : 0), z], [-44.8, 12]));
+  // Where Pak RT waits for Raka on his first morning (the tutorial).
+  poi('gapura', 'Gapura', 'gapura', [[0, 52]], { greet: [stand([0.9, 53.9], [0, 55.5])] });
   poi(
     'fest',
     'Lapangan',

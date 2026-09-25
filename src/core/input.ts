@@ -4,7 +4,7 @@ import { S, inMenu, inWorld } from './state';
 import { SETTINGS, saveSettings } from './settings';
 import { player, keys, joy, look } from './player';
 import { canvas } from '../render/context';
-import { show, tryLock, play, pause, openMap, closeMap } from '../ui/overlays';
+import { show, tryLock, pause, openMap, closeMap } from '../ui/overlays';
 import { toggleGraph } from '../npc/debug';
 import { dialogKey } from '../ui/dialogue';
 import { panelKey } from '../ui/panel';
@@ -50,9 +50,7 @@ export function initInput() {
       return;
     }
     if (!S.started) {
-      if (e.code === 'Enter') {
-        play();
-      }
+      if (e.code === 'Enter') ($('cont').hidden ? $('go') : $('cont')).click();
       return;
     }
     // Paying, sitting, eating: Esc skips to the end, everything else waits.

@@ -572,3 +572,9 @@ export function registerActivities() {
   for (const p of pots)
     interactables.push({ x: p.x, z: p.z, reach: 1.9, label: () => potLabel(p), run: () => usePot(p) });
 }
+
+/** Once-a-day warung shift, for the save. */
+export const saveActivities = () => ({ shiftDay });
+export function loadActivities(d: ReturnType<typeof saveActivities>) {
+  shiftDay = d.shiftDay;
+}

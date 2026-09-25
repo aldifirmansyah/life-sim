@@ -118,3 +118,12 @@ export function deliver(r: Resident) {
 
 /** For the Journal. */
 export const activeJobs = () => board.filter(j => j.taken && !j.done && j.day === S.day);
+
+/* ================= save ================= */
+
+export const saveJobs = () => ({ board, boardDay, nextId });
+export function loadJobs(d: ReturnType<typeof saveJobs>) {
+  board = d.board;
+  boardDay = d.boardDay;
+  nextId = d.nextId;
+}

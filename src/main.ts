@@ -26,6 +26,10 @@ import { updateNpcDebug } from './npc/debug';
 import { updateLife } from './social/life';
 import { updatePhone, onPhoneChange, plate, inviteToDinner } from './social/phone';
 import { buildPlate, showPlate } from './game/plate';
+import { saveGame, loadGame, clearSave, saveInfo } from './game/save';
+import { beginNewGame, initTutorial, updateTutorial, updateMarker } from './game/tutorial';
+import { dateLabel } from './game/calendar';
+import { openDialogue } from './ui/dialogue';
 import { buildFestival } from './world/festival';
 import { initEvents, updateEvents } from './game/events';
 import { registerPastimes } from './ui/pastimes';
@@ -45,7 +49,7 @@ import { initActions, updateActions } from './game/actions';
 import { registerActivities, updateActivities } from './ui/activities';
 import { bindPhone } from './ui/contacts';
 import { toast, updateHUD } from './ui/hud';
-import { show, bindOverlayButtons, bindSettingsUI } from './ui/overlays';
+import { show, play, bindOverlayButtons, bindSettingsUI } from './ui/overlays';
 
 /* ================= input & UI ================= */
 addEventListener('resize', resize);
@@ -82,6 +86,7 @@ buildArcProps();
 onPhoneChange(() => showPlate(plate?.state === 'waiting'));
 registerActivities();
 initEvents();
+initTutorial();
 registerPastimes();
 initArcs(inviteToDinner);
 graphStats();
@@ -115,10 +120,12 @@ function loop(now: number) {
     updateEvents(dt);
     updateHouse(dt);
     updateArcs(dt);
+    updateTutorial(dt, r => void openDialogue(r));
   }
   updateVendors();
   applyCamera();
   if (S.started) updateBubbles();
+  updateMarker();
   updateEnv((S.time / 60) % 24);
   if (S.started) updateHUD();
   updateNpcDebug(dt);
@@ -131,6 +138,8 @@ function loop(now: number) {
   // Friendships Raka has neglected for a week fade a little each new day.
   if (S.day !== decayDay) {
     decayDay = S.day;
+    // Autosave at the end of each day (spec §2).
+    if (S.started && saveGame()) setTimeout(() => toast('Game saved', dateLabel(S.day)), 2500);
     dailyDecay(
       residents.map(r => r.npc),
       S.day,
@@ -155,7 +164,6 @@ function loop(now: number) {
   requestAnimationFrame(loop);
 }
 
-let toastIntro = false;
 async function start() {
   // Signs are drawn to canvas textures, so wait (briefly) for the web fonts.
   try {
@@ -170,20 +178,54 @@ async function start() {
   applyQuality();
   $('loading').remove();
   show('start', true);
-  $('go').focus();
-  toastIntro = true;
+  // A saved game can be continued.
+  const info = saveInfo();
+  if (info) {
+    $('cont').hidden = false;
+    $('cont').textContent = 'Continue';
+    $('continfo').hidden = false;
+    $('continfo').textContent = `Saved game: ${info.label}`;
+    $('go').textContent = 'New game';
+    $('go').className = 'ghost';
+    $('cont').focus();
+  } else $('go').focus();
   requestAnimationFrame(loop);
 }
+
+/* ================= new game, continue, saving ================= */
+
+let started = false;
 $('go').addEventListener('click', () => {
-  if (toastIntro) {
-    toastIntro = false;
-    setTimeout(
-      () =>
-        toast('Pasar pagi is open', 'Vegetable stalls line Jalan Sukamaju until 09:30. Rumah Raka is on Gang Mawar.'),
-      600,
-    );
-  }
+  if (started) return;
+  if (saveInfo() && !confirm('Start a new game? Your saved game will be replaced.')) return;
+  started = true;
+  clearSave();
+  beginNewGame($<HTMLInputElement>('skipintro').checked);
+  play();
 });
+$('cont').addEventListener('click', () => {
+  if (started) return;
+  started = true;
+  if (!loadGame()) {
+    toast('Could not load the saved game', 'Starting a new one instead.');
+    beginNewGame(false);
+  } else toast(`Welcome back. ${dateLabel(S.day)}`, 'Your game has been loaded.');
+  play();
+});
+$('savenow').addEventListener('click', () => {
+  $('savemsg').textContent = saveGame() ? `Saved: ${dateLabel(S.day)}` : 'Could not save (storage unavailable).';
+});
+let discarding = false;
+$('newgame').addEventListener('click', () => {
+  if (!confirm('Start over from the first morning? Your saved game will be deleted.')) return;
+  discarding = true;
+  clearSave();
+  location.reload();
+});
+// Save when the tab is hidden or closed, and every couple of minutes.
+addEventListener('pagehide', () => !discarding && saveGame());
+document.addEventListener('visibilitychange', () => document.hidden && !discarding && saveGame());
+setInterval(() => inWorld() && saveGame(), 120000);
 start();
 
 // Dev-only handle for headless checks (scripts drive time and read NPC state through it).
@@ -206,6 +248,8 @@ if (import.meta.env.DEV) {
     import('./social/reputation'),
     import('./dialogue/lines.json'),
     import('./game/interact'),
+    import('./game/save'),
+    import('./game/tutorial'),
   ]).then(
     ([
       npcs,
@@ -225,6 +269,8 @@ if (import.meta.env.DEV) {
       reputation,
       lines,
       interact,
+      save,
+      tutorial,
     ]) => {
       (window as unknown as Record<string, unknown>).__kampung = {
         S,
@@ -246,6 +292,8 @@ if (import.meta.env.DEV) {
         reputation,
         lines: lines.default,
         interact,
+        save,
+        tutorial,
         renderer,
       };
     },

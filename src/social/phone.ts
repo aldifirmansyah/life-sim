@@ -354,3 +354,28 @@ export function inviteToDinner(r: Resident) {
 
 /** For the plans list. */
 export const dayName = (day: number) => DAYS[day % 7];
+
+/* ================= save ================= */
+
+export const savePhone = () => ({
+  threads: [...threads.values()],
+  plate,
+  invitedRaka: [...invitedRaka.entries()],
+  texted: [...texted],
+  firstDay,
+  plannedDay,
+});
+export function loadPhone(d: ReturnType<typeof savePhone>) {
+  threads.clear();
+  for (const t of d.threads) threads.set(t.id, t);
+  plate = d.plate;
+  invitedRaka.clear();
+  for (const [k, v] of d.invitedRaka) invitedRaka.set(k, v);
+  texted.clear();
+  for (const k of d.texted) texted.add(k);
+  firstDay = d.firstDay;
+  // Today's messages were already planned (and some sent) before the save.
+  plannedDay = d.plannedDay;
+  queue = [];
+  changed();
+}

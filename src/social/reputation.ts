@@ -35,3 +35,11 @@ export function repute(delta: number, why: string, day: number, quiet = false) {
 export const firstImpression = () => Math.floor(rep.value / 20);
 /** Added to the chance people accept invitations and call out. */
 export const goodwill = () => rep.value / 400;
+
+/* ================= save ================= */
+
+export const saveRep = () => ({ value: rep.value, log: rep.log });
+export function loadRep(d: ReturnType<typeof saveRep>) {
+  rep.value = d.value;
+  rep.log = d.log;
+}
