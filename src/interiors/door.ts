@@ -8,6 +8,9 @@ import { player } from '../core/player';
 import type { Frame } from '../world/layout';
 import { sfx } from '../audio/audio';
 import { people } from '../npc/npcs';
+import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js';
+
+const doorMat = new THREE.MeshLambertMaterial({ vertexColors: true });
 
 export class Door {
   pivot = new THREE.Group();
@@ -33,25 +36,30 @@ export class Door {
     this.pivot.position.set(hx, 0, hz);
     this.pivot.rotation.y = th;
     this.baseRy = th;
-    const leaf = new THREE.Mesh(new THREE.BoxGeometry(0.95, 2.14, 0.05), new THREE.MeshLambertMaterial({ color }));
-    leaf.position.set(0.475, 1.07, 0);
+    // Leaf, a carved panel on each face and a knob each side, merged into one mesh with vertex colours
+    // (one draw call a door).
+    const base = new THREE.Color(color);
+    const part = (g: THREE.BufferGeometry, x: number, y: number, z: number, c: THREE.Color) => {
+      g.translate(x, y, z);
+      const n = g.attributes.position.count,
+        col = new Float32Array(n * 3);
+      for (let i = 0; i < n; i++) c.toArray(col, i * 3);
+      g.setAttribute('color', new THREE.BufferAttribute(col, 3));
+      return g;
+    };
+    const gold = new THREE.Color('#c9a44a'),
+      dark = base.clone().multiplyScalar(0.8);
+    const parts = [
+      part(new THREE.BoxGeometry(0.95, 2.14, 0.05), 0.475, 1.07, 0, base),
+      part(new THREE.BoxGeometry(0.62, 1.5, 0.02), 0.475, 1.12, 0.03, dark),
+      part(new THREE.BoxGeometry(0.62, 1.5, 0.02), 0.475, 1.12, -0.03, dark),
+      part(new THREE.SphereGeometry(0.035, 8, 6), 0.85, 1.0, 0.05, gold),
+      part(new THREE.SphereGeometry(0.035, 8, 6), 0.85, 1.0, -0.05, gold),
+    ];
+    const leaf = new THREE.Mesh(mergeGeometries(parts), doorMat);
+    parts.forEach(g => g.dispose());
     leaf.castShadow = leaf.receiveShadow = true;
-    const knob = new THREE.Mesh(
-      new THREE.SphereGeometry(0.035, 8, 6),
-      new THREE.MeshLambertMaterial({ color: '#c9a44a' }),
-    );
-    knob.position.set(0.85, 1.0, 0.05);
-    const knobIn = knob.clone();
-    knobIn.position.z = -0.05;
-    // A carved panel on each face, for a bit of depth.
-    const panel = new THREE.Mesh(
-      new THREE.BoxGeometry(0.62, 1.5, 0.02),
-      new THREE.MeshLambertMaterial({ color: new THREE.Color(color).multiplyScalar(0.8) }),
-    );
-    panel.position.set(0.475, 1.12, 0.03);
-    const panelIn = panel.clone();
-    panelIn.position.z = -0.03;
-    this.pivot.add(leaf, knob, knobIn, panel, panelIn);
+    this.pivot.add(leaf);
     scene.add(this.pivot);
     [this.x, this.z] = F(dx, fz - 0.06);
     const a = F(dx - 0.5, fz - 0.12),

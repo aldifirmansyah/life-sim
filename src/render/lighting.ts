@@ -4,7 +4,7 @@ import * as THREE from 'three';
 import { smooth } from '../core/util';
 import { SETTINGS } from '../core/settings';
 import { player } from '../core/player';
-import { scene, fog, camera } from './context';
+import { scene, fog, camera, renderer } from './context';
 import { litMat, bulbMat, pasar } from './batch';
 import { skyU, sky, starMat, stars, moon, hillMat } from './sky';
 import { waterTex, poolMat } from '../world/ground';
@@ -147,3 +147,22 @@ export const setIndoorLight = (v: number) => (indoor = v);
 export let overcast = 0;
 export const setOvercast = (v: number) => (overcast = v);
 const _grey = new THREE.Color();
+
+/** Compile every material's shaders during loading, with the sun's shadows both on and off: they switch
+    off at dusk, in rain and on Low, and each switch otherwise stalls the first frame for a recompile.
+    Hidden objects (night props, interiors, the festival) are shown for the compile and hidden again. */
+export function prewarm() {
+  const hidden: THREE.Object3D[] = [];
+  scene.traverse(o => {
+    if (!o.visible) {
+      hidden.push(o);
+      o.visible = true;
+    }
+  });
+  const was = sun.castShadow;
+  for (const v of [!was, was]) {
+    sun.castShadow = v;
+    renderer.compile(scene, camera);
+  }
+  for (const o of hidden) o.visible = false;
+}

@@ -24,7 +24,7 @@ Agreed with the user after Phase 7. The spec (§4) is updated to match.
 
 ## Steps (a check with the user after each)
 
-Steps 1 to 6 are done. In step 6 only the front room (ruang tamu) of a resident's house is walk-in; the family's rooms stay behind a curtained partition. The musholla's mihrab is in the west wall (toward the qibla), so its door moved to the south side by the wudhu taps.
+All seven steps are done. In step 6 only the front room (ruang tamu) of a resident's house is walk-in; the family's rooms stay behind a curtained partition. The musholla's mihrab is in the west wall (toward the qibla), so its door moved to the south side by the wudhu taps.
 1. **Foundation + Raka's house shell.**
    - Hollow shell, door, rooms (ruang tamu, kamar, dapur, kamar mandi), tiled floor, plafon, lamp, indoor light and sound, sandals, slower walk, room names.
    - The home menu moves to a table inside.
@@ -57,3 +57,6 @@ Steps 1 to 6 are done. In step 6 only the front room (ruang tamu) of a resident'
    - Procedural interiors from the house size and household.
    - Bertamu: sitting, being served, when to take your leave.
 7. **Performance pass and docs.**
+   - Done. Measured in headless Chromium at High quality over 7 outdoor views and every interior, by day and at night. Draw calls were up to 159 (budget 150): each door was 5 meshes (about 80 calls for 16 doors) and each signboard its own mesh and texture (27 calls). Doors are now one merged mesh each, and the signs share one atlas in two merged meshes. Now 34–60 calls, 105–118k triangles, JS update under 2.2 ms everywhere.
+   - The first dusk stalled a frame while every material recompiled for the sun's shadows going off; `prewarm()` compiles both variants during loading.
+   - The F3 overlay lists the four costliest parts of the update.

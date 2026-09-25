@@ -5,7 +5,7 @@ import { $, REDUCED } from './core/util';
 import { renderer, scene, camera } from './render/context';
 import { ALL_BATCHES } from './render/batch';
 import './render/sky';
-import { updateEnv } from './render/lighting';
+import { updateEnv, prewarm } from './render/lighting';
 import { signs } from './render/signs';
 import { applyQuality, resize } from './render/quality';
 import { cols } from './core/collision';
@@ -128,8 +128,18 @@ let last = performance.now(),
 /** Smoothed CPU time per frame: game update, and three.js building the frame (render submit). */
 let updMs = 0,
   drawMs = 0;
+/** With the overlay on: smoothed ms per part of the update, to see which system costs what. */
+const parts = new Map<string, number>();
+let lapT = 0;
+function lap(name: string) {
+  if (!SETTINGS.debug) return;
+  const t = performance.now();
+  parts.set(name, (parts.get(name) ?? 0) * 0.9 + (t - lapT) * 0.1);
+  lapT = t;
+}
 function loop(now: number) {
   const t0 = performance.now();
+  lapT = t0;
   const dt = Math.min(0.05, (now - last) / 1000);
   last = now;
   if (inWorld()) {
@@ -143,6 +153,7 @@ function loop(now: number) {
   // NPCs keep living while Raka talks or eats; they hold still while the game is paused.
   const living = !S.started || S.dialog || S.acting || inWorld();
   updateResidents(living ? dt : 0);
+  lap('move+npcs');
   if (S.started && living) {
     updateLife(dt);
     updatePhone(dt);
@@ -151,20 +162,26 @@ function loop(now: number) {
     updateArcs(dt);
     updateTutorial(dt, r => void openDialogue(r));
   }
+  lap('social');
   updateVendors();
   updateShoppers(S.paused ? 0 : dt);
+  lap('extras');
   applyCamera();
   updateInteriors(dt);
+  lap('interiors');
   if (S.started) updateHome(dt);
   if (S.started) updateBubbles();
+  lap('bubbles');
   updateMarker();
   if (S.started) updateWeather(dt);
   soundscape();
   updateEnv((S.time / 60) % 24);
+  lap('env+sound');
   if (S.started) updateHUD();
   updateNpcDebug(dt);
   updateDialogue(dt);
   updateInteraction();
+  lap('hud+interact');
   if (S.started) {
     updateWarungShop();
     updateWarkop(dt);
@@ -172,6 +189,7 @@ function loop(now: number) {
   }
   updateActions();
   updateGame();
+  lap('shops+actions');
   if (inWorld()) updateStats(dt);
   // Friendships Raka has neglected for a week fade a little each new day.
   if (S.day !== decayDay) {
@@ -184,6 +202,7 @@ function loop(now: number) {
     );
     gardenNewDay(S.day);
   }
+  lap('rest');
   const t1 = performance.now();
   renderer.render(scene, camera);
   const t2 = performance.now();
@@ -197,7 +216,12 @@ function loop(now: number) {
       `fps      ${fpsA.toFixed(0)}\ndraws    ${i.calls}\ntris     ${(i.triangles / 1000).toFixed(1)}k\njs       ${updMs.toFixed(2)} update · ${drawMs.toFixed(2)} render ms\n` +
       `colliders ${cols.length}\npos      ${player.x.toFixed(1)}, ${player.z.toFixed(1)}\nquality  ${['low', 'medium', 'high'][SETTINGS.quality]}\n` +
       `npcs     ${npcStats.near} near · ${npcStats.mid} mid · ${npcStats.far} far\n         ${npcStats.hidden} indoors/away · ${npcStats.walking} walking\n` +
-      `npc sim  ${npcStats.ms.toFixed(2)} ms\ngraph    ${npcStats.nodes} nodes · ${npcStats.edges} edges\nG        waypoint graph`;
+      `npc sim  ${npcStats.ms.toFixed(2)} ms\n` +
+      `parts    ${[...parts]
+        .sort((a, b) => b[1] - a[1])
+        .slice(0, 4)
+        .map(([k, v]) => `${k} ${v.toFixed(2)}`)
+        .join(' · ')}\ngraph    ${npcStats.nodes} nodes · ${npcStats.edges} edges\nG        waypoint graph`;
   }
   requestAnimationFrame(loop);
 }
@@ -214,6 +238,7 @@ async function start() {
   }
   signs();
   applyQuality();
+  prewarm();
   $('loading').remove();
   show('start', true);
   // A saved game can be continued.

@@ -57,7 +57,9 @@ The game lives in `src/` and builds with Vite (`npm run dev`, `npm run build`). 
 - `bulbs`, and `flags` for the bunting.
 - The pasar pagi has its own batches under a `pasar` group, toggled by time of day.
 
-Colours are per-instance. The current view draws about 22–35 calls and about 67k triangles.
+Colours are per-instance. At High quality (interiors step 7, headless) a view draws 34–60 calls (shadow pass included) and 105–118k triangles, outdoors and in every interior, by day and at night; the JS update is under 2.2 ms.
+- **Signs** (`render/signs.ts`). `sign()` only queues; `signs()` ends by drawing every signboard into one 2048-wide canvas atlas (two columns, border colour bleeding into 8 px padding so mipmaps don't pick up a neighbour) and merging the planes into two meshes, `signs-plain` and `signs-glow` (the emissive one that lights up with the windows). Two draw calls for all of them.
+- **Shader prewarm** (`prewarm()` in `render/lighting.ts`, called once after the signs). The sun's shadows switch off at dusk, in rain and on Low, and that changes every material's shader; so during loading every object is shown and `renderer.compile` runs with shadows both on and off. Without it the first dusk stalled a frame (1.4 s in SwiftShader).
 
 **Colliders.** A flat array of AABBs (`cols`) with an `on` flag, used for the pasar stalls, indexed by a uniform spatial hash (4 m cells) in `core/collision.ts`. `query()` returns candidate indices in insertion order, so resolution order matches the old linear scan. Use `hit`, `overlapsAny` and `collide` rather than scanning `cols`. The player is a circle of radius 0.32 pushed out of the boxes, with 2 substeps per frame.
 
@@ -73,7 +75,7 @@ Colours are per-instance. The current view draws about 22–35 calls and about 6
 - **Schedules.** `week({weekday, fri, sat, sun, jumatan, ronda})` builds 7 days of blocks covering 06:00–26:00. Jumatan and ronda nights are overlays. An NPC leaves when `now ≥ next.start − travel − jitter`, and travel is estimated from the actual path. Movement is driven by game time (1.45 m/s at the base clock, so crossing the kampung takes about 90 game-minutes). After a new day or a time jump of more than 30 game-minutes, `resync()` places everyone from their schedule; a trip that should already be underway starts partway along its path.
 - **LOD.** Near (< 40 m): every frame, with sidestepping (NPCs and player), keep-left lane offsets, head turns toward the player and gestures. Mid (40–80 m): 10 Hz. Far (> 80 m): 1 Hz, hidden past `min(120, fog.far)`. NPCs indoors or away aren't drawn. The schedule tick runs at 1 Hz, or every game-minute while fast-forwarding. Nearby NPCs are circles the player can't walk through (`collision.circles`).
 - **Rendering.** `Crowd` draws all residents with 6 InstancedMeshes (boxes, torso, icosahedra, hair cap, frustum, cylinder). That is 6 draw calls, plus 6 in the shadow pass, whatever the NPC count. Parts are posed procedurally (thigh and shin, arms, head group), and unused parts sit at a zero matrix.
-- **Debug.** F3 shows update and render CPU ms, NPC counts per tier and NPC sim ms, plus name tags with each NPC's activity. G (with F3 on) draws the waypoint graph and live paths. With F3 on, the map (M) shows every resident. In dev builds `window.__kampung` exposes state for headless scripts.
+- **Debug.** F3 shows update and render CPU ms, NPC counts per tier and NPC sim ms, the four costliest parts of the update (`lap()` in `main.ts`: move+npcs, social, extras, interiors, bubbles, env+sound, hud+interact, shops+actions, rest), plus name tags with each NPC's activity. G (with F3 on) draws the waypoint graph and live paths. With F3 on, the map (M) shows every resident. In dev builds `window.__kampung` exposes state for headless scripts.
 
 **Conversation.** Raka's late grandmother is **Mbah Minah**; the kampung remembers her.
 - **Prompt.** `talkTarget()` picks the nearest visible resident within 2.5 m who is inside a cone around the camera's forward direction. The prompt says "Say hello" before the first meeting and "Talk to <proper name>" after. E opens the panel, and there's a Talk button on touch.
@@ -134,7 +136,7 @@ Colours are per-instance. The current view draws about 22–35 calls and about 6
 
 **Interiors** (after Phase 7; plan and steps in `docs/interiors-plan.md`, decided with the user: rooms in place, real size, prayer as a fade, residents' houses only by knocking and being invited in).
 - **Hollow shells.** `HouseSpec.hollow` in `world/houses.ts` builds walls (0.12 m) with a doorway and window openings (frames, teralis, open shutters) and matching colliders, with no extra `R()` calls. Raka's house is hollow.
-- **Doors** (`interiors/door.ts`). A hinged leaf that swings inward about 95°. E opens or closes it. It has a collider while mostly shut, closes itself 4 s after Raka is 2.6 m away, and won't close on him in the doorway.
+- **Doors** (`interiors/door.ts`). A hinged leaf that swings inward about 95°, one merged mesh with vertex colours (leaf, panels and knobs; one draw call a door, sharing one material). E opens or closes it. It has a collider while mostly shut, closes itself 4 s after Raka is 2.6 m away, and won't close on him in the doorway.
 - **Interiors** (`interiors/interior.ts`). Each `Interior` has named rooms (world rects from `roomL`), a `PropSet` (drawn within 32 m), a door, a lamp and sandals.
   - `updateInteriors(dt)` runs after `applyCamera`. It sets `S.inside` and `S.room` (the HUD label reads "Rumah Raka · Dapur") and `player.indoor` (walk 2.1 m/s, no running).
   - It eases in `setIndoorLight` (hemi −55%, and the sun −80% when there are no shadows) and `setIndoor` (a lowpass on the ambience, a small room convolver on effects).
@@ -188,7 +190,7 @@ Colours are per-instance. The current view draws about 22–35 calls and about 6
 
 **Known gaps and issues**
 - The `infill` step, meant to add back-row houses inside blocks, places nothing: interiors are too narrow once the row houses are in. Trees fill those spaces instead.
-- Raka's house, Warung Bu Sri, Warkop Berkah, the musholla, the balai and the residents' front rooms can be entered (interiors steps 1–6 of 7 done). The rest of a neighbour's house stays behind the partition, and non-resident houses stay solid.
+- Raka's house, Warung Bu Sri, Warkop Berkah, the musholla, the balai and the residents' front rooms can be entered (all 7 interiors steps done). The rest of a neighbour's house stays behind the partition, and non-resident houses stay solid.
 - Shift customers walk in real time from the gang; a resident who happens to be at the warung as a customer can stand where a shift customer stands.
 - Teh guests can arrive late when they live far away (walking takes game time).
 - Friends don't walk up to Raka in person; they call out, wave and text. Hajatan (story-triggered celebrations) and asking friends for favours aren't in. The adzan itself isn't voiced (only the bedug).
