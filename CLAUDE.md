@@ -30,11 +30,13 @@ The game used to be set in an Indonesian kampung ("Kampung Sukamaju", player Rak
 9. **The East, Sentosa and the North: DONE.** Katong, East Coast Park, the cable car, Uniworsal, Siloso, Mandai Zoo, MacRitchie, the Causeway, buses 12 and 138.
 10. **Taxis and ride-hail: DONE.** The road graph, traffic, taxi stands, Nab.
 11. **Aldi's own car: DONE.** The licence (theory and the circuit), Leng Kee Autos and the loan, driving, petrol, ERP, parking, monthly costs.
-12. **Next: performance pass and docs.**
+12. **Performance pass and docs: DONE.** A sweep of 15 places and times; people, passers-by and trains made cheaper; these notes brought up to date.
 
-Do one step at a time. At the end of each, check it and stop for the user's go-ahead.
+All twelve steps are done. What comes next (v2) is in the spec's "Future Versions" and the known gaps below; agree it with the user first.
 
-## Current state (steps 1 to 11)
+Do one step at a time. At the end of each, check it and stop for the user's go-ahead (unless the user says to keep going).
+
+## Current state (all 12 steps)
 The game lives in `src/` and builds with Vite (`npm run dev`, `npm run build`); `three` is pinned to 0.169.0.
 
 **Module map.** `src/main.ts` generates the island, wires input and UI, and runs the loop.
@@ -100,7 +102,7 @@ The game lives in `src/` and builds with Vite (`npm run dev`, `npm run build`); 
 
 **Energy and mood** (`game/stats.ts`, bars under the clock). Energy falls 3.5 an hour awake and 6 an hour of work; sleep fills it; rest +15, a nap +12, meals +18–28, kopi +10. Mood: meals, tickets done, stand-ups, reviews, table tennis up; missed stand-ups, a bad review, a tray left behind down. Below 20 energy Aldi can't run and works slower.
 
-**HUD and map.** The location label reads the train ("East-West Line to Tuas Link"), the station ("Clementi MRT"), the room, or `placeName()`; the eyebrow reads "Singapore · <region>". Money shows (`showMoney`); energy and mood are hidden until they return. The goals box and a marker over the next place (`arrival.ts`). E uses what's aimed at (the #prompt). M: the island map (coastline, waters, towns, expressways and main roads, the MRT with stations, Aldi's arrow).
+**HUD and map.** The location label reads the train ("East-West Line to Jurong East"), the station ("Clementi MRT"), the room, or `placeName()`; the eyebrow reads "Singapore · <region>". Money, energy and mood show under the clock. The goals box and a marker over the next place (`arrival.ts`). E uses what's aimed at (the #prompt). M: the island map (coastline, waters, towns, expressways and main roads, the MRT with stations, Aldi's arrow).
 
 **Time.** `S.time` in minutes since midnight; 06:00 → 26:00 then sleep (Aldi wakes where Aldi is until the check-in at one-north, then in the studio). `passTime(minutes, text)` skips ahead (resting). 0.8 game-minutes per real second.
 
@@ -110,18 +112,19 @@ The game lives in `src/` and builds with Vite (`npm run dev`, `npm run build`); 
 - **T3** (`places/changi.ts`): a hall north of the Changi Airport station with a glass front and three doorways, immigration booths, baggage belts, seats, plants, the 8-Twelve kiosk, signs. **The Jool**: terraces, a pool and the Rain Vortex (an animated cylinder, coloured at night) under the dome, entrances east and north.
 - **The studio** (`places/onenorth.ts`): a small room beside the tower with a bed (rest an hour, or sleep after 20:00), desk, wardrobe, kitchenette; the door stays locked until the check-in.
 
-**Performance** (headless, High, 1280 × 720): 19–20 draw calls, 140–181k triangles, JS 1–2.6 ms per frame (trains up to 1.8 ms), about 50–66 chunks and 3.5–5k instances loaded. Headless software rendering is slow (about 3–4 fps; one frame 250–450 ms), so test scripts wait on conditions, not fixed times. Real hardware hasn't been checked.
+**Performance** (step 12's sweep; headless, High, 1280 × 720, after the chunks load): Clementi at lunch, Chopee HQ, Raffles Place at lunch, Lau Pa Sat, the light show, the National Day fireworks, Orchard, Chinatown, Tekka, the mosque, Katong, Sentosa, the zoo, Changi and Clementi at night all come in at **34–67 draw calls, 183–225k triangles and 1.3–3.1 ms of JS per frame** (budget: 150, 300k, 8 ms). The parts that cost most: the trains (0.1–0.5 ms), the passers-by (0.1–1 ms at the lunchtime CBD), the places' per-frame updates together (0.3–0.8 ms), the people (under 0.2 ms). What step 12 changed: people's spots are worked out once a game minute, not every frame (0.7 → 0.05 ms); passers-by spawn at most four a tick from one search of the roads (1.2 → 0.4 ms by the bay); trains past 900 m and the screen doors of far platforms skip their matrix updates (1.7 → 0.4 ms in the CBD). Headless software rendering is slow (about 3–4 fps; one frame 250–450 ms), so test scripts wait on conditions, not fixed times, and the JS numbers are pessimistic. Real hardware hasn't been checked.
 
-**Debug.** F3 or backtick: fps, draws, triangles, JS update and render ms, the costliest parts (`lap()`), chunks and instances loaded, colliders, position, quality, generation time. In dev builds `window.__sg` exposes `S`, `player`, `geo`, `gen`, `stream`, `trains`, `mrt`, `mrtbuild`, `collision`, `levels`, `settings`, `quality`, `stats`, `changi`, `onenorth`, `work`, `buses` (`busDebug`), `sites`, `renderer`, `parts` for headless scripts. Don't `import()` modules from test scripts (after hot reloads that creates second copies); use `__sg`.
+**Debug.** F3 or backtick: fps, draws, triangles, JS update and render ms, the costliest parts (`lap()`), chunks and instances loaded, colliders, position, quality, generation time. In dev builds `window.__sg` exposes `S`, `player`, `geo`, `gen`, `stream`, `trains`, `mrt`, `mrtbuild`, `collision`, `levels`, `settings`, `quality`, `stats`, `changi`, `onenorth`, `work`, `buses` (`busDebug`), `sites`, `cbd`, `hawker`, `roads`, `homes`, `people`, `centre`, `events`, `weather`, `regions`, `taxi`, `traffic`, `roadgraph`, `car`, `renderer`, `parts` (the smoothed ms per part while the overlay is on) and `ms()` (update and render ms) for headless scripts. The laps: player, trains, vehicles (buses, the cable car, taxis, the car), people, crowds, traffic, stream, places, env+sound, hud. Don't `import()` modules from test scripts (after hot reloads that creates second copies); use `__sg`.
 
-**Known gaps (after step 3)**
-- People stand or sit at their spots and jump between places; nobody walks from one place to another yet, and the passers-by only walk pavements. Only one HDB block (Blk 420) has a void deck and lift; the rest of Clementi, the mall and NUS are generated blockouts. One bus route; buses have no collider and the map doesn't show the route yet. Most buildings are boxes; town layouts are generated except the authored places.
-- Traffic doesn't stop for anything (Aldi, junctions, each other); taxis drive through it.
+**Known gaps (after step 12)**
+- People stand or sit at their spots and jump between places; nobody walks from one place to another yet, and the passers-by only walk pavements. Only one HDB block (Blk 420) has a void deck and lift; the rest of Clementi, the mall and NUS are generated blockouts. Buses have no collider. Most buildings are boxes; town layouts are generated except the authored places.
+- Traffic doesn't stop for anything (Aldi, junctions, each other); taxis and Aldi's car drive through it (Aldi's car stops only against colliders).
 - Everything on the MRT is elevated (underground in reality in the city and at Changi). The trains run all night. The fare is flat; there is no tap-out and no concourse.
 - No interchange between the lines (Aldi walks between stations).
 - Low buildings, trees and ground detail stop at the load radius; only the skyline (≥ 26 m) and the island's flat shape go further.
 - Colliders are never removed, only switched off; memory grows with the chunks visited (fine for a session).
 - The map's labels overlap in the city centre.
+- Real hardware (integrated graphics) hasn't been measured; only headless runs.
 
 ## Working conventions
 - Run `npm run build` (typecheck + build) before committing. Format with `npm run format`.

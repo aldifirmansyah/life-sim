@@ -39,7 +39,7 @@ The earlier version of this game was set in an Indonesian kampung ("Kampung Suka
 - **Camera:** first person, eye height 1.7 m, FOV 70, optional head bob.
 - **Movement:** walk 3.5 m/s, run 6 m/s (Shift), no jumping; stairs and ramps are walked up and down.
 - **Interaction:** crosshair; a prompt for what's in front (`[E] Tap card`, `[E] Order`, `[E] Talk to …`).
-- **HUD:** clock and date, where Aldi is (a town, a station, "East-West Line to Tuas Link" aboard a train), energy/mood/money once they matter, toasts.
+- **HUD:** clock and date, where Aldi is (a town, a station, "East-West Line to Jurong East" aboard a train), energy/mood/money once they matter, toasts.
 - **Phone (Tab):** contacts, chats, maps, the property app, the bag, the journal, the glossary.
 
 ### 3.1 The protagonist
@@ -156,6 +156,7 @@ Target **60 FPS** on integrated graphics.
 - **Trains** and later traffic and crowds are instanced; far ones are only numbers.
 - **Simulation LOD** for people as before (near every frame, mid 10 Hz, far 1 Hz or abstract); social logic at 1 Hz.
 - **Budgets:** draw calls < 150, triangles < 300k, JS < 8 ms per frame. F3 (or backtick) shows the numbers and the costliest parts of the frame.
+- **Measured** (the first version, headless at 1280 × 720, High): 34–67 draw calls, 183–225k triangles, 1.3–3.1 ms of JS per frame across fifteen places and times (Clementi at lunch, the CBD, the light show and the fireworks, Orchard, Chinatown, Little India, Kampong Glam, Katong, Sentosa, the zoo, Changi, night). Real integrated graphics still to be checked.
 
 ---
 
@@ -188,6 +189,8 @@ See `docs/singapore-plan.md`:
 10. Taxis and ride-hail.
 11. Aldi's own car.
 12. Performance pass and docs.
+
+All twelve are done in the first version.
 
 ---
 
