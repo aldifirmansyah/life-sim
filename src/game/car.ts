@@ -279,9 +279,9 @@ function buildCentre() {
   // Cones along the circuit.
   for (const [cx, cz] of cones) p.put(cx, 0.35, cz, 0.3, 0.7, 0.3, '#e07a1f', 0, p.cone);
   for (const [gx, gz] of gates) {
-    p.post(gx - 3, gz, 0, 2.2, 0.12, '#f4f1ea');
-    p.post(gx + 3, gz, 0, 2.2, 0.12, '#f4f1ea');
-    p.box(gx - 3, gx + 3, 2.1, 2.3, gz - 0.1, gz + 0.1, '#2f8a4e');
+    p.post(gx, gz - 3, 0, 2.2, 0.12, '#f4f1ea');
+    p.post(gx, gz + 3, 0, 2.2, 0.12, '#f4f1ea');
+    p.box(gx - 0.1, gx + 0.1, 2.1, 2.3, gz - 3, gz + 3, '#2f8a4e');
   }
   p.build();
   p.show(true);
@@ -299,14 +299,16 @@ const cones: [number, number][] = [];
 const gates: [number, number][] = [];
 {
   const { x, z } = DRIVE_CENTRE;
+  // Two rows: east along the north row, round the end, west along the south row. Each gate spans the row
+  // (posts north and south of the lane), with a cone beside each post.
   for (const [gx, gz] of [
-    [x - 15, z - 10],
-    [x + 15, z - 10],
-    [x + 15, z + 10],
-    [x - 15, z + 10],
+    [x - 12, z - 10],
+    [x + 12, z - 10],
+    [x + 12, z + 10],
+    [x - 12, z + 10],
   ] as const) {
     gates.push([gx, gz]);
-    cones.push([gx - 3.5, gz], [gx + 3.5, gz]);
+    cones.push([gx, gz - 3.8], [gx, gz + 3.8]);
   }
   for (let k = -2; k <= 2; k++) cones.push([x + k * 5, z]);
 }
@@ -358,7 +360,7 @@ function practical() {
 function testStep(dt: number) {
   test.t += dt;
   const [gx, gz] = gates[test.gate];
-  if (Math.abs(car.x - gx) < 3 && Math.abs(car.z - gz) < 2.5) {
+  if (Math.abs(car.x - gx) < 1.8 && Math.abs(car.z - gz) < 3) {
     test.gate++;
     sfx('good');
     if (test.gate >= gates.length)
