@@ -2,7 +2,7 @@
    what each resident thinks of them as a gift. Prices are in rupiah. */
 import type { NPC } from '../npc/types';
 
-export type Category = 'drink' | 'snack' | 'meal' | 'ingredient' | 'produce' | 'seed' | 'dish' | 'gift';
+export type Category = 'drink' | 'snack' | 'meal' | 'ingredient' | 'produce' | 'seed' | 'dish' | 'gift' | 'tool';
 
 export interface Item {
   id: string;
@@ -87,11 +87,23 @@ export const ITEMS: Item[] = [
   I('bibit_tomat', 'Bibit tomat', 'seed', 5000, 'Tomato seedlings. Ready in 5 days if watered.'),
   I('bibit_kemangi', 'Bibit kemangi', 'seed', 4000, 'Lemon basil seedlings. Ready in 3 days if watered.'),
   // Home-cooked dishes (berbagi: sharing food wins hearts)
+  // Tools for pastimes.
+  I('pancing', 'Pancing', 'tool', 35000, 'A bamboo fishing rod with line and hook. The kali has ikan, they say.'),
+  I('gitar', 'Gitar bekas', 'tool', 150000, 'A second-hand acoustic guitar. One tuning peg sticks.'),
+  I(
+    'paket',
+    'Paket',
+    'tool',
+    0,
+    'A parcel wrapped in brown paper and raffia, from the notice board. Deliver it (Ask… menu).',
+  ),
+  I('ikan', 'Ikan mujair', 'produce', 0, 'A fish from the kali. Fry it, or give it to someone who will.'),
   // Brought round by neighbours (never sold).
   I('sayur_lodeh', 'Sayur lodeh', 'meal', 0, 'Vegetables in coconut milk, from a neighbour’s kitchen.', [24, 8]),
   I('nasi_kuning', 'Nasi kuning', 'meal', 0, 'Turmeric rice with egg and serundeng, from a neighbour.', [27, 8]),
   I('kolak', 'Kolak pisang', 'snack', 0, 'Banana and sweet potato in palm-sugar coconut milk.', [10, 8]),
   I('nasi_goreng', 'Nasi goreng', 'dish', 0, 'Home-made fried rice.', [30, 6]),
+  I('ikan_goreng', 'Ikan goreng', 'dish', 0, 'Fried kali fish with sambal on the side.', [26, 7]),
   I('tempe_goreng', 'Tempe goreng', 'dish', 0, 'Crispy fried tempe.', [16, 4]),
   I('telur_balado', 'Telur balado', 'dish', 0, 'Eggs in red chilli sauce.', [20, 6]),
   I('sayur_asem', 'Sayur asem', 'dish', 0, 'Sour tamarind vegetable soup.', [22, 7]),
@@ -180,6 +192,7 @@ export const STOCK: Record<string, string[]> = {
     'koran',
     'buku_tts',
     'bola',
+    'pancing',
   ],
   pasar: [
     'sayur',
@@ -221,4 +234,5 @@ export const RECIPES: Recipe[] = [
   { id: 'sambal', needs: { cabai: 1, tomat: 1, bawang: 1 }, portions: 2, minutes: 15, level: 2 },
   { id: 'telur_balado', needs: { telur: 1, cabai: 1, bawang: 1 }, portions: 2, minutes: 30, level: 2 },
   { id: 'sayur_asem', needs: { sayur: 1, tomat: 1 }, portions: 3, minutes: 45, level: 3 },
+  { id: 'ikan_goreng', needs: { ikan: 1, bawang: 1 }, portions: 2, minutes: 25, level: 2 },
 ];

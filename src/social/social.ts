@@ -1,6 +1,7 @@
 /* Relationship rules (spec §8.3). All friendship changes and reactions are
    decided here, in code; the dialogue provider only words the result. */
 import type { Memory, NPC, Stage, Topic } from '../npc/types';
+import { repute, firstImpression } from './reputation';
 
 export const TOPICS: Topic[] = [
   'football',
@@ -120,6 +121,12 @@ export function meet(npc: NPC, day: number) {
   s.met = true;
   s.metDay = day;
   remember(npc, { day, kind: 'first', text: 'Met Raka for the first time', weight: 3 });
+  // What they've heard about Raka colours the first impression.
+  const bonus = firstImpression();
+  if (bonus) {
+    npc.playerRelationship.friendship = Math.min(100, npc.playerRelationship.friendship + bonus);
+    npc.playerRelationship.stage = stageFor(npc.playerRelationship.friendship);
+  }
 }
 
 /** Once a day, residents Raka hasn't talked to for a week cool off a little. */
@@ -182,7 +189,10 @@ export function greet(npc: NPC, proper: boolean, day: number) {
     return { outcome, delta: isElder(npc) ? 3 : 1 };
   }
   if (isYoung(npc)) return { outcome: 'casual.ok', delta: 1 };
-  if (isElder(npc)) return { outcome: 'casual.rude', delta: -3 };
+  if (isElder(npc)) {
+    repute(-1, 'Word gets round when you’re rude to elders.', day, true);
+    return { outcome: 'casual.rude', delta: -3 };
+  }
   return { outcome: 'casual.meh', delta: 0 };
 }
 
@@ -388,6 +398,7 @@ export function badWord(npc: NPC, other: NPC, day: number) {
     about: other.id,
   });
   if (npc.traits.includes('gossip')) return { outcome: 'juicy', delta: 2 };
+  repute(-1, 'Talking behind people’s backs.', day, true);
   if (npc.address === 'Ustadz' || npc.traits.includes('caring') || v >= 50) return { outcome: 'disapprove', delta: -3 };
   return { outcome: 'uneasy', delta: -1 };
 }

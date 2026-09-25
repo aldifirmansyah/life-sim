@@ -1367,3 +1367,237 @@ input[type='checkbox'] {
 .msgs .offer button {
   padding: 5px 14px;
 }
+
+/* mini-games */
+.mg-card header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+}
+#mg-clock {
+  font: 800 22px/1 var(--ui);
+  font-variant-numeric: tabular-nums;
+  color: var(--kunyit);
+}
+#mg-help {
+  margin: 4px 0 10px;
+  color: var(--ink-dim);
+}
+#mg-field {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  min-height: 150px;
+}
+#mg-msg {
+  min-height: 1.5em;
+  margin: 8px 0 0;
+  font-weight: 700;
+  color: var(--kunyit);
+}
+.mg-lane {
+  display: grid;
+  grid-template-columns: 110px 1fr;
+  align-items: center;
+  gap: 10px;
+}
+.mg-lane span {
+  font-weight: 700;
+  color: var(--ink-dim);
+}
+.mg-lane.me span {
+  color: var(--ink);
+}
+.mg-lane b {
+  position: relative;
+  height: 22px;
+  border-radius: 6px;
+  background: repeating-linear-gradient(90deg, rgba(255, 240, 215, 0.06) 0 9.5%, rgba(255, 240, 215, 0.12) 9.5% 10%);
+  border-right: 3px solid #f4f1ea;
+}
+.mg-lane i {
+  position: absolute;
+  top: 3px;
+  width: 16px;
+  height: 16px;
+  margin-left: -8px;
+  border-radius: 50%;
+  background: var(--ink-faint);
+}
+.mg-lane.me i {
+  background: var(--merah);
+  box-shadow: 0 0 0 3px rgba(216, 57, 42, 0.3);
+}
+.mg-meter {
+  position: relative;
+  height: 28px;
+  border-radius: 8px;
+  background: rgba(255, 240, 215, 0.08);
+  overflow: hidden;
+}
+.mg-meter em {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  background: rgba(47, 179, 161, 0.45);
+}
+.mg-meter.hit em {
+  background: rgba(47, 179, 161, 0.9);
+}
+.mg-meter i {
+  position: absolute;
+  top: 2px;
+  bottom: 2px;
+  width: 4px;
+  margin-left: -2px;
+  background: var(--kunyit);
+  border-radius: 2px;
+}
+.mg-count {
+  margin: 0;
+  color: var(--ink-dim);
+  font-variant-numeric: tabular-nums;
+}
+.mg-pole {
+  position: relative;
+  align-self: center;
+  width: 16px;
+  height: 90px;
+  border-radius: 8px;
+  background: #7a5a3a;
+}
+.mg-pole i {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  border-radius: 8px;
+  background: var(--merah);
+}
+.mg-water {
+  position: relative;
+  height: 90px;
+  border-radius: 10px;
+  background: linear-gradient(#3f7f86, #2a5a60);
+}
+.mg-water i {
+  position: absolute;
+  left: 50%;
+  top: 38px;
+  width: 12px;
+  height: 18px;
+  margin-left: -6px;
+  border-radius: 6px 6px 3px 3px;
+  background: linear-gradient(#e8392a 50%, #f4f1ea 50%);
+  transition: transform 0.08s;
+}
+.mg-water.bite i {
+  transform: translateY(14px);
+}
+#mg-touch {
+  display: flex;
+  gap: 10px;
+  justify-content: center;
+  margin-top: 10px;
+}
+#mg-touch button {
+  min-width: 72px;
+  padding: 12px 18px;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: rgba(255, 240, 215, 0.08);
+  font-weight: 800;
+}
+
+/* phone: journal */
+.journal {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(360px, 1fr));
+  gap: 10px;
+  overflow: auto;
+  min-height: 0;
+  align-items: start;
+}
+.jsec {
+  padding: 10px 12px;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: rgba(255, 240, 215, 0.04);
+}
+.jsec h4 {
+  margin: 0 0 6px;
+  font: 700 11px/1.4 var(--ui);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--kunyit);
+}
+.jsec ul {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.jsec li {
+  padding: 4px 0;
+  border-bottom: 1px solid var(--line);
+}
+.jsec li:last-child {
+  border-bottom: 0;
+}
+.jsec li span {
+  display: block;
+  font-size: 12px;
+  color: var(--ink-dim);
+}
+.jsec li em {
+  font-style: normal;
+  color: var(--kunyit);
+  letter-spacing: 1px;
+  font-size: 10px;
+}
+.jsec li.ready b::before {
+  content: '✦ ';
+  color: var(--kunyit);
+}
+.jsec li.done,
+.rooms li.done {
+  opacity: 0.7;
+}
+.jsec .empty {
+  margin: 0;
+  color: var(--ink-dim);
+  font-size: 13px;
+}
+.minah p {
+  margin: 2px 0;
+  font-size: 13px;
+  color: var(--ink);
+  font-style: italic;
+}
+.rep b {
+  display: block;
+  font: 400 20px/1.2 var(--display);
+  color: var(--kunyit);
+}
+.rep span {
+  display: block;
+  font-size: 12px;
+  color: var(--ink-dim);
+}
+.rep i {
+  display: block;
+  height: 6px;
+  margin-top: 6px;
+  border-radius: 3px;
+  background: rgba(255, 240, 215, 0.1);
+  overflow: hidden;
+}
+.rep em {
+  display: block;
+  height: 100%;
+  background: var(--kunyit);
+}
+@media (max-width: 640px) {
+  .journal {
+    grid-template-columns: 1fr;
+  }
+}

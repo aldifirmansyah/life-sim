@@ -265,3 +265,14 @@ export function consumeFromBag(id: string, seat: Seat | null, done: () => void) 
   if (seat) steps.push(...standSteps(seat));
   run(steps, done);
 }
+
+/** Work with a tool in hand: sweep, cast a line, strum. Swings between two poses a few times. */
+export function useTool(id: string, a: HandPose, b: HandPose, strokes: number, stroke: number, done: () => void) {
+  const steps: Step[] = [move(0.35, 'R', POSES.hiddenR, a, { start: () => hands.hold(id, 'gift') })];
+  for (let i = 0; i < strokes; i++) {
+    steps.push(move(stroke, 'R', a, b));
+    steps.push(move(stroke, 'R', b, a));
+  }
+  steps.push(move(0.35, 'R', a, POSES.hiddenR));
+  run(steps, done);
+}

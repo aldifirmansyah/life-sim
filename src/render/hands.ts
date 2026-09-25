@@ -95,6 +95,11 @@ const LOOKS: Record<string, Look> = {
   koran: { shape: 'paper', c1: '#e8e4da', c2: '#3a3a3a' },
   buku_tts: { shape: 'paper', c1: '#2f6fb3', c2: '#f4f1ea' },
   bola: { shape: 'ball', c1: '#f4f1ea', c2: '#222326' },
+  sapu: { shape: 'bunch', c1: '#c9a86a', c2: '#8a6a3a', long: true },
+  pancing: { shape: 'bunch', c1: '#6b4a2f', c2: '#6b4a2f', long: true },
+  gitar: { shape: 'box', c1: '#8a5a33', c2: '#2a1a10' },
+  paket: { shape: 'box', c1: '#b89a62', c2: '#c9a86a' },
+  ikan: { shape: 'fruit', c1: '#9fb0b8', long: true },
 };
 const lookFor = (id: string, cat: string): Look =>
   LOOKS[id] ??
@@ -204,6 +209,11 @@ export const POSES = {
   mouthR: { x: 0.04, y: -0.13, z: -0.3, tilt: 0.25 },
   sipR: { x: 0.04, y: -0.1, z: -0.27, tilt: 1.0 },
   payL: { x: -0.1, y: -0.15, z: -0.72, tilt: 0 },
+  // Sweeping with a sapu lidi, casting a line, strumming.
+  sweepA: { x: 0.24, y: -0.42, z: -0.55, tilt: 0.7 },
+  sweepB: { x: -0.06, y: -0.48, z: -0.62, tilt: 1.0 },
+  castA: { x: 0.2, y: -0.05, z: -0.35, tilt: -0.4 },
+  castB: { x: 0.16, y: -0.2, z: -0.7, tilt: 0.3 },
   holdL: { x: -0.2, y: -0.28, z: -0.5, tilt: 0 },
 };
 

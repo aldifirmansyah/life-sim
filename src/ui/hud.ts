@@ -1,9 +1,10 @@
 import { $ } from '../core/util';
-import { S, DAYS } from '../core/state';
+import { S } from '../core/state';
 import { player } from '../core/player';
 import { zoneAt } from '../world/layout';
 import { stats } from '../game/stats';
 import { rupiah } from '../game/items';
+import { dateLabel } from '../game/calendar';
 
 /** Non-blocking notification; at most three are shown. */
 export function toast(title: string, sub?: string) {
@@ -37,7 +38,7 @@ export function updateHUD() {
     lastMin = m;
     const h = (m / 60) % 24;
     $('time').textContent = `${pad(h)}:${pad(m % 60)}`;
-    $('day').textContent = `${DAYS[S.day % 7]} · Day ${S.day}`;
+    $('day').textContent = dateLabel(S.day);
     $('daymark').style.left = (h / 24) * 100 + '%';
   }
   const z = zoneAt(player.x, player.z);

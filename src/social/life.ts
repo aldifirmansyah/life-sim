@@ -21,6 +21,7 @@ import {
 import { lineFor } from '../dialogue/provider';
 import { bubble } from '../ui/bubbles';
 import { social, remember, stageFor, stageRank } from './social';
+import { goodwill } from './reputation';
 
 const hash = (a: number, b: number) => {
   let h = Math.imul(a ^ 0x2545f491, 0x9e3779b1) ^ Math.imul(b + 0x68e31da4, 0x85ebca6b);
@@ -211,6 +212,7 @@ function callouts() {
     if (t.includes('shy')) chance -= 0.35;
     if (t.includes('grumpy') && f < 35) chance -= 0.3;
     if (t.includes('cheerful') || t.includes('gossip') || t.includes('curious')) chance += 0.15;
+    chance += goodwill();
     if (f < -10) chance = 0;
     if (Math.random() > chance) continue;
     lastCallout = now;

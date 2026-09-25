@@ -1129,9 +1129,9 @@
     "Selamat hari Jumat. Don't forget Jumatan, bapak-bapak."
   ],
   "text.group.minggu": [
-    "Selamat pagi warga. Enjoy your Sunday, and please keep the gang clean 🙏",
+    "Selamat pagi warga. Enjoy your Sunday, and see you at kerja bakti 🙏",
     "Minggu pagi! Kids, please play at the lapangan, not in the gang 😅",
-    "Happy Sunday, warga RT 04. Kerja bakti comes soon, I'll announce the date."
+    "Happy Sunday, warga RT 04. After kerja bakti, gorengan at Bu Sri's 😄"
   ],
   "text.group.warung": [
     "Warung sudah buka! Gorengan masih panas 🔥",
@@ -1268,5 +1268,676 @@
     "Did you like it? The plate is the blue one, by the way 😅",
     "Hehe, my plate misses me 🍽️",
     "If you're passing by, bring the plate ya 🙏"
+  ],
+  "arc.bambang.0.start": [
+    "{raka}, one more thing. You haven't done lapor diri properly yet.",
+    "Here we don't fill in forms. We see who turns up with a sapu on Sunday morning. Kerja bakti, 07:00. Understood?"
+  ],
+  "arc.bambang.0.end": [
+    "I saw you out there on Sunday. Sweeping like you meant it.",
+    "Good. Consider yourself registered, warga RT 04. Mbah Minah would say: finally."
+  ],
+  "arc.bambang.1.start": [
+    "17 Agustus is coming, and the RT kas is looking thin this year.",
+    "The prizes for the lomba, the sound system for the panggung... Every family puts in what they can. Rp 50.000, if you can manage."
+  ],
+  "arc.bambang.1.end": [
+    "Rp 50.000. I'll write it in the book with your name.",
+    "Your grandmother used to write in this same book, you know. Ask Pak Hartono about it some time."
+  ],
+  "arc.bambang.2.start": [
+    "The old kas ledgers are still in the balai. Pak Hartono went through them once.",
+    "Ask him about the books. I think you should hear it from him, not me."
+  ],
+  "arc.bambang.2.other": [
+    "The RT books? Your grandmother kept them. Eleven years, and I never found a mistake. Not one rupiah. Tell {other} I said so."
+  ],
+  "arc.bambang.2.end": [
+    "So Pak Hartono told you. Eleven years she was treasurer, and she would chase me for Rp 500.",
+    "Help me with the 17-an committee this year, {raka}. Someone from her house should be there."
+  ],
+  "arc.ratna.0.start": [
+    "Aduh, {raka}, I'm short for the arisan. My klepon sold out before lunch!",
+    "Could you bring me some klepon or onde-onde from the pasar pagi? The ibu-ibu will riot."
+  ],
+  "arc.ratna.0.end": [
+    "You're a lifesaver! Look at them, still warm.",
+    "Now the ibu-ibu can't say Bu RT forgot the kue again."
+  ],
+  "arc.ratna.1.start": [
+    "You know, the arisan isn't only for the ibu-ibu. Mbah Minah never missed one.",
+    "Second Saturday of the month, three o'clock at the balai. Come, put in Rp 20.000, hear all the news."
+  ],
+  "arc.ratna.1.end": [
+    "Did you see their faces when you walked in? They'll talk about it for weeks.",
+    "You sat in her seat, you know. Nobody's sat there since."
+  ],
+  "arc.ratna.2.start": [
+    "I've been trying to remember your grandmother's recipes. I only have half of them in my head.",
+    "Cook something for me, {raka}. Something good. Maybe it's in your hands too."
+  ],
+  "arc.ratna.2.end": [
+    "Mm. Mmm! This is her salt, her patience. You have it.",
+    "She taught me everything I know about kue. For every funeral, every wedding: a tray at the door before anyone asked."
+  ],
+  "arc.sri.0.start": [
+    "Did you hear? They're building a minimarket on the main road. Air-con, bright lights.",
+    "I need all the hands I can get. Help me behind the counter one day, ya?"
+  ],
+  "arc.sri.0.end": [
+    "You're quick! The customers liked seeing a new face.",
+    "A minimarket doesn't know your name. A warung does. That's our secret weapon."
+  ],
+  "arc.sri.1.start": [
+    "The young people buy what they see on their phones. My warung isn't on anybody's phone.",
+    "Fajar, Bu Yati's boy, makes videos. Ask him to make one about the warung?"
+  ],
+  "arc.sri.1.other": [
+    "A video about Warung Bu Sri? Ooh, 'The last real warung'! Tell {other} I'll film it this week. Free, for her gorengan."
+  ],
+  "arc.sri.1.end": [
+    "Fajar's filming it? My warung, on the internet!",
+    "I'd better fix my kerudung. And maybe... the sign."
+  ],
+  "arc.sri.2.start": [
+    "The menu board is falling apart, and the paint is older than Dimas.",
+    "Could you chip in Rp 100.000 for a new board and paint? I'll pay you back in teh manis for a year."
+  ],
+  "arc.sri.2.end": [
+    "A proper menu board! Look at it, {raka}. Like a real shop.",
+    "You know Mbah Minah lent me the money to start this warung? She never wanted it back. She said, pay the kampung back instead. So I'm paying you."
+  ],
+  "arc.dimas.0.start": [
+    "Kak, we play futsal at the lapangan in the afternoons. We're always one short.",
+    "Come play? Nobody's very good. Except Bima. Don't tell him."
+  ],
+  "arc.dimas.0.end": ["You actually came! The others said you wouldn't.", "Next time I'm picking you first. Probably."],
+  "arc.dimas.1.start": [
+    "Our ball has a hole. It goes flat every ten minutes.",
+    "Kak... could you get us a new bola from the warung? I'll pay you back. Eventually."
+  ],
+  "arc.dimas.1.end": ["A new ball! It's so round!", "Nobody pays me back either, Kak. Consider it a team investment."],
+  "arc.dimas.2.start": [
+    "There's a tournament with the next RW after 17-an. I want our team to be ready.",
+    "Can you train with me at the lapangan at 16:30? Just us, before the others come."
+  ],
+  "arc.dimas.2.end": [
+    "Thank you for training with me, Kak. I feel ready.",
+    "Ibu says I talk more since you came. I don't know what she means."
+  ],
+  "arc.darto.0.start": [
+    "You know, I've been thinking about my window. The big one, 1999.",
+    "You say you didn't break it. Hmph. Ask my wife. She knows the truth."
+  ],
+  "arc.darto.0.other": [
+    "The window? Of course it was Raka! He cried for an hour. Mbah Minah paid for the glass that same day and made him apologise with a plate of pisang goreng. Tell {other} I remember."
+  ],
+  "arc.darto.0.end": [
+    "So. She told you. I knew it was you!",
+    "Your grandmother paid for that glass and never let me forget how cheap it was. Hmph. Good woman."
+  ],
+  "arc.darto.1.start": [
+    "You owe me a window, boy. But I'll settle for coffee.",
+    "Real kopi bubuk, the good one. Not those sachets."
+  ],
+  "arc.darto.1.end": [
+    "Ah, that's proper coffee. We're even. Almost.",
+    "Come walk with me some morning. My knees are slow, but the kali is still there."
+  ],
+  "arc.darto.2.start": [
+    "Every morning for forty years, your grandmother and I walked to the bridge and back.",
+    "I haven't gone since. Walk with me, Nak Raka. 06:30, the bridge."
+  ],
+  "arc.darto.2.end": [
+    "She talked, I listened. That was the arrangement. Now it's too quiet out here.",
+    "I built you something. A bench, for your teras. For when you're old and grumpy like me."
+  ],
+  "arc.sumi.0.start": [
+    "It's two years this month since your grandmother left us.",
+    "Bring me some bunga from the pasar, Nak? I want to take them to her, and I'd like them to be from you."
+  ],
+  "arc.sumi.0.end": [
+    "Melati. She loved melati. You didn't even know, did you?",
+    "Some things you just have in the blood."
+  ],
+  "arc.sumi.1.start": [
+    "On Thursday nights we sat together at the pengajian, her and I. Always the same corner.",
+    "Come with me this Thursday? The corner feels very empty."
+  ],
+  "arc.sumi.1.end": [
+    "Thank you for sitting with me, Nak.",
+    "She would have poked you for yawning, you know. I didn't. I'm softer than her."
+  ],
+  "arc.sumi.2.start": [
+    "I miss her cooking. I miss cooking for her.",
+    "Cook something for me, Nak Raka. Anything. Let me taste it and pretend."
+  ],
+  "arc.sumi.2.end": [
+    "It's not hers. But it's close. It's close.",
+    "We were brides the same year, 1962. We raised our children in each other's kitchens. Now I suppose I'll help raise you."
+  ],
+  "arc.yusuf.0.start": [
+    "You city people, you don't move! Every morning I see you, still asleep at seven.",
+    "Try a morning jog before I start work. Then we'll talk."
+  ],
+  "arc.yusuf.0.end": [
+    "I saw you running past the ojek base! Red as a rambutan!",
+    "Next step: ngopi pagi. Like real men of the kampung."
+  ],
+  "arc.yusuf.1.start": [
+    "Every morning at seven I have kopi at the warkop before my first ride.",
+    "Join me tomorrow? Pak Slamet makes it thick enough to stand a spoon in."
+  ],
+  "arc.yusuf.1.end": [
+    "Not bad for a designer! You didn't even flinch at the kopi.",
+    "Now you're a regular. Pak Slamet will start your order when he sees you coming."
+  ],
+  "arc.yusuf.2.start": [
+    "Bima wants to ride to school with me, but I only have one helmet for kids.",
+    "I'm saving for a second one. If you could chip in a little, Rp 75.000... No, forget it, it's too much."
+  ],
+  "arc.yusuf.2.end": [
+    "You're serious? Bima will ride like a king!",
+    "When you need a ride anywhere, anywhere, free. For life. Deal?"
+  ],
+  "arc.lestari.0.start": [
+    "I cook for thirty families, but only people in this kampung know.",
+    "I want to sell online. But I need a logo. Mbak Nadia studies design, doesn't she? Could you ask her?"
+  ],
+  "arc.lestari.0.other": [
+    "A logo for Mbak Lestari? Of course! Something warm, with a rice pot. Tell {other} I'll sketch three ideas tonight."
+  ],
+  "arc.lestari.0.end": [
+    "Three ideas! I'll never choose.",
+    "You know what, you're a designer too. Help me with the menu?"
+  ],
+  "arc.lestari.1.start": [
+    "I need a proper menu for the online shop. Prices, photos, nice letters.",
+    "Do a session on your laptop for me, {raka}? I'll pay you in rendang."
+  ],
+  "arc.lestari.1.end": [
+    "Look at it! It looks like a real restaurant!",
+    "Last step: I need someone to taste-test. Someone who cooks."
+  ],
+  "arc.lestari.2.start": [
+    "Before I go online, I want a second opinion. Cook me something good.",
+    "If it's good, I'll know you really understand food. Then your opinion counts."
+  ],
+  "arc.lestari.2.end": [
+    "You can really cook. Okay. Okay! Lestari Catering is going online.",
+    "Look, I put a banner up on the teras. Your design, my food. Partners."
+  ],
+  "arc.bima.0.start": [
+    "Kak Raka, do you know how to make a layangan?",
+    "I need paper. Big paper. A koran is best. Can you get one?"
+  ],
+  "arc.bima.0.end": [
+    "A whole koran! This is enough for three kites!",
+    "Now I need bamboo. Pak Karyo has bamboo. But he's scary."
+  ],
+  "arc.bima.1.start": [
+    "Can you ask Pak Karyo for some thin bamboo sticks?",
+    "He says no to kids. He can't say no to you."
+  ],
+  "arc.bima.1.other": [
+    "Bamboo for Bima's kite? Hah! I made kites for his father. Tell {other} to come by, I'll cut them straight."
+  ],
+  "arc.bima.1.end": [
+    "Pak Karyo said yes?! You're a hero, Kak.",
+    "The kite is ready. Come fly it with me at the lapangan!"
+  ],
+  "arc.bima.2.start": [
+    "Tomorrow the wind will be perfect. Ibu says so.",
+    "Meet me at the lapangan in the afternoon? Bring your best running legs."
+  ],
+  "arc.bima.2.end": [
+    "It's so high! Look, Kak! Higher than the musholla!",
+    "I'm keeping it up there forever. You can see it from your house!"
+  ],
+  "arc.putri.0.start": ["...Kak. Do you like flowers?", "I like flowers. I don't have any."],
+  "arc.putri.0.end": ["For me? ...Thank you, Kak.", "I'm going to keep it in a bottle. Forever."],
+  "arc.putri.1.start": ["Kak Raka has a garden. With little plants.", "Can things really grow from seeds? Show me."],
+  "arc.putri.1.end": ["You grew it? From a tiny seed?", "...I want to grow something too."],
+  "arc.putri.2.start": [
+    "Kak, if I had a vegetable, I could plant its seeds.",
+    "Can you give me something from your garden?"
+  ],
+  "arc.putri.2.end": [
+    "It's so red! I'm going to plant all the seeds.",
+    "When it grows, I'll give you one. That's how it works, right?"
+  ],
+  "arc.slamet.0.start": [
+    "Between us, my supplier's coffee has gone downhill. Tastes like the kali.",
+    "Bring me a pack of kopi bubuk, the good Java one, and I'll show you what coffee should be."
+  ],
+  "arc.slamet.0.end": [
+    "Smell that. That's coffee. That's what Pak Slamet is supposed to smell like.",
+    "You have taste, {raka}. Rare in a young man."
+  ],
+  "arc.slamet.1.start": [
+    "The TV antenna blew crooked in the storm. The football looks like snow.",
+    "Bang Udin fixes anything with a wire. Ask him to come by?"
+  ],
+  "arc.slamet.1.other": [
+    "Pak Slamet's antenna again? Heh. Tell {other} I'll climb up tonight. He owes me three coffees already."
+  ],
+  "arc.slamet.1.end": [
+    "Crystal clear! You can see the sweat on the players!",
+    "Big match coming. You're watching it here with us."
+  ],
+  "arc.slamet.2.start": [
+    "Persija tonight! The whole warkop will be here.",
+    "19:30. Come, sit with the regulars. It's not the same watching alone."
+  ],
+  "arc.slamet.2.end": [
+    "What a match! You shouted louder than Bang Udin!",
+    "You're one of the warkop now, {raka}. Your stool is yours."
+  ],
+  "arc.hartono.0.start": [
+    "There is nothing to read in this kampung except gossip on the phone.",
+    "A koran, or a buku TTS. Something for the mind, please."
+  ],
+  "arc.hartono.0.end": ["Hm. Adequate. Thank you.", "You're more thoughtful than you look, young man."],
+  "arc.hartono.1.start": [
+    "That mechanic. Every night, VROOM VROOM, testing engines at midnight.",
+    "Go and ask him what he thinks gives him the right. I'd like to know."
+  ],
+  "arc.hartono.1.other": [
+    "What gives me the right? I work late because customers come late! Tell {other} his TV is louder than my engines. Hmph."
+  ],
+  "arc.hartono.1.end": ["He said that? My TV? ...My TV is not that loud.", "...Is it?"],
+  "arc.hartono.2.start": [
+    "I'm too old for feuds, {raka}. And too proud to end one.",
+    "If you could... soften things. On both sides. I would be grateful."
+  ],
+  "arc.hartono.2.end": [
+    "He came by. We had coffee. He'll push the bike to the corner before starting it.",
+    "Your grandmother made peace like that too. I audited her books once. Perfect. She said: then you can pay for the tea."
+  ],
+  "arc.joko.0.start": [
+    "You walk past my cart every night and never stop!",
+    "One bowl, {raka}. Then you'll understand."
+  ],
+  "arc.joko.0.end": [
+    "You finished the broth! Every drop!",
+    "Now you're a customer. Customers get the secret. Eventually."
+  ],
+  "arc.joko.1.start": [
+    "Aduh, I'm out of bawang, and the pasar's closed.",
+    "Could you bring me some? The broth is nothing without bawang goreng."
+  ],
+  "arc.joko.1.end": ["You saved tonight's bakso!", "Come to the cart tomorrow at seven. I'll tell you the secret."],
+  "arc.joko.2.start": ["Seven o'clock, at the cart. Don't tell anyone.", "Not even Bu Sri. Especially not Bu Sri."],
+  "arc.joko.2.end": [
+    "The secret is... bones. Beef bones, all night, and patience. That's it.",
+    "Everyone thinks it's a powder. It's patience. Don't tell."
+  ],
+  "arc.udin.0.start": [
+    "Everybody on this gang thinks I'm a noisy troublemaker.",
+    "Bring me some gorengan and I'll tell you my side."
+  ],
+  "arc.udin.0.end": [
+    "Thanks. At least someone brings food instead of complaints.",
+    "Pak Hartono. That old man hates me. Go ask him why."
+  ],
+  "arc.udin.1.start": [
+    "Go on, ask Pak Hartono what his problem is.",
+    "Then come tell me. I bet it's not only the engines."
+  ],
+  "arc.udin.1.other": [
+    "What's my problem? My problem is midnight engines. That's all. Tell {other} I have nothing against him. Only his bike."
+  ],
+  "arc.udin.1.end": [
+    "Only the bike? ...Huh.",
+    "I thought he hated me. Maybe I can push the bikes out to the corner before I test them."
+  ],
+  "arc.udin.2.start": [
+    "I want to fix things with Pak Hartono. But I'm no good with words.",
+    "Help me? Say something good about me to him. And him to me, I guess."
+  ],
+  "arc.udin.2.end": [
+    "We shook hands. He even laughed at my joke. A little.",
+    "The gang's quiet at night now. Everyone's saying it was you."
+  ],
+  "arc.rahmat.0.start": [
+    "...I work nights at the factory gate. When I'm home, I do ronda too.",
+    "It's lonely at the pos at two in the morning. If you ever want company..."
+  ],
+  "arc.rahmat.0.end": ["You came to the ronda. The night went so fast.", "Thank you. Really."],
+  "arc.rahmat.1.start": [
+    "The hardest part is staying awake around three.",
+    "If you're passing the warung... kopi sachet. Any kind."
+  ],
+  "arc.rahmat.1.end": [
+    "You remembered. Thank you, Mas.",
+    "I have a worry I can't tell anyone. Maybe... you could ask Ustadz Hasan for me."
+  ],
+  "arc.rahmat.2.start": [
+    "The factory might close. I don't know how to tell my family.",
+    "Could you ask Ustadz Hasan what I should do? I can't ask him myself. Too proud."
+  ],
+  "arc.rahmat.2.other": [
+    "Pak Rahmat is worried? Tell {other} to come to me after Isya. There's no shame in worry. We will find a way together."
+  ],
+  "arc.rahmat.2.end": ["Ustadz said that? After Isya...", "I'll go. Thank you for carrying it for me."],
+  "arc.yati.0.start": [
+    "The arisan ladies want matching seragam for 17 Agustus! Batik, all the same.",
+    "I need everyone's sizes. Bu RT has them written down. Would you ask her?"
+  ],
+  "arc.yati.0.other": [
+    "Sizes for Bu Yati? Tell {other} they're in my arisan book, and I'm not telling her Bu Endang's."
+  ],
+  "arc.yati.0.end": ["Bu RT sent them! Except Bu Endang's, hehe.", "Now I need the fabric. Batik isn't cheap."],
+  "arc.yati.1.start": [
+    "Seven seragam, three metres each. The fabric shop wants money first.",
+    "Could you chip in Rp 60.000? The ibu-ibu will know who to thank."
+  ],
+  "arc.yati.1.end": [
+    "We'll look like a proper committee!",
+    "I'm sewing day and night. If someone brought me kue, I'd sew faster."
+  ],
+  "arc.yati.2.start": [
+    "My fingers are tired and my stomach is empty.",
+    "Kue lapis, {raka}. It's the only thing that keeps me sewing."
+  ],
+  "arc.yati.2.end": [
+    "Kue lapis! You darling.",
+    "I'll make you a batik shirt too. You'll match the ibu-ibu. Very handsome."
+  ],
+  "arc.endang.0.start": [
+    "You've heard. Everyone's heard. I owe Bu Wati money.",
+    "I don't even know if she's angry or just sad. Could you find out? Carefully."
+  ],
+  "arc.endang.0.other": [
+    "How do I feel? It's not the money. It's that she never said sorry. Tell {other} that, if she asks."
+  ],
+  "arc.endang.0.end": [
+    "Not the money. ...She wants me to say sorry.",
+    "I'd pay it back if I could. Some of it, at least."
+  ],
+  "arc.endang.1.start": [
+    "The kos rooms are half empty this year. I can't pay it all at once.",
+    "If you could help with Rp 100.000, I'd pay the rest by Lebaran. I'd write it down."
+  ],
+  "arc.endang.1.end": [
+    "Rp 100.000. I'll take it to her myself. With a sorry.",
+    "Help me with the rest? The words, I mean."
+  ],
+  "arc.endang.2.start": [
+    "I said sorry. She nodded. But it's still cold.",
+    "Put in a good word? Both ways. You're good at that."
+  ],
+  "arc.endang.2.end": [
+    "She came to my teras with jamu this morning. Jamu! We laughed like before.",
+    "Lunas. Everything's lunas. Thanks to you."
+  ],
+  "arc.wati.0.start": [
+    "My jamu needs fresh jeruk. The ones at the warung are too sour.",
+    "Bring me some from the pasar? I'll make you a glass."
+  ],
+  "arc.wati.0.end": ["Good jeruk. You chose well.", "Drink this. Kunyit asam. You're too pale for a kampung boy."],
+  "arc.wati.1.start": [
+    "Herbs from a garden are always better than from a shop.",
+    "Grow something. Bring me the story of it."
+  ],
+  "arc.wati.1.end": [
+    "Your own harvest! Now you understand why I'm so fussy.",
+    "There's something else. Bu Endang. I'm tired of being angry."
+  ],
+  "arc.wati.2.start": [
+    "It's not the money. It was never the money.",
+    "Help us make peace, {raka}. I don't know how to start."
+  ],
+  "arc.wati.2.end": [
+    "We sat together at the arisan. Like before. She cried, I cried.",
+    "Your grandmother taught me: some debts you write down, some you forget on purpose. I brought her jamu every morning, her last year. Never took money."
+  ],
+  "arc.rizky.0.start": [
+    "Thesis deadline in a week and I haven't slept. Literally.",
+    "Kopi sachet, Mas. I'll pay you in IT support forever."
+  ],
+  "arc.rizky.0.end": [
+    "Caffeine! My thesis thanks you.",
+    "Idea: the whole gang shares one wifi. Cheaper for everyone. But Pak RT must agree."
+  ],
+  "arc.rizky.1.start": [
+    "Could you ask Pak RT about a shared wifi for Gang Mawar?",
+    "He likes you. He thinks I'm a hacker."
+  ],
+  "arc.rizky.1.other": [
+    "Shared wifi? For the whole gang? As long as the pengajian announcements go on it too. Tell {other} yes, but the RT gets the password first."
+  ],
+  "arc.rizky.1.end": [
+    "He said yes! On condition the pengajian gets its own group. Fine!",
+    "The router costs money though. Everyone's chipping in."
+  ],
+  "arc.rizky.2.start": [
+    "Rp 80.000 each for the router. Nadia's in, Bu Endang's in.",
+    "You're in? Then Gang Mawar goes online."
+  ],
+  "arc.rizky.2.end": [
+    "It's up! Password is 'mbahminah' by the way. Pak RT's idea.",
+    "Now I can finish my thesis at your teras. Kidding. Mostly."
+  ],
+  "arc.nadia.0.start": [
+    "You freelance? For real clients? How do you find them?",
+    "Show me how it works. Do a job, and tell me everything."
+  ],
+  "arc.nadia.0.end": ["So you just... ask for money? And they pay?", "Okay. I have a bigger idea. A mural."],
+  "arc.nadia.1.start": [
+    "The balai's back wall is so grey. It should tell the kampung's story.",
+    "Ask Pak RT if I can paint it? He listens to you."
+  ],
+  "arc.nadia.1.other": [
+    "A mural at the balai? As long as it's decent, and Mbah Minah is in it somewhere. Tell {other} she has my blessing."
+  ],
+  "arc.nadia.1.end": [
+    "He said yes! And he wants your grandmother in it. Of course.",
+    "I need paint. Lots. More than a student can afford."
+  ],
+  "arc.nadia.2.start": [
+    "Rp 120.000 for paint. Brushes I can borrow.",
+    "Please? It'll be the best thing I've ever made."
+  ],
+  "arc.nadia.2.end": [
+    "It's done! Go look at the balai!",
+    "The woman with the flag in the middle, that's her. From the old photo."
+  ],
+  "arc.hasan.0.start": [
+    "The pengajian on Thursday nights is open to everyone, {raka}.",
+    "Your grandmother never missed one. Come, sit, listen. No pressure."
+  ],
+  "arc.hasan.0.end": ["It was good to see you there.", "Peace comes slowly, and mostly from being with others."],
+  "arc.hasan.1.start": [
+    "Cleanliness is half of faith, they say. Our gangs agree.",
+    "Join the kerja bakti on Sunday. Work beside your neighbours."
+  ],
+  "arc.hasan.1.end": [
+    "I saw you sweeping on Sunday. You didn't complain once. Almost.",
+    "The musholla needs one more thing. A new speaker for the adzan."
+  ],
+  "arc.hasan.2.start": [
+    "The musholla speaker crackles. The adzan sounds like a radio in the rain.",
+    "If you'd like to give infaq, Rp 100.000 would buy a new one. Only if you want to."
+  ],
+  "arc.hasan.2.end": [
+    "Tonight's adzan will be clear. Thank you.",
+    "Your grandmother swept this musholla every Friday before Subuh. No one ever saw her do it. It was just always clean."
+  ],
+  "arc.karyo.0.start": [
+    "Your grandmother's house is solid. Good bones. The rest is tired.",
+    "Let me fix it with you, room by room. Pick one from the house, and I'll come."
+  ],
+  "arc.karyo.0.end": [
+    "First room done. You held the ladder well.",
+    "A house remembers the people who fix it, you know."
+  ],
+  "arc.karyo.1.start": [
+    "A tukang runs on two things: kopi and respect.",
+    "The respect I have. Bring me the kopi. Bubuk, not sachet."
+  ],
+  "arc.karyo.1.end": ["Now that is kopi for a tukang.", "Let's finish her house together. Two more rooms."],
+  "arc.karyo.2.start": [
+    "Two more rooms, and the house stops being tired.",
+    "Book me when you're ready. I'll bring my best tools."
+  ],
+  "arc.karyo.2.end": [
+    "Look at it now. Mbah Minah's house is alive again.",
+    "I built half this kampung, but this one... this one I'm proud of."
+  ],
+  "arc.ayu.0.start": [
+    "I work from home, on calls all day. Customer service.",
+    "Some days I can't even get to the warung. A teh manis would save my life."
+  ],
+  "arc.ayu.0.end": [
+    "Oh, you're a hero. Sweet and cold.",
+    "The only problem is the noise. Fajar films his videos right outside my window."
+  ],
+  "arc.ayu.1.start": [
+    "Could you ask Fajar to film somewhere else during office hours?",
+    "I don't want to be the grumpy neighbour. He's a good kid."
+  ],
+  "arc.ayu.1.other": [
+    "Mbak Ayu can hear me? Aduh, sorry! Tell {other} I'll film at the lapangan from now on. Better light anyway."
+  ],
+  "arc.ayu.1.end": [
+    "He moved! And he sent me an apology sticker. So sweet.",
+    "Can I finally come see your teras? Everyone says it's the nicest on the gang."
+  ],
+  "arc.ayu.2.start": ["Tea on your teras, like the old people do. At four?", "I'll bring the kue. You bring the tea."],
+  "arc.ayu.2.end": [
+    "This is lovely. No calls, no noise, just the gang.",
+    "Mbah Minah had tea out here every afternoon. I used to wave from my window."
+  ],
+  "arc.fajar.0.start": [
+    "Kak Raka! I'm starting a channel about the kampung. I need B-roll!",
+    "Meet me at the lapangan in the afternoon. Just walk around looking natural."
+  ],
+  "arc.fajar.0.end": [
+    "That shot of you by the goal? Cinematic.",
+    "It needs music though. Real music, not copyright stuff."
+  ],
+  "arc.fajar.1.start": [
+    "Can you play guitar? Anything, even three chords.",
+    "Play something, I'll record it for the soundtrack."
+  ],
+  "arc.fajar.1.end": [
+    "That's the one! Kampung lo-fi. Perfect.",
+    "Last thing: I want to film at Bu Sri's warung. Can you ask her?"
+  ],
+  "arc.fajar.2.start": [
+    "The warung is the heart of the kampung. My big video should be there.",
+    "Bu Sri scares me. Can you ask her?"
+  ],
+  "arc.fajar.2.other": [
+    "Fajar wants to film my warung? Tell {other} yes, but my good side only, and he mentions the gorengan."
+  ],
+  "arc.fajar.2.end": [
+    "It's up! A hundred thousand views! Bu Sri's warung is famous!",
+    "I set up a filming corner at home. You're my first guest, Kak."
+  ],
+  "milestone.secret": [
+    "Can I tell you something, {raka}? Something I've never told anyone here.",
+    "Sit closer. This stays between us, ya?",
+    {
+      "t": "Hmph. I'm going to say this once. Don't make that face.",
+      "traits": ["grumpy"]
+    },
+    {
+      "t": "Um. I've never said this out loud before…",
+      "traits": ["shy"]
+    },
+    {
+      "t": "Okay. No gossip. For once, this one stays with me. And you.",
+      "traits": ["gossip"]
+    }
+  ],
+  "milestone.secret_end": [
+    "…There. Now someone knows. It feels lighter already.",
+    "Thank you for listening. You're family now, you know that?",
+    "Don't tell anyone. Not even Bu Sri.",
+    {
+      "t": "…That's it. Now go, before I get sentimental.",
+      "traits": ["grumpy"]
+    },
+    {
+      "t": "I feel like I can breathe. Thank you, {raka}.",
+      "traits": ["caring", "shy"]
+    }
+  ],
+  "event.parcel": [
+    "A parcel for me? Oh, from them! Terima kasih, {raka}.",
+    "You brought it all the way here? You're kind.",
+    "Finally! I've been waiting for this.",
+    "Aduh, you didn't have to. Thank you.",
+    "Oh! Let me see… yes, this is it. Thank you!"
+  ],
+  "event.titip": [
+    "The {item}! You remembered. Here, for your trouble.",
+    "Oh, you're a lifesaver. I was just about to go myself.",
+    "Perfect, just what I needed. Terima kasih!",
+    "You saw the notice? The kampung really works, ya.",
+    "{item}! Thank you, {raka}. Take this."
+  ],
+  "text.group.kerja_remind": [
+    "Pengingat: besok Minggu kerja bakti 07:00. Bawa sapu masing-masing ya warga 🧹🙏",
+    "Tomorrow morning, kerja bakti at 07:00. Every house sweeps its stretch of the gang. Terima kasih 🙏",
+    "Warga, don't forget kerja bakti tomorrow 07:00. Gorengan from Bu Sri afterwards 😄"
+  ],
+  "text.group.kerja_today": [
+    "Selamat pagi! Kerja bakti mulai 07:00. Ayo warga 🧹",
+    "Kerja bakti today, 07:00–09:00. See you in the gangs 🙏",
+    "Good morning RT 04. Sapu ready? Kerja bakti starts at seven 💪"
+  ],
+  "text.group.pengajian": [
+    "Assalamualaikum. Pengajian tonight after Isya, 19:30 at the musholla. All are welcome 🙏",
+    "Reminder: pengajian malam ini 19:30. Semoga berkah 🙏",
+    "Pengajian tonight, 19:30. Bring your family 🙏"
+  ],
+  "text.group.arisan": [
+    "Ibu-ibu, arisan today 15:00 at the balai! Kue from me 😄",
+    "Arisan hari ini jam 3 di balai ya ibu-ibu. Jangan telat 😘",
+    "Reminder: arisan 15:00, balai warga. Who will win this month? 🤭"
+  ],
+  "text.group.agustus_rapat": [
+    "Rapat panitia 17-an tonight 20:00 at the balai. Flags go up this week. Semangat warga! 🇮🇩",
+    "Warga, 17 Agustus is coming! Committee meeting at the balai tonight 20:00 🇮🇩"
+  ],
+  "text.group.agustus_flags": [
+    "Please put up your merah putih flags from today. Let's make RT 04 the most festive in the RW! 🇮🇩",
+    "Bendera merah putih dipasang mulai hari ini ya warga 🇮🇩🙏"
+  ],
+  "text.group.agustus_eve": [
+    "Besok 17 Agustus! Upacara 07:30 at the lapangan, then lomba: makan kerupuk, balap karung, panjat pinang. Panggung malam 19:30 🇮🇩🎉",
+    "Tomorrow: upacara 07:30, lomba all morning, panggung at night. Everyone come! 🇮🇩"
+  ],
+  "text.group.agustus_day": [
+    "DIRGAHAYU REPUBLIK INDONESIA! 🇮🇩 Upacara 07:30 di lapangan. Merdeka!",
+    "Selamat Hari Kemerdekaan, warga RT 04! 🇮🇩 See you at the lapangan at half past seven."
+  ],
+  "text.arisan_invite": [
+    "{raka}, arisan today at 15:00 at the balai. Come! Bring Rp 20.000 😄",
+    "Ikut arisan ya, {raka}? 15:00 at the balai. Mbah Minah never missed one 🙏"
+  ],
+  "text.kerja_missed": [
+    "{raka}, we missed you at kerja bakti again. Everything okay? 🙏",
+    "Mas Raka, kerja bakti is every Sunday 07:00. People are asking where you are 😅"
+  ],
+  "text.restore_booked": [
+    "Siap, {raka}. I'll come {detail} for the {item}. 09:00, bring kopi 😄",
+    "Okay! The {item}, {detail}, 09:00. Be around to hold the ladder ya 👷",
+    "Noted. {detail} I'll bring my tools for the {item}. Terima kasih 🙏"
+  ],
+  "text.invite.makan": [
+    "{raka}, come for dinner at our place {detail}? Nothing fancy, just family food 🍛",
+    "Makan malam di rumah, {detail}? I'm cooking extra for you 😊",
+    "You've been so good to us. Dinner at ours {detail}? 🙏"
+  ],
+  "plan.met.makan": [
+    "Come in, come in! Sit, eat. Don't be shy, there's plenty.",
+    "{raka}! You came. Here, the best piece is for you.",
+    "Duduk sini. Tonight you're family.",
+    "Eat, eat! You're too thin for a kampung boy.",
+    "Welcome! Mbah Minah ate here many times, you know."
   ]
 }

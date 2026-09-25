@@ -34,7 +34,11 @@ export type LineKind =
   | 'plan'
   | 'word'
   | 'plate'
-  | 'text';
+  | 'text'
+  // Phase 6: scripted story-arc scenes (read in order, not picked at random), milestones, event lines.
+  | 'arc'
+  | 'milestone'
+  | 'event';
 
 export interface DialogueContext {
   kind: LineKind;
@@ -58,6 +62,8 @@ export interface DialogueContext {
   item?: string;
   /** Extra text a line may need, e.g. a backstory snippet or birthday. */
   detail?: string;
+  /** For scripted scenes (kind 'arc'): which line of the scene. */
+  line?: number;
 }
 
 export interface DialogueLine {

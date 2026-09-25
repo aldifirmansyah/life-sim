@@ -20,7 +20,7 @@
         <div id="loc"><span class="eyebrow">RT 04 / RW 07</span><span id="locname">Jalan Sukamaju</span></div>
         <div id="clock">
           <div id="time">06:30</div>
-          <div id="day">Senin · Day 1</div>
+          <div id="day">Senin, 3 Agustus</div>
           <div class="dayline"><i id="daymark"></i></div>
           <div class="vitals">
             <div class="vital" title="Energy">
@@ -178,6 +178,7 @@
             </div>
             <div class="seg" role="radiogroup" aria-label="Phone section" id="phonetabs">
               <button type="button" role="radio" data-tab="chats">Chats<i id="chatsbadge" hidden></i></button
+              ><button type="button" role="radio" data-tab="journal">Journal</button
               ><button type="button" role="radio" data-tab="contacts">Contacts</button
               ><button type="button" role="radio" data-tab="bag">Bag</button
               ><button type="button" role="radio" data-tab="skills">Skills</button
@@ -187,6 +188,7 @@
           </header>
           <p id="phone-count" class="build"></p>
           <div id="chats" class="chats" hidden></div>
+          <div id="journal" class="journal" hidden></div>
           <div id="contacts" class="contacts"></div>
           <div id="bag" class="baglist" hidden></div>
           <div id="skills" class="skills" hidden></div>
@@ -205,6 +207,22 @@
           <p id="panel-body"></p>
           <ol id="panel-rows"></ol>
           <p id="panel-foot"></p>
+        </div>
+      </section>
+
+      <section id="minigame" class="dialog panelview" hidden>
+        <div class="dlg-card mg-card">
+          <header>
+            <div class="dlg-who">
+              <h3 id="mg-title"></h3>
+              <p id="mg-sub"></p>
+            </div>
+            <div id="mg-clock"></div>
+          </header>
+          <p id="mg-help"></p>
+          <div id="mg-field"></div>
+          <p id="mg-msg"></p>
+          <div id="mg-touch"><button type="button" data-k="a">◀</button><button type="button" data-k="main">Go</button><button type="button" data-k="b">▶</button></div>
         </div>
       </section>
 

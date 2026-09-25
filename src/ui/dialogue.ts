@@ -13,10 +13,13 @@ import LINES from '../dialogue/lines.json';
 import * as social from '../social/social';
 import { drawPortrait } from './portrait';
 import * as st from '../game/stats';
-import { item, giftReaction } from '../game/items';
+import { item, giftReaction, rupiah } from '../game/items';
 import { toast } from './hud';
 import { tryLock } from './overlays';
 import { answeredCallout } from '../social/life';
+import * as arcs from '../social/arcs';
+import * as jobs from '../game/jobs';
+import { emit } from '../game/bus';
 import { OUTINGS, invite, nextSlot, rakaBusy, when, appointments, type Outing } from '../social/plans';
 import { owesPlate, returnPlate, announcePeace } from '../social/phone';
 
@@ -261,6 +264,7 @@ export async function openDialogue(r: Resident) {
     renderHeader(c);
   }
   if (answered) apply(c, 2);
+  await storyBeat(c);
   c.busy = false;
   if (social.social(npc).greetedDay !== S.day) greetMenu(c);
   else mainMenu(c);
@@ -311,13 +315,116 @@ function mainMenu(c: Conversation) {
 function askMenu(c: Conversation) {
   const who = social.properName(c.npc);
   c.back = () => mainMenu(c);
+  // Story errands first: asking them something for someone else's story, or chipping in.
+  const story: Choice[] = arcs.askedAbout(c.r).map(({ id, step, n }) => {
+    const owner = residents.find(r => r.npc.id === id)!.npc;
+    return {
+      label: `✦ ${step.title}`,
+      note: `for ${social.properName(owner)}`,
+      echo: `You ask about it for ${social.properName(owner)}.`,
+      run: async () => {
+        await say(c, { kind: 'arc', outcome: `${id}.${n}.other`, line: 0, other: owner });
+        arcs.asked(id);
+        apply(c, 1);
+        mainMenu(c);
+      },
+    };
+  });
+  const parcel = jobs.parcelFor(c.r);
+  if (parcel)
+    story.push({
+      label: 'Hand over the parcel',
+      note: `from ${jobs.name(parcel.from!)}`,
+      echo: 'You hand over the parcel.',
+      run: async () => {
+        jobs.deliver(c.r);
+        await say(c, { kind: 'event', outcome: 'parcel' });
+        mainMenu(c);
+      },
+    });
+  const money = arcs.wantsMoney(c.r);
+  if (money) {
+    const step = arcs.current(c.npc.id)!;
+    const ok = st.canAfford(money);
+    story.push({
+      label: `✦ ${step.title}: give ${rupiah(money)}`,
+      note: ok ? undefined : 'not enough money',
+      echo: ok ? `You hand over ${rupiah(money)}.` : undefined,
+      run: async () => {
+        if (!arcs.paid(c.r)) return;
+        await storyEnd(c);
+        mainMenu(c);
+      },
+    });
+  }
   renderChoices([
+    ...story.slice(0, 2),
     { label: `Ask about ${who}`, echo: `You ask ${who} about themselves.`, run: () => doAsk(c) },
     { label: 'Hear the gossip', echo: `You ask what ${who} makes of the neighbours.`, run: () => doGossip(c) },
-    { label: 'Put in a good word for…', run: () => peopleMenu(c, 'good', 0) },
-    { label: 'Pass on some gossip about…', run: () => peopleMenu(c, 'bad', 0) },
+    { label: 'Talk about someone…', run: () => wordMenu(c) },
     { label: 'Back', run: () => mainMenu(c) },
   ]);
+}
+
+function wordMenu(c: Conversation) {
+  c.back = () => askMenu(c);
+  renderChoices([
+    { label: 'Put in a good word for…', run: () => peopleMenu(c, 'good', 0) },
+    { label: 'Pass on some gossip about…', run: () => peopleMenu(c, 'bad', 0) },
+    { label: 'Back', run: () => askMenu(c) },
+  ]);
+}
+
+/* ================= story scenes ================= */
+
+/** A scripted scene: its lines in order, with a "…" to go on between them. */
+async function scene(c: Conversation, key: string, other?: NPC) {
+  const n = (lines[`arc.${key}`] ?? []).length;
+  for (let i = 0; i < n; i++) {
+    await say(c, { kind: 'arc', outcome: key, line: i, other });
+    if (i < n - 1) await more(c);
+  }
+}
+/** Wait for Raka to go on (1, a click, or Esc). */
+function more(c: Conversation) {
+  return new Promise<void>(done => {
+    c.back = () => done();
+    c.busy = false;
+    renderChoices([{ label: '…', run: () => done() }]);
+  }).then(() => {
+    c.busy = true;
+    c.back = null;
+    $('dlg-you').textContent = '';
+  });
+}
+
+/** After the greeting: a best friend's secret, then a story step ending or a new one starting. */
+async function storyBeat(c: Conversation) {
+  if (arcs.secretDue(c.r)) {
+    await more(c);
+    await say(c, { kind: 'milestone', outcome: 'secret' });
+    await more(c);
+    await say(c, { kind: 'milestone', outcome: 'secret_end' });
+    arcs.secrets.add(c.npc.id);
+    social.remember(c.npc, { day: S.day, kind: 'secret', text: 'Trusted Raka with a secret', weight: 4 });
+    toast(`${c.npc.name} trusts you with a secret`, 'Best friends. It stays between the two of you.');
+  }
+  const p = arcs.pending(c.r);
+  if (!p) return;
+  await more(c);
+  if (p === 'end') await storyEnd(c);
+  else {
+    const n = arcs.arcState(c.npc.id).step;
+    await scene(c, `${c.npc.id}.${n}.start`);
+    arcs.begin(c.r);
+  }
+}
+async function storyEnd(c: Conversation) {
+  const n = arcs.arcState(c.npc.id).step;
+  await scene(c, `${c.npc.id}.${n}.end`);
+  const d = arcs.finish(c.r);
+  if (d) float(d, false);
+  renderHeader(c);
 }
 
 /** Pick another neighbour to talk about. Ones whose feelings Raka already knows come first. */
@@ -327,7 +434,7 @@ function peopleMenu(c: Conversation, mode: 'good' | 'bad', page: number) {
   const list = residents
     .filter(r => r !== c.r && social.social(r.npc).met)
     .sort((a, b) => Number(known.includes(b.npc.id)) - Number(known.includes(a.npc.id)));
-  c.back = () => askMenu(c);
+  c.back = () => wordMenu(c);
   if (!list.length) {
     renderChoices([{ label: 'You don’t know anyone else yet. Back', run: () => askMenu(c) }]);
     return;
@@ -373,7 +480,7 @@ async function doWord(c: Conversation, mode: 'good' | 'bad', other: NPC) {
 function inviteMenu(c: Conversation) {
   c.back = () => mainMenu(c);
   const planned = appointments.find(a => a.npc === c.npc.id && a.state === 'planned');
-  const list: Choice[] = OUTINGS.map(o => {
+  const list: Choice[] = OUTINGS.filter(o => !o.hidden).map(o => {
     const { day, start } = nextSlot(o);
     const clash = rakaBusy(day, start, o.minutes);
     return {
@@ -456,7 +563,8 @@ function banterMenu(c: Conversation) {
 /** Gifts from the bag, five to a page. Reactions Raka has seen are remembered in Contacts. */
 function giftMenu(c: Conversation, page: number) {
   const known = social.social(c.npc).known.gifts;
-  const list = st.contents();
+  // Tools (the guitar, the fishing rod) stay with Raka.
+  const list = st.contents().filter(e => e.item.cat !== 'tool');
   c.back = () => mainMenu(c);
   if (!list.length && !owesPlate(c.r)) {
     renderChoices([{ label: 'Your bag is empty. Back', run: () => mainMenu(c) }]);
@@ -470,10 +578,15 @@ function giftMenu(c: Conversation, page: number) {
   const choices: Choice[] = plateRow.concat(
     list.slice(page * per, page * per + per).map(e => {
       const seen = known[e.item.id];
+      const wanted = arcs.wantsGift(c.r, e.item.id, e.item.cat, e.q);
+      const errand = jobs.board.some(
+        j => j.taken && !j.done && j.kind === 'titip' && j.to === c.npc.id && j.item === e.item.id,
+      );
       const stars = e.item.cat === 'dish' ? ' ' + '\u2605'.repeat(e.q) : '';
       return {
         label: `${e.item.name}${stars}`,
         note: [
+          wanted ? `✦ ${arcs.current(c.npc.id)!.title}` : errand ? '✦ they asked for it' : '',
           seen === 'loved' ? '\u2665 loves' : seen === 'disliked' ? '\u2715 dislikes' : seen ? seen : '',
           `\u00d7${e.qty}`,
         ]
@@ -495,6 +608,21 @@ function giftMenu(c: Conversation, page: number) {
 async function doGift(c: Conversation, id: string) {
   const it = item(id);
   const e = st.bag.get(id)!;
+  // The thing their story needs: it finishes the step instead of being an ordinary gift.
+  if (arcs.wantsGift(c.r, id, it.cat, e.q)) {
+    st.take(id);
+    arcs.gave(c.r);
+    await storyEnd(c);
+    mainMenu(c);
+    return;
+  }
+  // Something they asked for on the notice board: an errand, not a gift.
+  if (jobs.gave(c.r, id)) {
+    st.take(id);
+    await say(c, { kind: 'event', outcome: 'titip', item: it.name });
+    mainMenu(c);
+    return;
+  }
   const reaction = giftReaction(c.npc, id);
   const res = social.gift(c.npc, S.day, it.name, reaction, it.cat === 'dish', e.q);
   if (res.outcome !== 'again') {
@@ -503,6 +631,7 @@ async function doGift(c: Conversation, id: string) {
   }
   await say(c, { kind: 'gift', outcome: res.outcome, item: it.name });
   apply(c, res.delta, true);
+  if (res.outcome !== 'again') emit('gift', `${c.npc.id}:${id}:${e.q}`);
   // Something on the plate on its way back: the proper way to return it.
   if (res.outcome !== 'again' && owesPlate(c.r)) {
     const bonus = returnPlate(c.r, true)!;

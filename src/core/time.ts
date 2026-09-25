@@ -1,10 +1,11 @@
 /* Game clock. Base rate 1.2 game-minutes per real second (24 h ≈ 20 min);
    holding T runs at 60×. At 26:00 Raka falls asleep and wakes at 06:00. */
 import { $ } from './util';
-import { S, DAYS } from './state';
+import { S } from './state';
 import { player, keys } from './player';
 import { toast } from '../ui/hud';
 import { sleepRestore } from '../game/stats';
+import { dateLabel } from '../game/calendar';
 
 /** [minute of day, toast title, toast body] */
 export const EVENTS: [number, string, string][] = [
@@ -44,7 +45,7 @@ export function sleep() {
     setTimeout(() => {
       f.classList.remove('on');
       S.sleeping = false;
-      toast(`Selamat pagi. ${DAYS[S.day % 7]}, day ${S.day}`, "Raka wakes up on the teras of his grandmother's house.");
+      toast(`Selamat pagi. ${dateLabel(S.day)}`, "Raka wakes up on the teras of his grandmother's house.");
     }, 400);
   }, 1400);
 }

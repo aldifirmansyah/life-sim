@@ -58,6 +58,9 @@ function keyFor(ctx: DialogueContext): string[] {
     case 'word':
     case 'plate':
     case 'text':
+    case 'milestone':
+    case 'event':
+    case 'arc':
       return o ? [`${ctx.kind}.${o}`, ctx.kind] : [ctx.kind];
     default:
       return [ctx.kind];
@@ -70,6 +73,12 @@ export class TemplateDialogueProvider implements DialogueProvider {
 
   async getLine(ctx: DialogueContext): Promise<DialogueLine> {
     const key = keyFor(ctx).find(k => lines[k]?.length) ?? 'bye.neutral';
+    // Story scenes are scripts: the lines are read in order.
+    if (ctx.kind === 'arc') {
+      const v = lines[key][Math.min(ctx.line ?? 0, lines[key].length - 1)];
+      const o = typeof v === 'string' ? { t: v } : v;
+      return { text: fill(o.t, ctx), emote: 'emote' in o ? o.emote : undefined };
+    }
     const traits = ctx.npc.traits as string[];
     const mood = ctx.mood >= 65 ? 'good' : ctx.mood < 35 ? 'bad' : 'mid';
     const pool: { t: string; emote?: DialogueLine['emote']; w: number }[] = [];

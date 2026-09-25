@@ -24,9 +24,16 @@ import { ground } from './world/ground';
 import { initWorldNav, initResidents, updateResidents, graphStats, npcStats, residents, crowd } from './npc/npcs';
 import { updateNpcDebug } from './npc/debug';
 import { updateLife } from './social/life';
-import { updatePhone, onPhoneChange, plate } from './social/phone';
+import { updatePhone, onPhoneChange, plate, inviteToDinner } from './social/phone';
 import { buildPlate, showPlate } from './game/plate';
+import { buildFestival } from './world/festival';
+import { initEvents, updateEvents } from './game/events';
+import { registerPastimes } from './ui/pastimes';
+import { buildHouseProps, updateHouse } from './game/house';
+import { buildArcProps } from './world/arcprops';
+import { initArcs, updateArcs } from './social/arcs';
 import { updateBubbles } from './ui/bubbles';
+import { updateGame } from './ui/minigame';
 import { dailyDecay } from './social/social';
 import { updateDialogue } from './ui/dialogue';
 import { updateInteraction, interact } from './game/interact';
@@ -69,8 +76,14 @@ initResidents(vendorCount());
 initVendors(crowd, RESIDENTS.length);
 initActions();
 buildPlate();
+buildFestival();
+buildHouseProps();
+buildArcProps();
 onPhoneChange(() => showPlate(plate?.state === 'waiting'));
 registerActivities();
+initEvents();
+registerPastimes();
+initArcs(inviteToDinner);
 graphStats();
 
 /* ================= loop ================= */
@@ -99,6 +112,9 @@ function loop(now: number) {
   if (S.started && living) {
     updateLife(dt);
     updatePhone(dt);
+    updateEvents(dt);
+    updateHouse(dt);
+    updateArcs(dt);
   }
   updateVendors();
   applyCamera();
@@ -110,6 +126,7 @@ function loop(now: number) {
   updateInteraction();
   updateActivities();
   updateActions();
+  updateGame();
   if (inWorld()) updateStats(dt);
   // Friendships Raka has neglected for a week fade a little each new day.
   if (S.day !== decayDay) {
@@ -182,10 +199,15 @@ if (import.meta.env.DEV) {
     import('./social/social'),
     import('./social/plans'),
     import('./social/phone'),
-  ]).then(([npcs, nav, places, collision, stats, garden, landmarks, social, plans, phone]) => {
-    (window as unknown as Record<string, unknown>).__kampung = {
-      S,
-      player,
+    import('./social/arcs'),
+    import('./game/events'),
+    import('./game/house'),
+    import('./game/jobs'),
+    import('./social/reputation'),
+    import('./dialogue/lines.json'),
+    import('./game/interact'),
+  ]).then(
+    ([
       npcs,
       nav,
       places,
@@ -196,7 +218,36 @@ if (import.meta.env.DEV) {
       social,
       plans,
       phone,
-      renderer,
-    };
-  });
+      arcs,
+      events,
+      house,
+      jobs,
+      reputation,
+      lines,
+      interact,
+    ]) => {
+      (window as unknown as Record<string, unknown>).__kampung = {
+        S,
+        player,
+        npcs,
+        nav,
+        places,
+        collision,
+        stats,
+        garden,
+        landmarks,
+        social,
+        plans,
+        phone,
+        arcs,
+        events,
+        house,
+        jobs,
+        reputation,
+        lines: lines.default,
+        interact,
+        renderer,
+      };
+    },
+  );
 }

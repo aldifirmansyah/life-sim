@@ -9,7 +9,9 @@ import { residents, setPlan, todayBlocks, atRest, type Resident } from '../npc/n
 import { blockIndexAt } from '../npc/schedule';
 import type { Activity, ScheduleBlock } from '../npc/types';
 import { social, befriend, remember, properName, stageRank } from './social';
-import { addMood } from '../game/stats';
+import { addMood, perks } from '../game/stats';
+import { repute, goodwill } from './reputation';
+import { emit } from '../game/bus';
 
 export interface Outing {
   id: string;
@@ -17,7 +19,8 @@ export interface Outing {
   name: string;
   /** Short form for lists: "ngopi". */
   short: string;
-  location: string;
+  /** A location, or one that depends on who (dinner at their own house). */
+  location: string | ((r: Resident) => string);
   activity: Activity;
   /** Start times offered, game-minutes. */
   times: number[];
@@ -26,6 +29,8 @@ export interface Outing {
   place: string;
   /** Children stay home from this one. */
   grownUp?: boolean;
+  /** Not offered in the Invite menu or by texts (dinners, story-arc meetings). */
+  hidden?: boolean;
 }
 
 const h = (hh: number, mm = 0) => hh * 60 + mm;
@@ -82,6 +87,18 @@ export const OUTINGS: Outing[] = [
     place: 'your teras',
   },
 ];
+// Close friends invite Raka to dinner at their house (a relationship milestone).
+OUTINGS.push({
+  id: 'makan',
+  name: 'Dinner at their house',
+  short: 'dinner',
+  location: r => (r.def.household === 'sri' ? 'warung.bench' : `@${r.def.household}.teras`),
+  activity: 'eat',
+  times: [h(19)],
+  minutes: 90,
+  place: 'their house',
+  hidden: true,
+});
 export const outing = (id: string) => OUTINGS.find(o => o.id === id)!;
 
 export interface Appointment {
@@ -177,12 +194,15 @@ export function invite(r: Resident, o: Outing) {
   if (o.id === 'walk' && npc.traits.includes('sporty')) chance += 0.2;
   if (o.id === 'kopi' && npc.likes.includes('gossip')) chance += 0.1;
   if (o.id === 'teh' && rank < 2) chance -= 0.15;
+  // A restored teras is more inviting; a good name helps everywhere.
+  if (o.id === 'teh' && perks.teras) chance += 0.15;
+  chance += goodwill();
   if (Math.random() > chance) return { outcome: 'no', delta: 0, day, start };
   plan(r, o, day, start, 'raka');
   return { outcome: 'yes', delta: 1, day, start };
 }
 
-function plan(
+export function plan(
   r: Resident,
   o: Outing,
   day: number,
@@ -209,13 +229,19 @@ function plan(
 function confirm(a: Appointment) {
   const o = outing(a.outing);
   a.state = 'planned';
-  a.block = { start: a.start, end: a.end, location: o.location, activity: o.activity };
-  setPlan(resident(a.npc), a.day, a.block);
+  const r = resident(a.npc);
+  a.block = {
+    start: a.start,
+    end: a.end,
+    location: typeof o.location === 'string' ? o.location : o.location(r),
+    activity: o.activity,
+  };
+  setPlan(r, a.day, a.block);
 }
 
 /** A friend asks Raka along (by text). Returns the offer, or null if nobody is free. */
 export function npcOffer(r: Resident): Appointment | null {
-  const options = OUTINGS.filter(o => o.id !== 'teh');
+  const options = OUTINGS.filter(o => o.id !== 'teh' && !o.hidden);
   for (let tries = 0; tries < 4; tries++) {
     const o = options[Math.floor(Math.random() * options.length)];
     const { day, start } = nextSlot(o, 120);
@@ -247,7 +273,9 @@ export function checkPlans(): PlanEvent[] {
       const there = atRest(r) && todayBlocksHas(r, a);
       if (there && Math.hypot(r.x - player.x, r.z - player.z) < 5) {
         a.state = 'met';
-        const ch = befriend(r.npc, 8, S.day, true);
+        const ch = befriend(r.npc, 8 + (a.outing === 'teh' && perks.guests ? 4 : 0), S.day, true);
+        repute(1, 'You kept your word.', S.day, true);
+        emit('plan_met', `${r.npc.id}:${a.outing}`);
         remember(r.npc, {
           day: S.day,
           kind: 'plan_met',
@@ -263,6 +291,7 @@ export function checkPlans(): PlanEvent[] {
     if (late) {
       a.state = 'missed';
       const ch = befriend(r.npc, -5, S.day);
+      repute(-1, 'You didn’t turn up.', S.day, true);
       remember(r.npc, {
         day: S.day,
         kind: 'plan_missed',

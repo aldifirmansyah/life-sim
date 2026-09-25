@@ -1,5 +1,6 @@
 /* Raka's stats (spec §6): energy, mood, money, skills and the bag. No hunger:
    eating is a boost, not a need. */
+import { emit } from './bus';
 import { S } from '../core/state';
 import { player } from '../core/player';
 import { toast } from '../ui/hud';
@@ -147,6 +148,7 @@ function endJog() {
     const morning = h >= 5.5 && h < 9.5;
     practise('fitness', Math.round(jog.dist / 40));
     addMood(morning ? 5 : 2);
+    emit('jog', morning ? 'morning' : '');
     toast(
       `${morning ? 'Morning jog' : 'Jog'}: ${km.toFixed(1)} km`,
       morning ? 'The kampung is waking up with you. Fitness up, mood up.' : 'Fitness up.',
@@ -155,9 +157,12 @@ function endJog() {
   jog = { dist: 0, idle: 0, start: 0 };
 }
 
+/** Bonuses from restoring the house (set by game/house.ts). */
+export const perks = { sleep: 1, freelance: 1, kitchen: false, teras: false, guests: false };
+
 /** Sleep from now until 06:00: energy comes back with the hours slept. */
 export function sleepRestore(fromTime: number) {
   const hours = Math.max(0, (30 * 60 - fromTime) / 60);
-  addEnergy(Math.min(100, hours * 14));
-  addMood(hours >= 7 ? 6 : hours < 4 ? -6 : 0);
+  addEnergy(Math.min(100, hours * 14 * perks.sleep));
+  addMood((hours >= 7 ? 6 : hours < 4 ? -6 : 0) + (perks.sleep > 1 ? 3 : 0));
 }

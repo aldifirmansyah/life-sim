@@ -256,7 +256,49 @@ function rakaPoi() {
     const [x, z] = F(bx + o, fz + 0.42);
     return sit([x, z], th, 0.46, { approach: F(bx + o, fz + 1.0) });
   };
-  poi('raka', 'Rumah Raka', 'raka', [F(dx, fz + sb + 0.9), F(dx, fz + 1.0)], { teras: [seat(-0.35), seat(0.35)] });
+  poi('raka', 'Rumah Raka', 'raka', [F(dx, fz + sb + 0.9), F(dx, fz + 1.0)], {
+    teras: [seat(-0.35), seat(0.35)],
+    // Where Pak Karyo works when he helps restore the house.
+    work: [stand(F(dx + 1.3, fz + 0.8), F(dx + 1.3, fz - 1), { via: [F(dx, fz + 1.0)] })],
+  });
+}
+
+/** Community events (spec §7): kerja bakti spots along the lanes, and the 17 Agustus crowd at the lapangan. */
+function eventPois() {
+  // Kerja bakti: one spot per stretch of lane, a step off the centreline.
+  const spots: P2[] = [
+    ...[-22, -10, 6, 26].map(x => [x, 16] as P2),
+    ...[-20, -12, 22].map(x => [x, -8] as P2),
+    ...[-8, 20].map(x => [x, -32] as P2),
+    ...[-14, 12].map(x => [x, 38] as P2),
+  ];
+  const lane: P2[] = [-44, -20, 8, 30].map(z => [0, z] as P2);
+  spots.forEach(([x, z], k) =>
+    poi(`kerja${k}`, 'Kerja bakti', 'kerja', [[x, z]], { sweep: [stand([x + 0.8, z + 0.55], [x + 2, z + 0.55])] }),
+  );
+  lane.forEach(([x, z], k) =>
+    poi(`kerjaJ${k}`, 'Kerja bakti', 'kerja', [[x, z]], { sweep: [stand([x + 1.8, z + 0.8], [x + 1.8, z + 2])] }),
+  );
+  // 17 Agustus: spectators round the field for the upacara and the lomba, and an audience for the night stage.
+  const crowd: SlotSpec[] = [];
+  for (let x = -52.5; x <= -36.5; x += 1.35) crowd.push(stand([x, -3.2], [x, 3]));
+  for (let z = -0.5; z <= 10; z += 1.6) {
+    crowd.push(stand([-55, z], [-44, z]));
+    crowd.push(stand([-34.6, z], [-44, z]));
+  }
+  const audience: SlotSpec[] = [];
+  for (const z of [7.6, 6.3, 5.0])
+    for (let x = -49.2; x <= -40.4; x += 1.1) audience.push(stand([x + (z === 6.3 ? 0.5 : 0), z], [-44.8, 12]));
+  poi(
+    'fest',
+    'Lapangan',
+    'fest',
+    [
+      [-44, -7.3],
+      [-44, -5.7],
+    ],
+    { crowd, audience },
+  );
 }
 
 /** Home POI for a row house: in through the door, or out on the teras bench (a stool pair if it has none). */
@@ -312,6 +354,7 @@ export const HOUSEHOLD_SITES: Record<string, P2 | 'warung'> = {
 export function buildPlaces() {
   landmarkPois();
   rakaPoi();
+  eventPois();
   pasarPois();
   const taken = new Set<number>();
   for (const [household, site] of Object.entries(HOUSEHOLD_SITES)) {

@@ -7,7 +7,18 @@ import { S, DAYS } from '../core/state';
 import { residents, headPos, todayBlocks, type Resident } from '../npc/npcs';
 import { lineFor } from '../dialogue/provider';
 import { social, remember, properName, stageRank } from './social';
-import { checkPlans, npcOffer, answerOffer, appointments, outing, when, type Appointment } from './plans';
+import { repute } from './reputation';
+import {
+  checkPlans,
+  npcOffer,
+  answerOffer,
+  appointments,
+  outing,
+  when,
+  plan,
+  nextSlot,
+  type Appointment,
+} from './plans';
 import { bubble } from '../ui/bubbles';
 import { toast } from '../ui/hud';
 import { item } from '../game/items';
@@ -114,6 +125,7 @@ function planDay() {
   plannedDay = S.day;
   if (firstDay < 0) firstDay = S.day;
   queue = [];
+  for (const fn of dayHooks) fn();
   const R = (a: number, b: number) => a + Math.floor(Math.random() * (b - a));
   const rt = byId('bambang')!;
   const dow = S.day % 7;
@@ -292,6 +304,7 @@ export function takePlate() {
 export function returnPlate(r: Resident, withFood: boolean) {
   if (!plate || plate.state !== 'taken' || plate.npc !== r.npc.id) return null;
   plate = null;
+  repute(1, 'You returned the plate, the proper way.', S.day, true);
   remember(r.npc, {
     day: S.day,
     kind: withFood ? 'plate_full' : 'plate_back',
@@ -311,6 +324,32 @@ export function announcePeace(a: Resident, b: Resident) {
   );
   const [p, q] = Math.random() < 0.5 ? [a, b] : [b, a];
   later(S.time + 20, () => void groupPost(p, 'peace', undefined, q));
+}
+
+/** Other systems (events, arcs) add their own messages for the day here; called once each new day. */
+const dayHooks: (() => void)[] = [];
+export const onPhoneDay = (fn: () => void) => dayHooks.push(fn);
+
+/** A group-chat post by a resident at a game time today (with the usual replies). */
+export function schedulePost(at: number, npcId: string, outcome: string, detail?: string) {
+  const r = byId(npcId);
+  if (r) later(at, () => void groupPost(r, outcome, detail));
+}
+/** A private text from a resident, now or at a game time today. */
+export function sendText(npcId: string, outcome: string, part: { detail?: string; item?: string } = {}, at?: number) {
+  const r = byId(npcId);
+  if (!r) return;
+  const go = () => void text(r, r.npc.id, { kind: 'text', outcome, ...part });
+  if (at === undefined || at <= S.time) go();
+  else later(at, go);
+}
+
+/** A close friend asks Raka to dinner at their house (relationship milestone). */
+export function inviteToDinner(r: Resident) {
+  const o = outing('makan');
+  const { day, start } = nextSlot(o, 120);
+  const a = plan(r, o, day, start, 'npc', 'offered');
+  void text(r, r.npc.id, { kind: 'text', outcome: 'invite.makan', detail: when(a.day, a.start) }, a.id);
 }
 
 /** For the plans list. */

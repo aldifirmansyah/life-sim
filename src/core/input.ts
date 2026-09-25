@@ -8,6 +8,7 @@ import { show, tryLock, play, pause, openMap, closeMap } from '../ui/overlays';
 import { toggleGraph } from '../npc/debug';
 import { dialogKey } from '../ui/dialogue';
 import { panelKey } from '../ui/panel';
+import { gameKey } from '../ui/minigame';
 import { interact } from '../game/interact';
 import { skipAction } from '../game/actions';
 import { openPhone, closePhone } from '../ui/contacts';
@@ -60,6 +61,7 @@ export function initInput() {
       e.preventDefault();
       return;
     }
+    if (S.game) return gameKey(e);
     if (S.dialog) return dialogKey(e);
     if (S.panel) return panelKey(e);
     if (S.phone) {

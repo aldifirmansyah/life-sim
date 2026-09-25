@@ -16,6 +16,10 @@ import * as st from '../game/stats';
 import { pots, CROPS, isReady, refreshGarden, type Pot } from '../game/garden';
 import { openPanel, closePanel, setPanelFooter, type Row } from './panel';
 import { toast } from './hud';
+import { emit } from '../game/bus';
+import { playGuitar } from './pastimes';
+import { repute } from '../social/reputation';
+import { ROOMS, restored, job as houseJob, canBook, book } from '../game/house';
 import { plate, takePlate } from '../social/phone';
 import { platePos, showPlate } from '../game/plate';
 
@@ -30,7 +34,7 @@ function present(id: string, poi: string, tag: string): Resident | null {
 }
 
 /** Let time pass with a fade: "two hours later". Ends the day if it runs past 02:00. */
-function passTime(minutes: number, text: string, done?: () => void) {
+export function passTime(minutes: number, text: string, done?: () => void) {
   closePanel();
   S.sleeping = true;
   const f = $('fade');
@@ -118,6 +122,7 @@ function buy(v: Vendor, it: Item, eatHere: boolean, back: (() => void) | undefin
   const who = seller(v, stall);
   if (!who || !st.spend(it.price)) return;
   S.time += 1;
+  emit('buy', `${v}:${it.id}`);
   // Hide the menu while Raka pays and takes it; the keeper stays put until he's done.
   closePanel(false);
   const release = () => {
@@ -200,6 +205,10 @@ function homeMenu(note?: string) {
     body: note,
     rows: [
       { label: 'Freelance work on the laptop…', run: freelanceMenu },
+      { label: 'Restore the house…', note: `${restored.size} of ${ROOMS.length} rooms`, run: () => restoreMenu() },
+      ...(st.count('gitar')
+        ? [{ label: 'Play the guitar on the teras', note: '30 min · Music', run: () => playGuitar('the teras') }]
+        : []),
       { label: 'Cook something…', run: cookMenu },
       {
         label: 'Rest for an hour',
@@ -226,9 +235,41 @@ function homeMenu(note?: string) {
   });
 }
 
+/** Restoring Mbah Minah's house with Pak Karyo, one room at a time. */
+function restoreMenu(note?: string) {
+  const blocked = canBook();
+  openPanel({
+    title: 'Restore the house',
+    sub: `${restored.size} of ${ROOMS.length} rooms done · Pak Karyo works 09:00–13:00`,
+    body:
+      note ??
+      (houseJob
+        ? `Pak Karyo is booked for the ${ROOMS.find(r => r.id === houseJob!.room)!.name.toLowerCase()} ${houseJob.day === S.day ? 'today' : 'tomorrow'}. Be around to lend a hand.`
+        : 'Pay for the materials and Pak Karyo comes the next morning. Every room turns up something of Mbah Minah’s.'),
+    rows: ROOMS.map(r => ({
+      label: r.name,
+      note: restored.has(r.id) ? 'done' : `${rupiah(r.cost)} · ${r.unlock}`,
+      disabled: restored.has(r.id)
+        ? 'done'
+        : houseJob?.room === r.id
+          ? 'booked'
+          : (blocked ?? (st.canAfford(r.cost) ? undefined : `${rupiah(r.cost)}, not enough money`)),
+      run: () => {
+        if (book(r))
+          restoreMenu(
+            `Paid ${rupiah(r.cost)}. Pak Karyo will come ${S.time < 8 * 60 ? 'this' : 'tomorrow'} morning at 09:00.`,
+          );
+      },
+    })),
+    back: () => homeMenu(),
+  });
+}
+
 function freelanceMenu() {
   const late = hour() >= 23 || hour() < 6;
-  const opt = (hours: number, pay: number): Row => {
+  const opt = (hours: number, base: number): Row => {
+    // A proper desk (house restoration) pays better.
+    const pay = Math.round((base * st.perks.freelance) / 1000) * 1000;
     const cost = hours * 8;
     return {
       label: `Work ${hours} hour${hours > 1 ? 's' : ''}`,
@@ -238,6 +279,7 @@ function freelanceMenu() {
         const job = JOBS[Math.floor(Math.random() * JOBS.length)];
         passTime(hours * 60, `Working on ${job}…`, () => {
           st.earn(pay);
+          emit('freelance');
           st.addEnergy(-cost);
           st.addMood(hours >= 4 ? -4 : -1);
           toast(`Freelance: +${rupiah(pay)}`, `You finished ${job}.`);
@@ -285,14 +327,17 @@ function cook(id: string) {
   const r = RECIPES.find(r => r.id === id)!;
   for (const [ing, n] of Object.entries(r.needs)) st.take(ing, n);
   const lvl = st.level('cooking');
-  const q = Math.max(1, Math.min(5, Math.round(1 + (lvl - 1) * 0.45 + Math.random() * 1.6)));
+  const bonus = st.perks.kitchen ? 1 : 0;
+  const q = Math.max(1, Math.min(5, Math.round(1 + bonus + (lvl - 1) * 0.45 + Math.random() * 1.6)));
+  const portions = r.portions + bonus;
   passTime(r.minutes, `Cooking ${item(id).name.toLowerCase()}…`, () => {
-    st.add(id, r.portions, q);
+    st.add(id, portions, q);
+    emit('cook', `${id}:${q}`);
     st.practise('cooking', 8 + q * 3);
     st.addEnergy(-4);
     st.addMood(2);
     toast(
-      `${item(id).name} ×${r.portions}  ${'★'.repeat(q)}${'☆'.repeat(5 - q)}`,
+      `${item(id).name} ×${portions}  ${'★'.repeat(q)}${'☆'.repeat(5 - q)}`,
       'Eat it from your bag, or share it with a neighbour.',
     );
   });
@@ -335,6 +380,7 @@ function usePot(p: Pot) {
   if (isReady(p)) {
     const n = 2 + Math.floor((st.level('gardening') - 1) / 3);
     st.add(c.crop, n);
+    emit('harvest', c.crop);
     st.practise('gardening', 12);
     st.addMood(3);
     toast(`Harvested ${n} ${c.label}`, 'Fresh from your own garden. Cook with them, or give some away.');
@@ -435,6 +481,8 @@ function endShift(early = false) {
     st.addMood(3);
     st.practise('charisma', 6 + s.served * 2);
     const ch = social.befriend(sri, 2 + Math.floor(s.served / 2), S.day);
+    emit('shift');
+    repute(1, 'You helped out at the warung.', S.day, true);
     toast(
       `Warung shift: +${rupiah(pay + s.tips)}`,
       `${s.served} customers served${s.mistakes ? `, ${s.mistakes} mix-ups` : ''}. ${ch.delta > 0 ? 'Bu Sri likes you more.' : 'Bu Sri is grateful.'}`,

@@ -15,6 +15,13 @@ import { finishEating } from './activities';
 import { item, rupiah } from '../game/items';
 import { threads, GROUP, unreadTotal, setViewing, onPhoneChange, answer, dayName, type Thread } from '../social/phone';
 import { upcoming, outing, when, withWhom, appointments } from '../social/plans';
+import { rep, tier } from '../social/reputation';
+import { dateLabel, shortDate } from '../game/calendar';
+import { eventsOn } from '../game/events';
+import { activeJobs, describeJob } from '../game/jobs';
+import { job as houseJob, houseStatus } from '../game/house';
+import { journal as arcsJournal } from '../social/arcs';
+import { minah } from '../social/minah';
 
 const GLOSSARY: [string, string][] = [
   ['Pak / Bu', 'Mr / Mrs. For elders and anyone older or respected. Use it with the first name: Pak Darto, Bu Sri.'],
@@ -78,9 +85,10 @@ export function closePhone() {
   tryLock();
 }
 
-type Tab = 'chats' | 'contacts' | 'bag' | 'skills' | 'glossary';
+type Tab = 'chats' | 'journal' | 'contacts' | 'bag' | 'skills' | 'glossary';
 const TAB_TITLE: Record<Tab, string> = {
   chats: 'Chats',
+  journal: 'Journal',
   contacts: 'Contacts',
   bag: 'Bag',
   skills: 'Skills',
@@ -89,6 +97,7 @@ const TAB_TITLE: Record<Tab, string> = {
 let tabNow: Tab = 'contacts';
 const RENDER: Record<Tab, () => void> = {
   chats: renderChats,
+  journal: renderJournal,
   contacts: renderContacts,
   bag: renderBag,
   skills: renderSkills,
@@ -121,6 +130,69 @@ export function bindPhone() {
     if (content && S.phone && tabNow === 'chats') renderChats();
   });
 }
+
+/* ================= journal ================= */
+
+function renderJournal() {
+  const t = tier();
+  $('phone-count').textContent = dateLabel(S.day);
+  const sec = (title: string, body: string) => `<section class="jsec"><h4>${title}</h4>${body}</section>`;
+  // Reputation.
+  const span = Math.max(1, t.next - t.floor);
+  const repHtml = `<div class="rep"><b>${esc(t.name)}</b><span>${esc(t.blurb)}</span><i><em style="width:${Math.round(((rep.value - t.floor) / span) * 100)}%"></em></i></div>`;
+  // Coming up: events, plans, jobs, Pak Karyo.
+  const up: string[] = [];
+  for (let d = S.day; d < S.day + 7; d++)
+    for (const e of eventsOn(d))
+      if (d > S.day || e.end > S.time)
+        up.push(
+          `<li><b>${esc(e.name)}</b> · ${esc(e.place)}<span>${d === S.day ? 'Today' : esc(shortDate(d))} ${clockOf(e.start)}–${clockOf(e.end)} · ${esc(e.blurb)}</span></li>`,
+        );
+  for (const a of upcoming())
+    up.push(
+      `<li><b>${esc(outing(a.outing).name.replace('Raka’s', 'your'))}</b> with ${esc(withWhom(a))}<span>${esc(when(a.day, a.start))} · ${esc(outing(a.outing).place)}${a.state === 'offered' ? ' · waiting for your answer (Chats)' : ''}</span></li>`,
+    );
+  for (const j of activeJobs()) up.push(`<li><b>Odd job</b><span>${esc(describeJob(j))}</span></li>`);
+  if (houseJob)
+    up.push(
+      `<li><b>Pak Karyo</b> works on the house<span>${houseJob.day === S.day ? 'Today' : esc(shortDate(houseJob.day))} 09:00–13:00. Be around to lend a hand.</span></li>`,
+    );
+  // Stories.
+  const stories = arcsJournal();
+  const storyHtml = stories.length
+    ? `<ul>${stories
+        .map(
+          s =>
+            `<li class="${s.step >= 3 ? 'done' : s.ready ? 'ready' : ''}"><b>${esc(s.title)}</b> · ${esc(s.r.npc.name)} <em>${'●'.repeat(s.step)}${'○'.repeat(3 - s.step)}</em><span>${
+              s.step >= 3
+                ? 'Complete.'
+                : s.active
+                  ? `${esc(s.stepTitle!)}: ${esc(s.hint!)}`
+                  : `Next part when you’re closer (friendship ${s.next}).`
+            }</span></li>`,
+        )
+        .join('')}</ul>`
+    : '<p class="empty">Neighbours share their stories as you get to know them. Talk to people, and look for ✦.</p>';
+  const houseHtml = `<ul class="rooms">${houseStatus()
+    .map(
+      r =>
+        `<li class="${r.state}"><b>${esc(r.name)}</b><span>${r.state === 'done' ? 'Restored. ' + esc(r.unlock) : r.state === 'booked' ? 'Pak Karyo is booked.' : `${rupiah(r.cost)}. ${esc(r.unlock)}`}</span></li>`,
+    )
+    .join('')}</ul>`;
+  const minahHtml = minah.length
+    ? `<ul class="minah">${minah.map(m => `<li><b>${esc(m.title)}</b><p>${esc(m.text)}</p><span>${esc(m.from)} · ${esc(shortDate(m.day))}</span></li>`).join('')}</ul>`
+    : '<p class="empty">Who was she, to all these people? Restore her house and listen to the elders.</p>';
+  $('journal').innerHTML =
+    sec('Reputation', repHtml) +
+    sec(
+      'Coming up',
+      up.length ? `<ul>${up.join('')}</ul>` : '<p class="empty">Nothing planned. Invite someone out.</p>',
+    ) +
+    sec('Stories', storyHtml) +
+    sec('Mbah Minah', minahHtml) +
+    sec('Rumah Mbah Minah', houseHtml);
+}
+const clockOf = (t: number) => `${String(Math.floor(t / 60) % 24).padStart(2, '0')}:${String(t % 60).padStart(2, '0')}`;
 
 /* ================= chats ================= */
 

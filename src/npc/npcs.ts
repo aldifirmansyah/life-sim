@@ -16,7 +16,7 @@ import type { NPC, ScheduleBlock } from './types';
 import { stageFor } from '../social/social';
 import { RESIDENTS, TIES, type ResidentDef } from './roster';
 import { generateAppearance } from './appearance';
-import { buildPlaces, groups, homes, pois, type P2, type Poi, type Slot } from './places';
+import { buildPlaces, groups, homes, pois, poiById, type P2, type Poi, type Slot } from './places';
 import { buildGraph, buildPath, sample, nodes, edgeCount, type Path } from './navgraph';
 import { blockIndexAt } from './schedule';
 import { Crowd, type PoseState } from './characters';
@@ -267,13 +267,15 @@ export function setPlan(r: Resident, day: number, block: ScheduleBlock, remove =
 
 function candidates(r: Resident, location: string) {
   const [group, tag = group] = location.split('.');
-  // `home` is the resident's own house; `@<household>` is someone else's (a teras visit).
+  // `home` is the resident's own house; `@<household>` is someone else's (a teras visit); `#<poi>` is one particular place.
   const list =
     group === 'home'
       ? [homes.get(r.def.household)!]
       : group.startsWith('@')
         ? [homes.get(group.slice(1))!]
-        : (groups.get(group) ?? []);
+        : group.startsWith('#')
+          ? [poiById.get(group.slice(1))!]
+          : (groups.get(group) ?? []);
   return { list, tag };
 }
 

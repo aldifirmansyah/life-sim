@@ -64,7 +64,7 @@ export class Batch {
 }
 
 /** Unit gable prism: base on y=0 spanning x,z ∈ [-.5,.5], ridge along x at y=1. */
-function prismGeo() {
+export function prismGeo() {
   type V = [number, number, number];
   const A = (x: number): V => [x, 0, -0.5],
     B = (x: number): V => [x, 0, 0.5],
