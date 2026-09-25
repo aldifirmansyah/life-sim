@@ -258,8 +258,18 @@ export function updateAudio(extra: { bakso?: [number, number] | null; chats?: [n
     const src = at(x, z, 10);
     if (src) hiss(src, 'bandpass', 400 + Math.random() * 500, 4, t, 0.05, 0.25 + Math.random() * 0.2, 0.18);
   }
-  // Mbah Minah's old radio, if it's on.
+  // Mbah Minah's old radio, if it's on, and the TV.
   if (radio) radioTick(t);
+  if (tv && t > tvNext) {
+    tvNext = t + 0.18 + Math.random() * 0.3;
+    const src = at(tv[0], tv[1], 14);
+    // Voices from a small speaker, and now and then a jingle.
+    if (src) {
+      hiss(src, 'bandpass', 500 + Math.random() * 700, 5, t, 0.03, 0.15 + Math.random() * 0.2, 0.16);
+      if (Math.random() < 0.06)
+        for (let i = 0; i < 3; i++) tone(src, 'square', 660 * [1, 1.25, 1.5][i], null, t + i * 0.12, 0.005, 0.1, 0.03);
+    }
+  }
   // Footsteps.
   if (inWorld()) {
     const moved = Math.hypot(player.x - lastX, player.z - lastZ);
@@ -281,6 +291,12 @@ let baksoNext = 0,
 
 /* ================= the radio ================= */
 
+/** Where the TV is on, or null. */
+let tv: [number, number] | null = null;
+let tvNext = 0;
+export function setTv(at: [number, number] | null) {
+  tv = at;
+}
 /** Where the radio is playing, or null when it's off. */
 let radio: [number, number] | null = null;
 let radioNext = 0,

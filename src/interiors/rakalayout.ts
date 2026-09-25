@@ -22,18 +22,20 @@ export const KAMAR_DOOR = -1.9,
 
 type P2 = [number, number];
 
-/* Ruang tamu: a compact kursi tamu set against the partition (left of centre), the desk under the right-hand
-   window, a bufet with the radio against the right wall, a calendar by the door. The front of the room is left
-   clear, so you can walk from the door to the desk. */
-export const TABLE = { x: -0.4, z: 1.45, w: 0.8, d: 0.45, h: 0.42 };
-/** The wooden bench (Raka's side), back to the partition, facing the front. */
-export const BENCH = { x: -0.4, z: 0.65, w: 1.1, d: 0.5, seats: [-0.27, 0.27] as number[] };
-/** Two armchairs for guests at the ends of the table, facing each other across it (face: +1 looks toward +x). */
-export const CHAIRS: { x: number; z: number; face: 1 | -1; approach: P2 }[] = [
-  { x: -1.25, z: 1.45, face: 1, approach: [-1.25, 2.0] },
-  { x: 0.45, z: 1.45, face: -1, approach: [0.45, 2.0] },
+/* Ruang tamu: a three-seat sofa against the partition (between the two doorways), a coffee table in front of
+   it and the TV on a low cabinet under the front window, facing the sofa. The desk sits under the right-hand
+   window, a bufet with the radio against the right wall, a calendar by the door. The strip between the coffee
+   table and the TV cabinet stays clear, so you can walk from the door to the desk. */
+export const SOFA = { x: -0.45, z: 0.72, w: 1.8, d: 0.78, seats: [-0.58, 0, 0.58] as number[] };
+/** Seat cushion top, and where each seat's sitter stands up to (clear of the sofa and the table). */
+export const SEAT_Y = FL + 0.44;
+export const SOFA_OUT: P2[] = [
+  [-1.6, 1.45],
+  [-1.6, 1.45],
+  [0.75, 1.45],
 ];
-export const SEAT_Y = 0.55;
+export const TABLE = { x: -0.45, z: 1.5, w: 0.9, d: 0.46, h: 0.42 };
+export const TV_CABINET = { x: -0.45, z: 2.76, w: 1.1, d: 0.4, h: 0.5 };
 export const DESK = { x: 2.4, z: 2.65, w: 1.2, d: 0.55, h: 0.76 };
 export const DESK_CHAIR = { x: 2.4, z: 2.02, approach: [2.4, 1.45] as P2 };
 export const BUFET = { x: 3.13, z: 1.2, w: 0.45, d: 1.1, h: 0.85 };

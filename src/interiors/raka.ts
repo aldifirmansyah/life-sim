@@ -180,31 +180,31 @@ function buildShell(set: PropSet) {
   P(L.LAMP[0], CE - 0.42, L.LAMP[1], 0.2, 0.1, 0.2, '#e6e2d6', set.cone);
 
   /* ---- Ruang tamu ---- */
-  // Kursi tamu: a low table, the long bench and two armchairs, all dark wood.
+  // A three-seat sofa (an old olive velvet one), a coffee table, the TV cabinet facing them.
+  const sf = L.SOFA;
+  const sx0 = sf.x - sf.w / 2,
+    sx1 = sf.x + sf.w / 2,
+    sz0 = sf.z - sf.d / 2,
+    sz1 = sf.z + sf.d / 2;
+  const velvet = '#6b7f5a',
+    velvetD = '#56684a';
+  P(sf.x, FL + 0.2, sf.z, sf.w, 0.2, sf.d, velvetD);
+  for (const o of sf.seats) P(sf.x + o, L.SEAT_Y - 0.07, sf.z + 0.07, 0.56, 0.14, sf.d - 0.24, velvet);
+  P(sf.x, FL + 0.66, sz0 + 0.1, sf.w, 0.46, 0.2, velvetD);
+  for (const o of sf.seats) P(sf.x + o, FL + 0.66, sz0 + 0.24, 0.54, 0.4, 0.1, velvet, set.solid, 0, -0.12);
+  for (const e of [-1, 1]) P(sf.x + e * (sf.w / 2 - 0.08), FL + 0.45, sf.z, 0.16, 0.34, sf.d, velvetD);
+  for (const x of [sx0 + 0.06, sx1 - 0.06])
+    for (const z of [sz0 + 0.06, sz1 - 0.06]) P(x, FL + 0.05, z, 0.05, 0.1, 0.05, WOOD_D);
+  colOnly(sx0, sx1, sz0, sz1);
   const t = L.TABLE;
   P(t.x, FL + t.h - 0.02, t.z, t.w, 0.04, t.d, WOOD);
   P(t.x, FL + 0.12, t.z, t.w - 0.12, 0.02, t.d - 0.1, WOOD_D);
   legs(t.x - t.w / 2, t.x + t.w / 2, t.z - t.d / 2, t.z + t.d / 2, t.h - 0.04);
   colOnly(t.x - t.w / 2, t.x + t.w / 2, t.z - t.d / 2, t.z + t.d / 2);
-  const bench = L.BENCH;
-  const bz0 = bench.z - bench.d / 2,
-    bz1 = bench.z + bench.d / 2;
-  P(bench.x, FL + 0.42, bench.z + 0.03, bench.w, 0.05, bench.d - 0.06, WOOD);
-  P(bench.x, FL + 0.72, bz0 + 0.04, bench.w, 0.5, 0.04, WOOD);
-  for (const sx of [-1, 1]) {
-    P(bench.x + sx * (bench.w / 2 - 0.03), FL + 0.6, bench.z, 0.06, 0.05, bench.d, WOOD_D);
-    P(bench.x + sx * (bench.w / 2 - 0.03), FL + 0.3, bz1 - 0.05, 0.05, 0.6, 0.05, WOOD_D);
-  }
-  legs(bench.x - bench.w / 2, bench.x + bench.w / 2, bz0, bz1, 0.4);
-  colOnly(bench.x - bench.w / 2, bench.x + bench.w / 2, bz0, bz1);
-  // Armchairs: 0.46 deep (along x, the way they face), 0.5 wide.
-  for (const c of L.CHAIRS) {
-    P(c.x, FL + 0.42, c.z, 0.44, 0.05, 0.46, WOOD);
-    P(c.x - c.face * 0.21, FL + 0.72, c.z, 0.04, 0.5, 0.48, WOOD);
-    for (const sz of [-1, 1]) P(c.x, FL + 0.6, c.z + sz * 0.23, 0.46, 0.05, 0.05, WOOD_D);
-    legs(c.x - 0.23, c.x + 0.23, c.z - 0.25, c.z + 0.25, 0.4);
-    colOnly(c.x - 0.23, c.x + 0.23, c.z - 0.25, c.z + 0.25);
-  }
+  const tc = L.TV_CABINET;
+  W(tc.x - tc.w / 2, tc.x + tc.w / 2, tc.z - tc.d / 2, tc.z + tc.d / 2, FL + 0.06, FL + tc.h, WOOD);
+  for (const o of [-0.27, 0.27]) P(tc.x + o, FL + 0.28, tc.z - tc.d / 2 - 0.005, 0.5, 0.36, 0.01, WOOD_D);
+  legs(tc.x - tc.w / 2, tc.x + tc.w / 2, tc.z - tc.d / 2, tc.z + tc.d / 2, 0.06);
   // The bufet against the right wall, with the radio on it.
   const bf = L.BUFET;
   const bx0 = bf.x - bf.w / 2;
@@ -219,10 +219,10 @@ function buildShell(set: PropSet) {
   P(rx - 0.082, ry + 0.02, rz + 0.08, 0.005, 0.04, 0.08, '#e8d9a8');
   for (const o of [0.1, 0.05]) P(rx - 0.085, ry - 0.035, rz + o, 0.012, 0.012, 0.012, '#c9c4b8', set.cyl);
   P(rx, ry + 0.25, rz + 0.1, 0.004, 0.4, 0.004, '#bdbdbd', set.cyl, 0, 0.35);
-  // A wall clock above the bench, and the calendar by the door (a toko emas one, of course).
-  P(-0.2, 2.25, PZ + 0.06, 0.16, 0.02, 0.16, '#f4efe2', set.cyl, 0, Math.PI / 2);
-  P(-0.2, 2.25, PZ + 0.075, 0.012, 0.1, 0.004, '#222');
-  P(-0.17, 2.26, PZ + 0.075, 0.07, 0.01, 0.004, '#222', set.solid, 0, 0, 0.6);
+  // A wall clock above the sofa, and the calendar by the door (a toko emas one, of course).
+  P(sf.x, 2.25, PZ + 0.06, 0.16, 0.02, 0.16, '#f4efe2', set.cyl, 0, Math.PI / 2);
+  P(sf.x, 2.25, PZ + 0.075, 0.012, 0.1, 0.004, '#222');
+  P(sf.x + 0.03, 2.26, PZ + 0.075, 0.07, 0.01, 0.004, '#222', set.solid, 0, 0, 0.6);
   const [cx, cy, cz] = L.CALENDAR;
   P(cx, cy, cz, 0.01, 0.55, 0.4, '#f4f1ea');
   P(cx + 0.003, cy + 0.2, cz, 0.012, 0.12, 0.4, '#c23a2e');
@@ -322,30 +322,48 @@ function buildState() {
 
   /* Ruang tamu. */
   const t = L.TABLE,
-    bench = L.BENCH;
+    sf = L.SOFA,
+    tc = L.TV_CABINET;
+  const tvTop = FL + tc.h;
   if (!done('ruangtamu')) {
-    // Everything under dust sheets.
-    P(t.x, FL + t.h / 2 + 0.01, t.z, t.w + 0.08, t.h + 0.02, t.d + 0.08, SHEET, set.cloth);
-    P(bench.x, FL + 0.5, bench.z, bench.w + 0.1, 0.98, bench.d + 0.08, SHEET, set.cloth);
-    P(bench.x - 0.3, FL + 0.99, bench.z - 0.1, 0.5, 0.06, 0.3, '#d8d1c0', set.cloth, 0.2);
-    for (const c of L.CHAIRS) P(c.x, FL + 0.5, c.z, 0.54, 0.98, 0.58, SHEET, set.cloth);
+    // Dust sheets over the sofa (seat and back, close to the shape) and the coffee table.
+    P(sf.x, L.SEAT_Y + 0.012, sf.z + 0.05, sf.w + 0.04, 0.02, sf.d - 0.1, SHEET, set.cloth);
+    P(sf.x, (FL + L.SEAT_Y) / 2, sf.z + sf.d / 2 + 0.01, sf.w + 0.04, L.SEAT_Y - FL - 0.04, 0.02, SHEET, set.cloth);
+    P(sf.x, FL + 0.9, sf.z - sf.d / 2 + 0.16, sf.w + 0.04, 0.02, 0.34, SHEET, set.cloth);
+    P(
+      sf.x,
+      (L.SEAT_Y + FL + 0.9) / 2,
+      sf.z - sf.d / 2 + 0.32,
+      sf.w + 0.04,
+      FL + 0.9 - L.SEAT_Y,
+      0.02,
+      SHEET,
+      set.cloth,
+    );
+    for (const e of [-1, 1]) P(sf.x + e * (sf.w / 2 - 0.08), FL + 0.44, sf.z, 0.2, 0.38, sf.d + 0.03, SHEET, set.cloth);
+    P(sf.x - 0.4, L.SEAT_Y + 0.03, sf.z + 0.1, 0.5, 0.03, 0.35, '#d8d1c0', set.cloth, 0.3);
+    P(t.x, FL + t.h + 0.012, t.z, t.w + 0.08, 0.02, t.d + 0.08, SHEET, set.cloth);
+    // An old box TV with a crocheted doily on top.
+    P(tc.x, tvTop + 0.21, tc.z + 0.02, 0.6, 0.42, 0.42, '#3a3834');
+    P(tc.x, tvTop + 0.2, tc.z - 0.2, 0.46, 0.34, 0.01, '#20262a');
+    P(tc.x, tvTop + 0.425, tc.z + 0.02, 0.4, 0.006, 0.3, '#f4efe4', set.cloth);
     for (const [x, z, w, d, r] of [
       [1.2, 1.3, 0.9, 0.6, 0.3],
       [-2.4, 1.6, 0.7, 0.5, -0.4],
-      [0.7, 2.6, 0.5, 0.4, 0.8],
+      [0.9, 2.3, 0.5, 0.4, 0.8],
     ])
       floorPatch(x, z, w, d, '#b9ae95', r);
     // Peeling paint by the window and a cobweb in the corner.
     P(1.0, 1.9, IZ - 0.012, 0.35, 0.5, 0.004, '#c6cfbf');
     P(IX - 0.1, CE - 0.1, IZ - 0.1, 0.25, 0.004, 0.25, '#f2f2f2', set.cloth, Math.PI / 4, 0.5);
   } else {
-    // Cushions, a lace taplak, a jar of kue kering and a rug.
-    for (const o of bench.seats) P(bench.x + o, FL + 0.48, bench.z + 0.04, 0.48, 0.07, 0.4, '#9a3b2a');
-    P(bench.x, FL + 0.72, bench.z - bench.d / 2 + 0.09, bench.w - 0.2, 0.36, 0.06, '#b0503a');
-    for (const c of L.CHAIRS) {
-      P(c.x + c.face * 0.02, FL + 0.48, c.z, 0.38, 0.07, 0.42, '#9a3b2a');
-      P(c.x - c.face * 0.17, FL + 0.72, c.z, 0.06, 0.36, 0.42, '#b0503a');
-    }
+    // Batik throw pillows, a crocheted cover on the back, a lace taplak with a jar of kue kering, a rug, a flat TV.
+    for (const [o, c] of [
+      [-0.72, '#b0503a'],
+      [0.72, '#d9a441'],
+    ] as const)
+      P(sf.x + o, L.SEAT_Y + 0.2, sf.z - 0.12, 0.34, 0.34, 0.12, c, set.solid, 0, -0.3);
+    P(sf.x, FL + 0.9, sf.z - sf.d / 2 + 0.1, 0.7, 0.015, 0.26, '#f4efe4', set.cloth);
     P(t.x, FL + t.h + 0.003, t.z, t.w - 0.1, 0.004, t.d + 0.1, '#f4efe4', set.cloth);
     P(t.x - 0.25, FL + t.h + 0.08, t.z, 0.07, 0.15, 0.07, '#d8e8e8', set.cyl);
     P(t.x - 0.25, FL + t.h + 0.165, t.z, 0.075, 0.02, 0.075, '#d8392a', set.cyl);
@@ -355,8 +373,11 @@ function buildState() {
       [0.04, '#f2c14e'],
     ] as const)
       P(t.x + 0.25 + o, FL + t.h + 0.2, t.z - 0.05, 0.05, 0.05, 0.05, c, set.cone);
-    floorPatch(t.x, t.z - 0.2, 2.1, 1.3, '#8a4a3a');
-    floorPatch(t.x, t.z - 0.2, 1.9, 1.1, '#a8664a');
+    P(tc.x, tvTop + 0.02, tc.z + 0.05, 0.3, 0.04, 0.16, '#222326');
+    P(tc.x, tvTop + 0.12, tc.z + 0.05, 0.06, 0.18, 0.04, '#222326');
+    P(tc.x, tvTop + 0.42, tc.z + 0.05, 0.86, 0.5, 0.04, '#1a1b1e');
+    floorPatch(t.x, t.z - 0.15, 2.2, 1.2, '#8a4a3a');
+    floorPatch(t.x, t.z - 0.15, 2.0, 1.0, '#a8664a');
     // Curtains in the front windows, tied back.
     for (const wx of windowSlots())
       if (Math.abs(wx - rakaHouse.dx) > 0.01) {
@@ -511,6 +532,15 @@ function buildState() {
   }
   set.build();
   return set;
+}
+
+/** The TV's screen (local centre and size): the old box TV, or the flat one once the ruang tamu is done. */
+export function tvScreen() {
+  const tc = L.TV_CABINET,
+    top = FL + tc.h;
+  return hasRoom('ruangtamu')
+    ? { x: tc.x, y: top + 0.42, z: tc.z + 0.028, w: 0.8, h: 0.44 }
+    : { x: tc.x, y: top + 0.2, z: tc.z - 0.207, w: 0.44, h: 0.32 };
 }
 
 function refreshState() {

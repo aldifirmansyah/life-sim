@@ -261,19 +261,21 @@ function rakaPoi() {
     teras: [seat(-0.35), seat(0.35)],
     // Where Pak Karyo works when he helps restore the house.
     work: [stand(F(dx + 1.3, fz + 0.8), F(dx + 1.3, fz - 1), { via: [F(dx, fz + 1.0)] })],
-    // Inside, in the ruang tamu (interiors/rakalayout.ts): guests in the armchairs, through the front door.
-    tamu: RL.CHAIRS.map(c =>
-      sit(F(c.x - c.face * 0.03, c.z), F(c.x + c.face * 2, c.z), RL.SEAT_Y, {
-        approach: F(c.approach[0], c.approach[1]),
-        via: [F(dx, fz - 0.8), F(dx, fz + 0.5)],
+    // Inside, in the ruang tamu (interiors/rakalayout.ts): guests at the two ends of the sofa, in through the
+    // front door; the middle is Raka's. Everyone faces the TV.
+    tamu: [0, 2].map(i => {
+      const o = RL.SOFA.seats[i],
+        [ox, oz] = RL.SOFA_OUT[i];
+      return sit(F(RL.SOFA.x + o, RL.SOFA.z + 0.05), F(RL.SOFA.x + o, RL.SOFA.z + 2), RL.SEAT_Y, {
+        approach: F(ox, oz),
+        via: [...(ox > 0 ? [F(ox, 2.15)] : []), F(dx, fz - 0.8), F(dx, fz + 0.5)],
+      });
+    }),
+    sofa: [
+      sit(F(RL.SOFA.x, RL.SOFA.z + 0.05), F(RL.SOFA.x, RL.SOFA.z + 2), RL.SEAT_Y, {
+        approach: F(RL.SOFA_OUT[1][0], RL.SOFA_OUT[1][1]),
       }),
-    ),
-    // The long bench, facing them: Raka's side (NPCs don't take it).
-    sofa: RL.BENCH.seats.map(o =>
-      sit(F(RL.BENCH.x + o, RL.BENCH.z + 0.03), F(RL.BENCH.x + o, RL.BENCH.z + 2), RL.SEAT_Y, {
-        approach: F(RL.BENCH.x + o, RL.BENCH.z + 0.45),
-      }),
-    ),
+    ],
   });
 }
 

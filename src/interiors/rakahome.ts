@@ -7,6 +7,7 @@
    - the kursi tamu: sit down and look around; E stands up again
    - the bak mandi: mandi with the gayung (fresh again, and better after sweat)
    - Mbah's radio: an old keroncong tune while you're home
+   - the TV across from the sofa (a box TV, a flat one once the ruang tamu is done)
    - the lemari: keep things out of your bag
    - the calendar by the door: plan the repairs with Pak Karyo
    - what was found restoring each room (the guest book, her recipe tin, the
@@ -30,8 +31,8 @@ import { openPanel, closePanel, type Row } from '../ui/panel';
 import { passTime, freelanceMenu, cookMenu, restoreMenu, type Pass } from '../ui/activities';
 import { playGuitar } from '../ui/pastimes';
 import { toast } from '../ui/hud';
-import { setRadio, sfx } from '../audio/audio';
-import { NAME } from './raka';
+import { setRadio, setTv, sfx } from '../audio/audio';
+import { NAME, tvScreen } from './raka';
 import * as L from './rakalayout';
 
 const { FL } = L;
@@ -58,6 +59,7 @@ let lastBath = -1e9;
 /** Game-minute (absolute) of the last sweaty thing: a jog, futsal, kerja bakti, a warung shift. */
 let sweatAt = -1e9;
 let radioOn = false;
+let tvOn = false;
 let radioMood = { day: 0, n: 0, acc: 0 };
 /** The day each keepsake was last looked at (a little mood, once a day). */
 const lookedAt = new Map<string, number>();
@@ -95,30 +97,40 @@ export function registerHome() {
     run: () => bedMenu(bed),
   });
 
-  /* The kursi tamu: the bench (two places) and the armchairs, unless a guest is sitting there. */
+  /* The sofa: sit on any free seat (guests take the ends when they come for teh); E stands up again. */
   const raka = poiById.get('raka')!;
   const seats = raka.slots.filter(s => s.tag === 'sofa' || s.tag === 'tamu');
-  const places: { x: number; z: number; seats: typeof seats }[] = [
-    { ...xz([L.BENCH.x, L.BENCH.z]), seats: seats.filter(s => s.tag === 'sofa') },
-    ...seats.filter(s => s.tag === 'tamu').map(s => ({ x: s.x, z: s.z, seats: [s] })),
-  ];
-  for (const p of places)
-    interactables.push({
-      x: p.x,
-      z: p.z,
-      y: FL + 0.5,
-      size: 0.45,
-      reach: 2.0,
-      inside,
-      label: () => (p.seats.some(s => s.claimedBy === -1) ? 'Sit down' : null),
-      run: () => {
-        const s = p.seats
-          .filter(s => s.claimedBy === -1)
-          .sort((a, b) => Math.hypot(a.x - player.x, a.z - player.z) - Math.hypot(b.x - player.x, b.z - player.z))[0];
-        if (!s) return;
-        sitDown({ x: s.x, z: s.z, y: s.y, ry: s.ry, approach: s.approach, slot: s });
-      },
-    });
+  interactables.push({
+    ...xz([L.SOFA.x, L.SOFA.z]),
+    y: FL + 0.5,
+    size: 0.8,
+    reach: 2.2,
+    inside,
+    label: () => (seats.some(s => s.claimedBy === -1) ? 'Sit on the sofa' : null),
+    run: () => {
+      const s = seats
+        .filter(s => s.claimedBy === -1)
+        .sort((a, b) => Math.hypot(a.x - player.x, a.z - player.z) - Math.hypot(b.x - player.x, b.z - player.z))[0];
+      if (s) sitDown({ x: s.x, z: s.z, y: s.y, ry: s.ry, approach: s.approach, slot: s });
+    },
+  });
+
+  /* The TV. */
+  const tv = tvMesh();
+  interactables.push({
+    ...xz([L.TV_CABINET.x, L.TV_CABINET.z]),
+    y: FL + L.TV_CABINET.h + 0.3,
+    size: 0.45,
+    reach: 3.2,
+    inside,
+    label: () => (tvOn ? 'Turn the TV off' : 'Turn on the TV'),
+    run: () => {
+      tvOn = !tvOn;
+      const [x, z] = W(L.TV_CABINET.x, L.TV_CABINET.z);
+      setTv(tvOn ? [x, z] : null);
+      sfx('click');
+    },
+  });
 
   /* The laptop on the desk. */
   const dc = L.DESK_CHAIR;
@@ -258,7 +270,7 @@ export function registerHome() {
     reach: 1.8,
     inside,
     label: () => (st.count('gitar') ? 'Play the guitar' : null),
-    run: () => playGuitar('the bench in the ruang tamu'),
+    run: () => playGuitar('the sofa in the ruang tamu'),
   });
 
   // Sweat: a mandi after these is worth more.
@@ -268,13 +280,14 @@ export function registerHome() {
     lastTick = abs();
   homeTick = dt => {
     guitar.visible = st.count('gitar') > 0;
+    updateTv(tv, dt);
     acc += dt;
     if (acc < 1) return;
     acc = 0;
     const was = lastTick;
     lastTick = abs();
     // The radio lifts the mood a little while Raka is home: +1 per half hour, up to +4 a day.
-    if (radioOn && S.inside === NAME) {
+    if ((radioOn || tvOn) && S.inside === NAME) {
       if (radioMood.day !== S.day) radioMood = { day: S.day, n: 0, acc: 0 };
       radioMood.acc += Math.max(0, Math.min(5, lastTick - was));
       if (radioMood.acc >= 30 && radioMood.n < 4) {
@@ -474,6 +487,40 @@ function keepsake(id: string) {
     body: `${room.find.text}\n\n${MORE[id]}`,
     rows: [{ label: 'Put it back', run: () => closePanel() }],
   });
+}
+
+/* ================= the TV ================= */
+
+/** The screen: dark when off; when on, a picture that shifts colour now and then (a sinetron, the news, football). */
+function tvMesh() {
+  const m = new THREE.Mesh(new THREE.PlaneGeometry(1, 1), new THREE.MeshBasicMaterial({ color: 0x15181b }));
+  m.visible = false;
+  scene.add(m);
+  return m;
+}
+const TV_COLOURS = [0x6a9ad0, 0xd8a86a, 0x58a860, 0xc86a6a, 0x9a8ad8, 0xe8e0c8];
+let tvT = 0,
+  tvC = 0;
+function updateTv(m: THREE.Mesh, dt: number) {
+  const scr = tvScreen();
+  const [x, z] = W(scr.x, scr.z);
+  m.position.set(x, scr.y, z);
+  // The plane faces +z by default; the screen faces the sofa (local −z).
+  m.rotation.y = rakaHouse.th + Math.PI;
+  m.scale.set(scr.w, scr.h, 1);
+  m.visible = S.inside === NAME || Math.hypot(player.x - x, player.z - z) < 12;
+  const mat = m.material as THREE.MeshBasicMaterial;
+  if (!tvOn) {
+    mat.color.setHex(0x15181b);
+    return;
+  }
+  tvT -= dt;
+  if (tvT <= 0) {
+    tvT = 1.5 + Math.random() * 4;
+    tvC = TV_COLOURS[Math.floor(Math.random() * TV_COLOURS.length)];
+  }
+  // A little flicker, the way a screen lights a dark room.
+  mat.color.setHex(tvC).multiplyScalar(0.85 + Math.random() * 0.15);
 }
 
 /* ================= the guitar ================= */

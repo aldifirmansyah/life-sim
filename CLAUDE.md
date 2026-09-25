@@ -143,9 +143,9 @@ Colours are per-instance. The current view draws about 22–35 calls and about 6
 - **Rumah Raka** (`interiors/raka.ts`, layout in `interiors/rakalayout.ts`), in local house coordinates: floor top 0.13, plafon 2.95.
   - **Rooms.** Ruang tamu across the front (z > 0.3). Kamar behind on the left (x < −0.2) with a batik curtain. Dapur behind on the right, with the kamar mandi in its back corner (x > 2, z < −1.5).
   - **Two prop sets.**
-    - The shell plus fixed furniture, with the colliders: kursi tamu (bench, two armchairs, table), bufet with radio, wall clock, calendar, dipan, nightstand, lemari, the dapur counter with the gas bottle and rice cooker, the dining table and stools, the bak, the kloset.
+    - The shell plus fixed furniture, with the colliders: a three-seat sofa, coffee table and TV cabinet, bufet with radio, wall clock, calendar, dipan, nightstand, lemari, the dapur counter with the gas bottle and rice cooker, the dining table and stools, the bak, the kloset.
     - A state set rebuilt by `onHouseChange` (in `game/house.ts`) whenever a room is restored or a save loads. It draws each restoration room as neglected or done:
-      - ruangtamu: dust sheets, dust and a cobweb, or cushions, taplak, rug, curtains and the 17 Agustus photo
+      - ruangtamu: dust sheets on the sofa and table, an old box TV, dust and a cobweb; or throw pillows, taplak, rug, curtains, a flat TV and the 17 Agustus photo
       - meja: a folding table and plastic stool, or a desk, chair, lamp, books and the ledger
       - kamar: a thin stained kasur, sheeted lemari and boxes, or a mattress, batik sheets, guling, mirror, batik on the wall and the letters
       - dapur: a rusty one-burner stove and soot, or a two-burner stove, splashback, jars, recipe tin and rak piring
@@ -156,14 +156,15 @@ Colours are per-instance. The current view draws about 22–35 calls and about 6
   - laptop: `freelanceMenu(atDesk)`, seated at the desk (`sitFor`)
   - stove: `cookMenu(atStove)`, standing at it (`standFor`)
   - bed: rest 1 h, nap 2 h, sleep after 20:00. Raka lies down with the camera on the plafon (`lieFor`); mornings start in bed and he gets up (`setWake(place, after, text)` in `core/time.ts`).
-  - kursi (a compact set against the partition, leaving the front of the room clear): sit down and stay (`sitDown`; `S.seated` stops walking but not looking; energy +4 per game-hour instead of draining; E, via the "Stand up" prompt, calls `standUp`). Seats are the `raka.sofa` and `raka.tamu` POI slots.
+  - sofa (against the partition between the doorways, the coffee table in front, the TV cabinet under the front window facing it; the strip between table and cabinet stays clear from the door to the desk): sit down on the nearest free seat and stay (`sitDown`; `S.seated` stops walking but not looking; eye 1.29 m, looking ahead; energy +4 per game-hour instead of draining; E, via the "Stand up" prompt, calls `standUp`). Standing up goes to a clear spot beside the table (`SOFA_OUT`), and `collide()` runs after. Seats: the ends are `raka.tamu` (teh guests), the middle `raka.sofa`.
+  - TV: on/off; the screen is an unlit plane with a changing picture, voices from `setTv` in `audio.ts`. Like the radio, +1 mood per 30 game-min at home (shared cap +4 a day).
   - bak: mandi with the gayung (`useTool`, a splash per pour), then done on the spot (15 game-min, no fade). Mood +5, or +8 within 5 h of a jog, futsal, kerja, shift or lomba; once per 3 h
   - radio: `setRadio` in `audio.ts` plays a synthesised keroncong loop; +1 mood per 30 game-min at home, up to +4 a day
   - lemari: storage (`lemari` map, saved as `home`)
   - calendar: `restoreMenu()`
   - keepsakes (each room's find): a panel with the text plus a line, +2 mood once a day
   - guitar in the corner (when owned): `playGuitar`
-- **Teh guests.** Once the ruang tamu is restored (`perks.guests`), the teh outing goes to `raka.tamu`, the armchairs. Guests walk in through the front door; doors open for walking residents within 1.8 m.
+- **Teh guests.** Once the ruang tamu is restored (`perks.guests`), the teh outing goes to `raka.tamu`, the two ends of the sofa. Guests walk in through the front door; doors open for walking residents within 1.8 m.
 
 **Known gaps and issues**
 - The `infill` step, meant to add back-row houses inside blocks, places nothing: interiors are too narrow once the row houses are in. Trees fill those spaces instead.

@@ -2,6 +2,7 @@
    and drinking, standing up. Each is a short list of timed steps played on
    wall-clock time; while one runs, S.acting holds input and movement. */
 import { S } from '../core/state';
+import { collide } from '../core/collision';
 import { player } from '../core/player';
 import { Hands, POSES, type HandPose } from '../render/hands';
 import { pois, type Slot } from '../npc/places';
@@ -213,7 +214,8 @@ function sitSteps(seat: Seat): Step[] {
         player.z = az + (seat.z - az) * e;
         player.eye = 1.7 + (seat.y + 0.72 - 1.7) * e;
         player.yaw = lerpAngle(syaw, faceYaw, e);
-        player.pitch = -0.2 - 0.1 * e;
+        // Settle back and look ahead.
+        player.pitch = -0.2 + 0.12 * e;
       },
     },
   ];
@@ -228,10 +230,12 @@ function standSteps(seat: Seat): Step[] {
         player.eye = seat.y + 0.72 + (1.7 - seat.y - 0.72) * e;
         player.x = seat.x + (seat.approach[0] - seat.x) * e;
         player.z = seat.z + (seat.approach[1] - seat.z) * e;
-        player.pitch = -0.3 + 0.3 * e;
+        player.pitch = -0.08 + 0.08 * e;
       },
       end: () => {
         player.eye = 1.7;
+        // Never left standing inside the furniture.
+        collide(player);
         if (seat.slot && seat.slot.claimedBy === PLAYER) seat.slot.claimedBy = -1;
         seat.taken = false;
       },
