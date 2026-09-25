@@ -512,14 +512,15 @@ function airport() {
     building(x, z, w, d, h, '#d8dde0', STYLE.terminal);
     reserve(x, z, Math.hypot(w, d) / 2);
   };
-  T(st.x - 20, st.z - 110, 90, 36, 18); // T3
+  // T3 (the arrival hall) is walk-in: built by places/changi.ts; only its ground is kept here.
+  reserve(st.x - 20, st.z - 110, 50);
   T(st.x - 150, st.z - 10, 36, 90, 16); // T1
   T(st.x - 10, st.z + 110, 90, 34, 16); // T2
   // The dome with the indoor waterfall (Jool), between the terminals.
   const jx = st.x - 110,
     jz = st.z + 100;
   put({ p: 'dome', x: jx, y: 0, z: jz, sx: 36, sy: 28, sz: 36, ry: 0, c: '#a9d0de' });
-  putCol(jx, jz, 26, 26);
+  // Walk-in: its walls, gardens and the waterfall are built by places/changi.ts.
   reserve(jx, jz, 40);
   landmarkSign('Jool', 'Changi Airport', jx, 30, jz, 0.3);
   put({ p: 'cyl', x: st.x + 70, y: 30, z: st.z + 170, sx: 3, sy: 60, sz: 3, ry: 0, c: '#e8e8e4' });
@@ -632,6 +633,9 @@ function landmarks() {
     reserve(t.x, t.z, 45);
     landmarkSign('Chopee', 'Science Park Drive', t.x - 20, 36, t.z - 26.2, 0, '#ee4d2d');
   }
+  // one-north Residences: the serviced-apartment tower (its ground-floor studio is places/onenorth.ts).
+  building(-532, 148, 24, 18, 46, '#e6e0d4', STYLE.office);
+  reserve(-532, 158, 30);
   // The Sultan Mosque's golden dome.
   {
     const t = tn('kampong_glam');

@@ -52,13 +52,17 @@ The earlier version of this game was set in an Indonesian kampung ("Kampung Suka
 ---
 
 ## 4. World: Singapore
-> **Changing (step 1b):** the map below describes step 1's scaled-down real island. It is being replaced by a hand-built, San Andreas-style island of about 3 × 2 km with the districts and landmarks listed in `docs/singapore-plan.md` ("The map: San Andreas style"); this section will be rewritten with it.
+A hand-built island in the style of GTA San Andreas, about **3 × 2 km** (x −1500…1500, z −1000…1000 in game metres; +x east, +z south). It follows the real city (where places sit relative to each other, the coastline's character, the MRT's shape) and keeps the landmarks that make each place recognisable, while the ordinary stretches between them shrink to a street or two. Buildings, roads and landmarks are real size; distances between districts aren't. Heights are real (HDB blocks 30–56 m, towers up to 250 m). Low-poly, flat-shaded, warm tropical palette. The layout and the reasons are in `docs/singapore-plan.md` ("The map: San Andreas style").
 
-The whole island, compressed unevenly: real latitude and longitude map to game metres at **1:10** around (1.35 N, 103.82 E), so the island is about 4.7 × 3.3 km; inside a town, content is laid out at a gentler scale (about 1:3) so a town centre, its station, hawker centre and blocks are a few minutes' walk apart. Heights are real (HDB blocks 30–56 m, towers up to 250 m). Low-poly, flat-shaded, warm tropical palette.
+**Districts:**
+- **The West:** Clementi's HDB town, Science Park with Chopee's campus, one-north (the serviced apartment), Buona Vista, Dover, NUS on Kent Ridge, Jurong East.
+- **The City:** Marina Bay (Marina Bay Stands and its sky park, the Merlion, the Flyer, the durian domes, the supertrees), the CBD round Raffles Place, the river, Chinatown, Tanjong Pagar, Tiong Bahru, Lau Pa Sat.
+- **Orchard, Kampong Glam and Little India:** Orchard Road's malls (EON Orchard, Lucky Place), the Sultan Mosque, Bugis, Raffles Hotel, Serangoon Road.
+- **The East:** Changi Airport (Terminal 3's arrival hall, the Jool and its Rain Vortex, the runways), Bedok, Paya Lebar, the East Coast.
+- **Sentosa:** a small island south of HarbourFront (the beach, Uniworsal Studios, VivaCity across the water).
+- **The North** (later): Woodlands, Ang Mo Kio, Toa Payoh, the central catchment forest.
 
-**Towns** (each with a real centre, a radius and a kind that decides what's built): Changi Airport and Changi Village, Tampines, Pasir Ris, Simei, Tanah Merah, Bedok, Katong, Joo Chiat, Geylang Serai, Paya Lebar, Geylang, Kallang, Marina Bay, Raffles Place, City Hall, Clarke Quay, Chinatown, Tanjong Pagar, Bugis, Kampong Glam, Little India, Orchard Road, the Botanic Gardens, Tiong Bahru, Novena, Toa Payoh, Bishan, Queenstown, HarbourFront, Ang Mo Kio, Serangoon, Hougang, Sengkang, Punggol, Yishun, Sembawang, Woodlands, Mandai, Bukit Panjang, Choa Chu Kang, Bukit Batok, Jurong East, Jurong Lake Gardens, Jurong West, Tuas, **Clementi**, Dover, West Coast, NUS Kent Ridge, **Science Park**, one-north, Buona Vista, Holland Village, Sentosa and Pulau Ubin. Between them: estates, landed houses, greenery, industry; the Central and Western catchment forests; the airport and its runways; Jurong Island.
-
-**Getting around:** the expressways (PIE, AYE, ECP, CTE, BKE, KJE, SLE, TPE, KPE) and main roads; town streets; the MRT (the East-West Line and its Changi Airport branch first, the other lines as they're added) on viaducts with stations whose platforms have half-height screen doors, and underground in the city later.
+**Getting around:** the expressways (PIE, AYE, ECP, CTE, BKE, KPE) and main roads; town streets; the MRT: the **East-West Line** (15 stations, Changi Airport to Jurong East) and the **North-South Line** (8 stations, Woodlands to Marina Bay), on viaducts, with half-height screen doors on the platforms and fare gates at the foot of the stairs (an EZ-Lah card, S$1.20 a trip). Aboard, the stop picker runs the train express to a chosen station, so an end-to-end ride takes a minute or two of real time. Underground city stations come later.
 
 **Places to live, work and spend time** come step by step (see the plan): Chopee's headquarters at Science Park and its CBD office; hawker centres, kopitiams and wet markets; malls; the Marina Bay hotel with its sky park; mosques, temples and churches; parks, beaches and the islands; the homes Aldi can rent.
 

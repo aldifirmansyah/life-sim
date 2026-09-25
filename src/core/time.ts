@@ -44,6 +44,23 @@ export function setWake(place: () => void, after: () => void, text: string) {
   Object.assign(wake, { place, after, text });
 }
 
+/** Spend `minutes` doing something (a nap, a long task): the screen fades while the clock moves on. */
+export function passTime(minutes: number, text: string, done?: () => void) {
+  if (S.sleeping) return;
+  S.sleeping = true;
+  const f = $('fade');
+  f.textContent = text;
+  f.classList.add('on');
+  setTimeout(() => {
+    S.time = Math.min(S.time + minutes, 26 * 60 - 1);
+    setTimeout(() => {
+      f.classList.remove('on');
+      S.sleeping = false;
+      done?.();
+    }, 400);
+  }, 1100);
+}
+
 /** Sleep until 06:00: automatically at 02:00, or from home. */
 export function sleep() {
   if (S.sleeping) return;

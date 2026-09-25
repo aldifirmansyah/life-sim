@@ -31,6 +31,19 @@ export interface PlatformSide {
 }
 export const platformSides: PlatformSide[] = [];
 
+/** Fare gates across the foot of each station's stairs: open for an EZ-Lah card (city/fares.ts). */
+export interface FareGate {
+  line: Line;
+  station: Station;
+  x: number;
+  z: number;
+  /** Unit vector pointing out to the street. */
+  nx: number;
+  nz: number;
+  col: Collider;
+}
+export const fareGates: FareGate[] = [];
+
 const rot = (dx: number, dz: number) => Math.atan2(-dz, dx);
 
 function buildStation(l: Line, st: Station) {
@@ -193,6 +206,26 @@ function buildStation(l: Line, st: Station) {
       rz: -slope,
       c: CANOPY,
     });
+    // Fare gates across the foot of the stairs, with low barriers back to the handrails.
+    const gv = side * (PLAT_OUT + STAIR_LEN + 1.2);
+    for (const u of [-1.55, 0, 1.55]) box('solid', u, gv, 0, 0.3, 1, 1.1, '#d9dcdf');
+    for (const u of [-0.78, 0.78]) box('glass', u, gv, 0.3, 1.2, 0.06, 0.8, '#bfe0ea');
+    for (const s of [-1, 1]) {
+      box('solid', s * 1.75, side * (PLAT_OUT + STAIR_LEN + 0.6), 0, 0.12, 1.4, 1.2, RAIL);
+      col(s * 1.75, side * (PLAT_OUT + STAIR_LEN + 0.6), 0.12, 1.4, -1e9, 1.2);
+    }
+    {
+      const [gx, gz] = P(0, gv);
+      fareGates.push({
+        line: l,
+        station: st,
+        x: gx,
+        z: gz,
+        nx: qx * side,
+        nz: qz * side,
+        col: col(0, gv, 3.4, 0.4, -1e9, 3),
+      });
+    }
     // A station sign at the foot of the stairs.
     const [px, pz] = P(2.6, side * (PLAT_OUT + STAIR_LEN + 1));
     put({ p: 'solid', x: px, y: 1.5, z: pz, sx: 0.2, sy: 3, sz: 0.2, ry: 0, c: '#5b6368' });

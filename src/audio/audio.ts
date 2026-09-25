@@ -461,7 +461,8 @@ export type Sfx =
   | 'doorClose'
   | 'sandal'
   | 'knock'
-  | 'chime';
+  | 'chime'
+  | 'tap';
 /** A short UI or action sound. `pitch` shifts dialogue blips per speaker. */
 export function sfx(kind: Sfx, pitch = 1) {
   if (!ctx || !S.started) return;
@@ -529,6 +530,11 @@ export function sfx(kind: Sfx, pitch = 1) {
     case 'sandal':
       hiss(fx, 'bandpass', 1400, 1.5, t, 0.003, 0.05, 0.12);
       hiss(fx, 'bandpass', 1300, 1.5, t + 0.2, 0.003, 0.05, 0.12);
+      break;
+    case 'tap':
+      // A card on the gate reader: two quick beeps.
+      tone(ui, 'square', 1760, null, t, 0.003, 0.06, 0.05);
+      tone(ui, 'square', 1760, null, t + 0.1, 0.003, 0.06, 0.05);
       break;
     case 'chime':
       // The MRT's three-note chime before an announcement.

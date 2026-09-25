@@ -25,8 +25,13 @@ import { generateCity } from './city/gen';
 import { buildMrt } from './city/mrtbuild';
 import { initStream, updateStream, applyCityFog, liveChunks, pools } from './city/stream';
 import { updateTrains, pickStop } from './city/trains';
+import { updateFares } from './city/fares';
+import { updateInteraction, interact } from './game/interact';
+import { startArrival, updateArrival } from './game/arrival';
+import { showMoney } from './game/stats';
+import { buildChangi, updateChangi, ARRIVAL } from './places/changi';
+import { buildOneNorth } from './places/onenorth';
 import { actions } from './core/input';
-import { EWL, PLAT_OUT } from './city/mrtdata';
 import { roadCloseness } from './city/roads';
 import { landAt, polyEdgeDist, ISLANDS } from './city/geo';
 
@@ -35,6 +40,7 @@ addEventListener('resize', resize);
 // E: aboard a train, choose the stop to get off at.
 actions.interact = () => {
   if (player.ride) pickStop();
+  else interact();
 };
 bindOverlayButtons();
 initInput();
@@ -44,21 +50,18 @@ bindSettingsUI();
 const tGen = performance.now();
 generateCity();
 buildMrt();
+buildChangi();
+buildOneNorth();
 initStream();
 const genMs = performance.now() - tGen;
 
-/** A new game: Aldi comes out of Changi Airport by the MRT station, early on day 1. */
+/** A new game: Aldi has just come through immigration at Changi, early on day 1. */
 function newGame() {
-  const st = EWL.stations[0];
-  const qx = -st.dz,
-    qz = st.dx;
-  const d = PLAT_OUT + EWL.stair + 5;
-  player.x = st.x + qx * d;
-  player.z = st.z + qz * d;
+  player.x = ARRIVAL.x;
+  player.z = ARRIVAL.z;
   player.y = 0;
-  // Face the station.
-  player.yaw = Math.atan2(qx, qz);
-  player.pitch = 0.05;
+  player.yaw = ARRIVAL.yaw;
+  player.pitch = 0;
   S.day = 1;
   S.time = 7 * 60 + 30;
 }
@@ -97,6 +100,10 @@ function loop(now: number) {
   lap('stream');
   applyCamera();
   updateInteriors(dt);
+  updateChangi(dt);
+  updateFares();
+  updateInteraction();
+  if (S.started) updateArrival();
   const water =
     landAt(player.x, player.z) === 'sea' ? 1 : Math.max(0, 1 - polyEdgeDist(ISLANDS.main, player.x, player.z) / 40);
   updateAudio({ road: roadCloseness(player.x, player.z), water });
@@ -141,6 +148,10 @@ async function start() {
     /* draw with fallbacks */
   }
   buildSigns();
+  // Money shows under the clock; energy and mood come back later.
+  document.querySelector<HTMLElement>('.vitals')!.hidden = false;
+  document.querySelectorAll<HTMLElement>('.vital').forEach(v => (v.hidden = true));
+  showMoney();
   applyQuality();
   applyCityFog();
   // Behind the start screen: the new-game spot, or where the saved game left off.
@@ -172,9 +183,10 @@ $('go').addEventListener('click', () => {
   newGame();
   updateStream(player.x, player.z, 0, true);
   play();
+  startArrival();
   toast(
     'Welcome to Singapore',
-    'Changi Airport, Sunday morning. The MRT is right here: climb the stairs to the platform.',
+    'Changi Airport, Sunday morning. Get a SIM card and an EZ-Lah card, then take the MRT.',
   );
 });
 $('cont').addEventListener('click', () => {
@@ -186,6 +198,7 @@ $('cont').addEventListener('click', () => {
   } else toast(`Welcome back. ${dateLabel(S.day)}`, 'Your game has been loaded.');
   updateStream(player.x, player.z, 0, true);
   play();
+  startArrival();
 });
 $('savenow').addEventListener('click', () => {
   $('savemsg').textContent = saveGame()
@@ -220,22 +233,30 @@ if (import.meta.env.DEV) {
     import('./city/mrtbuild'),
     import('./core/settings'),
     import('./render/quality'),
-  ]).then(([geo, gen, stream, trains, mrt, collision, levels, mrtbuild, settings, quality]) => {
-    (window as unknown as Record<string, unknown>).__sg = {
-      S,
-      player,
-      geo,
-      gen,
-      stream,
-      trains,
-      mrt,
-      collision,
-      levels,
-      mrtbuild,
-      settings,
-      quality,
-      renderer,
-      parts,
-    };
-  });
+    import('./game/stats'),
+    import('./places/changi'),
+    import('./places/onenorth'),
+  ]).then(
+    ([geo, gen, stream, trains, mrt, collision, levels, mrtbuild, settings, quality, stats, changi, onenorth]) => {
+      (window as unknown as Record<string, unknown>).__sg = {
+        S,
+        player,
+        geo,
+        gen,
+        stream,
+        trains,
+        mrt,
+        collision,
+        levels,
+        mrtbuild,
+        settings,
+        quality,
+        stats,
+        changi,
+        onenorth,
+        renderer,
+        parts,
+      };
+    },
+  );
 }
