@@ -1,6 +1,6 @@
 # Singapore plan
 
-The game moves from Kampung Sukamaju to Singapore. The player is **Aldi**, a young Indonesian designer who lands at Changi to start a job in the city, finds a place to rent, and builds a life: neighbours, colleagues, the hawker stall owners who learn Aldi's order, the Indonesian community on Orchard Road on a Sunday. The world is the whole of Singapore, compressed, and travel happens in the world (walking, MRT, buses, then cars) with no loading screens.
+The game moves from Kampung Sukamaju to Singapore. The player is **Aldi**, a young Indonesian software engineer who lands at Changi to start a job at Chopee, finds a place to rent, and builds a life: neighbours, colleagues, the hawker stall owners who learn Aldi's order, the Indonesian community on Orchard Road on a Sunday. The world is the whole of Singapore, compressed, and travel happens in the world (walking, MRT, buses, then cars) with no loading screens.
 
 This replaces the kampung (its setting, map, 24 residents, lines, food and events). It keeps the engine and every system: schedules and NPC movement, conversation and friendship, gifts, plans and invitations, the phone, interiors and doors, actions and hands, shops, mini-games, rain, save and audio. The open-world plan's technical ideas (chunks, streaming, a skyline, in-place travel, the 30-minute day) carry over here.
 
@@ -12,7 +12,7 @@ The last kampung version is kept on the branch **`kampung-v1`** (commit `18dfd08
 - **Player:** Aldi, from Indonesia, new to Singapore. A fixed character with no face shown.
 - **Start:** landing at Changi Airport.
 - **Home:** rented, of the player's choosing; where Aldi lives decides the neighbours.
-- **Work:** a real CBD job that still leaves the days free to go around (below: flexible, deliverable-based work with an office in the CBD).
+- **Work:** a software engineer at **Chopee** (the Shopee pun), whose campus is on Science Park Drive. The job leaves the days free to go around (flexible, sprint-based work), and Chopee's city office in the CBD gives the CBD work experience.
 - **Language:** English with Singlish, and nothing else: every line is written in Singlish-flavoured English (lah, leh, can or not, shiok, chope, makan…), with the glossary to explain it. No setting and no language skill.
 - **Transport, in three stages:** public transport first (walking, MRT, buses); then cars as a passenger (taxi and ride-hail); then Aldi's own car to drive. The car has to be bought: it's one of the big life goals to work towards, not something given.
 - **The kampung is replaced**, not kept as a place to visit. 8–12 named people per area Aldi spends time in, plus crowds. A 30-minute day.
@@ -48,8 +48,8 @@ The island is about 50 × 27 km. The game compresses it unevenly:
 
 The whole island is in the plan; it's built region by region (step 9 onward), each with its people.
 
-- **Central:** Marina Bay (the bay promenade, the Merlion, the three-tower hotel and sky park, the durian domes, the helix bridge, the supertrees and their light show), the CBD around Raffles Place (Aldi's office tower), Boat Quay and Clarke Quay, the octagonal hawker market with satay street at night, Chinatown (shophouses, temples, hawker centre, wet market), Tanjong Pagar, Tiong Bahru's art deco blocks, Little India, Kampong Glam and the Sultan Mosque, Bugis, Orchard Road with its malls (one the Indonesian community's Sunday meeting place) and the Botanic Gardens, Novena and Toa Payoh.
-- **West:** **Clementi** (the HDB town round the MRT station and bus interchange, the mall above it, the market and hawker centre, the stadium, the neighbourhood park, and the view to the West Coast), **Science Park Drive** (the tech campus next to Kent Ridge: glass offices in green grounds, a food court, the park connector), NUS and Kent Ridge Park, Haw Par Villa, West Coast Park, Jurong East (malls, the lake gardens, the science centre), Jurong Island's flares on the skyline, Boon Lay.
+- **Central:** Marina Bay (the bay promenade, the Merlion, the three-tower hotel and sky park, the durian domes, the helix bridge, the supertrees and their light show), the CBD around Raffles Place (Chopee's city office tower), Boat Quay and Clarke Quay, the octagonal hawker market with satay street at night, Chinatown (shophouses, temples, hawker centre, wet market), Tanjong Pagar, Tiong Bahru's art deco blocks, Little India, Kampong Glam and the Sultan Mosque, Bugis, Orchard Road with its malls (one the Indonesian community's Sunday meeting place) and the Botanic Gardens, Novena and Toa Payoh.
+- **West:** **Clementi** (the HDB town round the MRT station and bus interchange, the mall above it, the market and hawker centre, the stadium, the neighbourhood park, and the view to the West Coast), **Science Park Drive** (the tech campus next to Kent Ridge where Chopee has its headquarters: glass offices in green grounds, a food court, the park connector), NUS and Kent Ridge Park, Haw Par Villa, West Coast Park, Jurong East (malls, the lake gardens, the science centre), Jurong Island's flares on the skyline, Boon Lay.
 - **East:** **Changi Airport** (the terminals, the dome with the indoor waterfall, the MRT station), Changi Village and the bumboat jetty to **Pulau Ubin** (Singapore's last kampung island: bicycles, quarries, a real kampung house or two, a nod to where the game began), Tampines, Bedok, East Coast Park (the beach, cycling, the seafood centre), Katong and Joo Chiat (Peranakan shophouses, laksa), Geylang Serai (the Hari Raya bazaar), Paya Lebar.
 - **South:** Sentosa (beaches, a theme park, the cable car and monorail), HarbourFront and its big mall, Mount Faber, Keppel Bay.
 - **North and North-East:** Woodlands and the Causeway (the queue to Johor), Sembawang, Mandai (the zoo, night safari and bird park), Yishun, Ang Mo Kio, Serangoon, Sengkang, and Punggol's waterfront.
@@ -58,19 +58,20 @@ The whole island is in the plan; it's built region by region (step 9 onward), ea
 ## Aldi's life
 
 ### Arrival (the tutorial)
-Aldi lands at Changi with a suitcase: immigration, the arrival hall, a SIM card and a transit card from the convenience store, the dome's waterfall on the way out, and the first MRT ride into the city on the East-West Line (changing trains at Tanah Merah). A colleague meets Aldi at the short-stay serviced apartment in Tanjong Pagar, near the office, for the first two weeks while Aldi looks for a place. The first days cover the office, a first hawker meal (chope a seat with a tissue packet, queue, return the tray), and the property app.
+Aldi lands at Changi with a suitcase: immigration, the arrival hall, a SIM card and a transit card from the convenience store, the dome's waterfall on the way out, and the first MRT ride across the island on the East-West Line (changing at Tanah Merah, then at Buona Vista for the Circle Line). A colleague meets Aldi at a short-stay serviced apartment in one-north, a stop from the office, for the first two weeks while Aldi looks for a place. The first days cover onboarding at Chopee, a first hawker meal (chope a seat with a tissue packet, queue, return the tray), and the property app.
 
-### Work: a CBD job with free days
-Aldi is a product designer at a fictional regional tech company with its office in a Raffles Place tower. The job is built for freedom:
-- **Work is a weekly set of deliverables**, not hours. Each week brings 3–5 design tasks with deadlines (a screen flow, an icon set, a user test report). Aldi works on them with the laptop anywhere: at home, in a café, at a co-working space, or at the office desk.
-- **The office is the social and focus place.** Two fixed meetings a week (a Monday stand-up and a Thursday review) are in person; otherwise going in is optional. At the office: colleagues (named people), the pantry and free coffee, focus (tasks go faster), lunch with the team at the hawker market, after-work drinks at Boat Quay on Fridays, the lift lobby small talk.
-- **Pay** comes on the 25th; missing deadlines hurts the quarterly review and bonus; good reviews raise the pay. Freelance side jobs stay possible from the laptop.
-- **Science Park Drive** is where the company's partner, **Chopee** (the e-commerce company), has its campus: design workshops there some weeks, a career path later (Aldi can move jobs to Science Park, close to Clementi), and one of the best reasons to live in the west.
+### Work: software engineer at Chopee
+Aldi is a software engineer at **Chopee**, the e-commerce company, on a team building the shopping app. The job is built for freedom:
+- **Work is a two-week sprint of tickets**, not hours. Each sprint brings 4–6 tickets with points and a due date (a new checkout screen, a bug from users, a slow page to speed up, a code review for a teammate). Aldi works on them with the laptop anywhere: at home, in a café, at a co-working space, or at a desk at the office. Working a ticket is a short coding mini-game (reading the problem, choosing the fix, writing and testing) or a time skip.
+- **The headquarters on Science Park Drive** is the everyday office: the team's desks, a pantry with free coffee and snacks, meeting rooms, the campus food court, table tennis, the nap pods. Two things are in person: the daily stand-up at 10:00 on office days (Aldi goes in two or three days a week, the player chooses which) and the sprint review and planning every second Friday.
+- **The CBD:** Chopee's city office in a Raffles Place tower, where the business teams sit. Aldi goes there for meetings with sellers and partners, the quarterly all-hands, the company's town hall and hackathons, and can hot-desk there any day. After work: the hawker market's satay street, drinks at Boat Quay, the bay's light show.
+- **Engineering life:** code reviews from teammates, a production incident now and then (a page from the on-call phone at night, fixed from wherever Aldi is), demo days, and a hackathon twice a year.
+- **Pay and growth:** salary on the 25th and a bonus after the year-end review. Tickets done well and on time, good reviews, helping teammates and incidents handled raise the rating; the ladder goes Software Engineer → Senior → Staff, with raises. Side projects stay possible from the laptop.
 
 ### A place to live
 The property app lists rooms and flats. Viewings happen in person at a set time with the landlord or agent. Signing means a deposit and monthly rent on the 1st; Aldi can move later. The first choices:
-- **A common room in an HDB flat in Clementi** with an aunty landlord and her family (affordable, most social, near the MRT, 15 minutes to Science Park by bus).
-- **A studio in Tiong Bahru's art deco blocks** (central, walkable to the office, pricier).
+- **A common room in an HDB flat in Clementi** with an aunty landlord and her family (affordable, most social, near the MRT, 10 minutes to Chopee by bus).
+- **A studio in Tiong Bahru's art deco blocks** (central, near the CBD, pricier, 25 minutes to Chopee).
 - **A condo room near Orchard or River Valley**, with a pool and gym (expensive, private).
 - **A co-living room at Tanjong Pagar** (young expats, shared kitchen, a short walk to work).
 - **A shophouse loft in Joo Chiat** (in the east, near the beach).
@@ -78,7 +79,7 @@ Furniture and decorating follow the home (the kampung's house restoration become
 
 ### Money, stats and skills
 - **Money in SGD:** salary on the 25th and rent on the 1st; a hawker meal $4–6, a kopi $1.40, the MRT about a dollar a trip, a taxi $10–25, the sky bar a lot.
-- **Energy, mood and skills** stay: Cooking, Fitness, Charisma, Music, and Gardening (corridor plants and community garden plots). A Design skill joins them, raised by work, which makes tasks faster and reviews better.
+- **Energy, mood and skills** stay: Cooking, Fitness, Charisma, Music, and Gardening (corridor plants and community garden plots). A Coding skill joins them, raised by work and side projects, which makes tickets faster and reviews better.
 
 ### Being Indonesian in Singapore
 Malay-speaking Singaporeans understand Aldi's Indonesian (a warm bonus with them); the Indonesian community on Orchard Road on Sundays (food, groceries, remittance counters); 17 Agustus at the embassy; calls home to family; missing home food and finding it; helping a newer arrival later on.
@@ -99,7 +100,7 @@ Traffic (cars, buses, taxis, motorbikes, lorries) runs on a road graph from the 
 
 ## People
 
-- **Named people per area:** 8–12 in each place Aldi spends time: the Clementi landlord family and the block's neighbours, colleagues at the office, the partner team at Science Park, hawker stall owners, the mosque's imam, kopitiam uncles, the Indonesian friends on Orchard, a Singaporean friend who shows Aldi around. About 30 to start, more as areas are added. Same NPC model: traits, likes and dislikes, schedules, ties between them, 3-step arcs.
+- **Named people per area:** 8–12 in each place Aldi spends time: the Clementi landlord family and the block's neighbours, colleagues at Chopee (the team at Science Park and a few in the city office), hawker stall owners, the mosque's imam, kopitiam uncles, the Indonesian friends on Orchard, a Singaporean friend who shows Aldi around. About 30 to start, more as areas are added. Same NPC model: traits, likes and dislikes, schedules, ties between them, 3-step arcs.
 - **Singapore's mix:** Chinese, Malay, Indian and Eurasian Singaporeans, other expats, migrant workers. Titles and forms of address (Uncle, Aunty, Encik, Mak Cik, Boss, Ah Boy) replace Pak, Bu and Mas, with the same etiquette idea.
 - **Crowds** per district: office workers at lunch in the CBD, tourists at Marina Bay, students at NUS, shoppers on Orchard, families at the hawker centre, commuters in the MRT. Pooled and instanced like today's passers-by, with more of them.
 
@@ -137,9 +138,9 @@ Same budget (spec §9): under 150 draw calls, under 300k triangles, under 8 ms o
 ## Steps (a check with the user after each)
 
 1. **The new spec and the groundwork.** Rewrite `docs/design-spec.md` and CLAUDE.md for Singapore. The 30-minute day. The island framework: regions with their own seeds and compression, 128 m chunks with streaming, the skyline, builders for HDB blocks, shophouse rows and towers, the road graph. Clear out the kampung content. Aldi can walk a blockout of the island's towns and ride an MRT line through it.
-2. **Changi and the first ride.** The airport (arrival hall, the dome and waterfall, the MRT station), the East-West Line into the city with the transfer at Tanah Merah, the Tanjong Pagar serviced apartment. The arrival tutorial.
-3. **The CBD and Marina Bay.** The office tower (lift lobby, the office floor, the pantry, meeting rooms), Raffles Place, the hawker market, the river quays, Marina Bay's landmarks. The weekly deliverables job.
-4. **Clementi and Science Park Drive.** Clementi's town centre, HDB blocks with void decks and lifts, the market and hawker centre, the mall, the bus interchange; the Science Park campus; NUS and Kent Ridge between them. Buses.
+2. **Changi and the first ride.** The airport (arrival hall, the dome and waterfall, the MRT station), the East-West Line across the island with the transfers at Tanah Merah and Buona Vista. The arrival tutorial.
+3. **Science Park Drive, one-north and Clementi.** Chopee's headquarters (the lobby and gantries, the team's floor, the pantry, meeting rooms, the food court), the serviced apartment at one-north, Clementi's town centre, HDB blocks with void decks and lifts, the market and hawker centre, the mall, the bus interchange; NUS and Kent Ridge between them. The sprint job and buses.
+4. **The CBD and Marina Bay.** Chopee's city office tower (lift lobby, the floor, meeting rooms), Raffles Place, the hawker market, the river quays, Marina Bay's landmarks. Meetings, all-hands and hackathons there.
 5. **A place to live.** The property app, viewings, leases and rent, the five homes (Clementi first) with their interiors, moving in and decorating.
 6. **People and conversation.** The first 30 named people, all lines rewritten in Singlish, hawker food and gifts, the Clementi neighbours and the colleagues.
 7. **Chinatown, Tiong Bahru, Little India, Kampong Glam and Orchard.** The rest of the centre, including the mosque (wudhu and sholat carry over) and the Indonesian community on Orchard.
@@ -151,5 +152,4 @@ Same budget (spec §9): under 150 draw calls, under 300k triangles, under 8 ms o
 
 ## Open questions
 
-- **Aldi's CBD employer** needs a name too (a small design and tech company, so not a pun on a known one unless you have one in mind). Any name you'd like, or should I make one up?
 - **Where to stay after the serviced apartment:** the five homes above, or others you'd add (Clementi first, as you live there)?
