@@ -38,6 +38,8 @@ export interface Interior {
   /** Raka comes in (after the sandals) and goes out. */
   onEnter?: () => void;
   onExit?: () => void;
+  /** 0..1: how much of the indoor look applies (an open pavilion is only partly indoors). */
+  amount?: number;
   /** A pair of sandals left on the teras while Raka is inside. */
   sandals?: THREE.Object3D;
 }
@@ -108,8 +110,8 @@ export function updateInteriors(dt: number) {
   }
   S.inside = inside?.name ?? '';
   S.room = inside && room ? `${inside.name} · ${room.name}` : '';
-  player.indoor = !!inside;
-  blend += ((inside ? 1 : 0) - blend) * Math.min(1, dt * 3);
+  player.indoor = !!inside && (inside.amount ?? 1) > 0.5;
+  blend += ((inside ? (inside.amount ?? 1) : 0) - blend) * Math.min(1, dt * 3);
   setIndoorLight(blend);
   setIndoor(blend);
 

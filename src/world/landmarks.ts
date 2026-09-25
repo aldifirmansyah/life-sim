@@ -138,14 +138,56 @@ export function landmarks() {
   roofs.add(mat(-8.75, 3.0, 22.05, 5.6, 1.0, 4.9), '#8e4a33');
 
   /* Musholla Al-Ikhlas */
-  B(5, 13.6, 0, 3.6, -21, -13, '#eef0e6', { col: true });
+  // A prayer hall you can walk into (interiors/musholla.ts): walls 0.15 thick with the frosted windows open
+  // through them, the mihrab in the west wall (toward the qibla) and the door in the south wall by the taps.
+  // No R() calls here.
+  const mw = '#eef0e6',
+    mb = '#a9bfae';
+  const mx0 = 5,
+    mx1 = 13.6,
+    mz0 = -21,
+    mz1 = -13,
+    mt = 0.15;
+  B(mx0, mx0 + mt, 0, 3.6, mz0, -17.5, mw, { col: true });
+  B(mx0, mx0 + mt, 0, 3.6, -16.5, mz1, mw, { col: true });
+  B(mx0, mx0 + mt, 2.5, 3.6, -17.5, -16.5, mw);
+  B(mx1 - mt, mx1, 0, 3.6, mz0, mz1, mw, { col: true });
+  // North and south walls, with the three window openings (and the door on the south side).
+  for (const [z0, z1, door] of [
+    [mz0, mz0 + mt, false],
+    [mz1 - mt, mz1, true],
+  ] as [number, number, boolean][]) {
+    const holes: [number, number, number][] = [
+      [6.1, 7.1, 1.2],
+      [8.7, 9.7, 1.2],
+      [11.3, 12.3, 1.2],
+    ];
+    if (door) holes.push([9.8, 10.8, 0]);
+    holes.sort((a, b) => a[0] - b[0]);
+    let x = mx0 + mt;
+    for (const [h0, h1, y0] of holes) {
+      if (h0 > x) B(x, h0, 0, 3.6, z0, z1, mw, { col: true });
+      if (y0 > 0) B(h0, h1, 0, y0, z0, z1, mw, { col: true });
+      B(h0, h1, y0 > 0 ? 2.55 : 2.3, 3.6, z0, z1, mw);
+      x = h1;
+    }
+    B(x, mx1 - mt, 0, 3.6, z0, z1, mw, { col: true });
+  }
   B(4.96, 13.64, 3.22, 3.6, -21.04, -12.96, '#2e8b57');
-  B(4.96, 13.64, 0, 0.42, -21.04, -12.96, '#a9bfae');
+  // The plinth band outside (not across the doorway), and the mihrab's niche standing out on the jalan side.
+  B(4.96, mx1 + 0.04, 0, 0.42, mz0 - 0.04, mz0, mb);
+  B(4.96, 9.8, 0, 0.42, mz1, mz1 + 0.04, mb);
+  B(10.8, mx1 + 0.04, 0, 0.42, mz1, mz1 + 0.04, mb);
+  B(4.96, mx0, 0, 0.42, mz0, mz1, mb);
+  B(4.6, 4.75, 0, 2.9, -17.6, -16.4, mw, { col: true });
+  B(4.75, 5.0, 0, 2.9, -17.6, -17.5, mw, { col: true });
+  B(4.75, 5.0, 0, 2.9, -16.5, -16.4, mw, { col: true });
+  B(4.75, 5.0, 2.5, 2.9, -17.5, -16.5, mw);
+  B(4.56, 5.0, 2.9, 3.05, -17.7, -16.3, '#2e8b57');
   B(4.9, 13.7, 3.6, 3.76, -21.1, -12.9, '#dfe3d8');
   B(3, 5, 0, 0.18, -21, -13, '#e6e1d4');
   B(3, 5.2, 2.78, 2.88, -21.2, -12.8, '#2e8b57');
   for (const z of [-20.8, -18.7, -15.3, -13.2]) B(3.1, 3.3, 0, 2.8, z - 0.1, z + 0.1, '#eef0e6', { col: true });
-  B(4.94, 5.0, 0, 2.35, -17.8, -16.2, '#5a4633');
   for (const x of [6.6, 9.2, 11.8]) {
     B(x - 0.5, x + 0.5, 1.2, 2.55, -21.06, -21.0, '#ffe3a8', { b: lit });
     B(x - 0.5, x + 0.5, 1.2, 2.55, -13.0, -12.94, '#ffe3a8', { b: lit });

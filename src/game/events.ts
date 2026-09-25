@@ -8,7 +8,7 @@ import { S } from '../core/state';
 import { mulberry32 } from '../core/util';
 import { scene } from '../render/context';
 import { residents, setPlan, todayBlocks, resync, type Resident } from '../npc/npcs';
-import { poiById, groups, homes } from '../npc/places';
+import { groups, homes } from '../npc/places';
 import { blockIndexAt } from '../npc/schedule';
 import type { Activity } from '../npc/types';
 import { interactables } from './interact';
@@ -169,7 +169,7 @@ function planDay() {
     for (const r of residents) {
       const devout = r.npc.id === 'hasan' || r.npc.likes.includes('religion') || r.npc.age >= 50;
       if (!devout || r.npc.age < 12 || awayAt(r, h(20)) || activityAt(r, h(20)) === 'ronda') continue;
-      plan(r, h(19, 30), h(20, 30), 'musholla.inside', 'pray');
+      plan(r, h(19, 30), h(20, 30), r.npc.id === 'hasan' ? 'musholla.ustadz' : 'musholla.circle', 'pray');
       pengajianGoers.push(r.npc.id);
     }
   // Nobar: the football fans watch the match at the warkop.
@@ -318,11 +318,13 @@ function kerjaOver() {
 
 /** Who is expected at tonight's pengajian (set when the day is planned). */
 let pengajianGoers: string[] = [];
-function joinPengajian() {
+/** The pengajian is on and Raka hasn't joined yet (the E prompt at the circle in the musholla). */
+export const pengajianOpen = () => isPengajian(S.day) && S.time >= h(19) && S.time < h(20, 20) && !did('pengajian');
+export function joinPengajian() {
   mark('pengajian');
   const end = h(20, 30);
   // Everyone who comes tonight, counted now (by the end they are already walking home).
-  const goers = residents.filter(r => pengajianGoers.includes(r.npc.id) || r.slot.poi.id === 'musholla');
+  const goers = residents.filter(r => pengajianGoers.includes(r.npc.id) || r.slot.poi.id === 'mushollaIn');
   passTime(Math.max(20, end - S.time), 'Ustadz Hasan’s pengajian…', () => {
     const met = goers.filter(r => social(r.npc).met);
     const g = befriendAll(
@@ -566,19 +568,11 @@ function panggungMenu() {
 export function initEvents() {
   buildPiles();
   onPhoneDay(phoneDay);
-  const at = (p: [number, number], reach: number, label: () => string | null, run: () => void) =>
-    interactables.push({ x: p[0], z: p[1], reach, label, run });
-  // At the musholla door, where everyone goes in.
-  const door = poiById.get('musholla')!.slots.find(s => s.tag === 'inside')!;
+  const at = (p: [number, number], reach: number, label: () => string | null, run: () => void, inside?: string) =>
+    interactables.push({ x: p[0], z: p[1], reach, label, run, inside });
+  // The arisan, at Pak RT's desk in the balai (where the jar is).
   at(
-    [door.x - 0.2, door.z],
-    3.2,
-    () =>
-      isPengajian(S.day) && S.time >= h(19) && S.time < h(20, 20) && !did('pengajian') ? 'Join the pengajian' : null,
-    joinPengajian,
-  );
-  at(
-    [-13, -30.2],
+    [-13, -26.3],
     2.8,
     () => {
       if (!isArisan(S.day) || S.time < h(14, 50) || S.time >= h(15, 50) || did('arisan')) return null;
@@ -586,6 +580,7 @@ export function initEvents() {
       return social(ratna.npc).met && ratna.npc.playerRelationship.friendship >= 10 ? 'Join the arisan' : null;
     },
     arisanMenu,
+    'Balai Warga',
   );
   const fest = (from: number, to: number, id: string) => isFestival(S.day) && S.time >= from && S.time < to && !did(id);
   at(LOMBA.upacara, 4, () => (fest(h(7, 15), h(8), 'upacara') ? 'Join the upacara' : null), upacara);
@@ -625,10 +620,10 @@ function reminders() {
       'pengajian',
       h(19),
       'Pengajian at the musholla',
-      'Ustadz Hasan’s gathering starts at 19:30. Press E at the musholla door to join.',
+      'Ustadz Hasan’s gathering starts at 19:30. Go in by the door next to the wudhu taps and press E at the circle.',
     );
   if (isArisan(S.day) && social(byId('ratna').npc).met && byId('ratna').npc.playerRelationship.friendship >= 10)
-    say('arisan', h(14, 45), 'Arisan at the balai', 'Press E at the front of the balai warga to join (Rp 20.000).');
+    say('arisan', h(14, 45), 'Arisan at the balai', 'Press E at Pak RT’s desk in the balai warga to join (Rp 20.000).');
   if (isFestival(S.day))
     say(
       'upacara',

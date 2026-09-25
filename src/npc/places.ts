@@ -8,9 +8,10 @@ import { pasarCols } from '../world/pasar';
 import { rakaHouse } from '../world/landmarks';
 import * as RL from '../interiors/rakalayout';
 import { WK } from '../interiors/warkoplayout';
+import { MU, BA } from '../interiors/civiclayout';
 
 export type P2 = [number, number];
-export type Pose = 'stand' | 'sit' | 'squat' | 'hidden';
+export type Pose = 'stand' | 'sit' | 'squat' | 'kneel' | 'hidden';
 
 export interface Slot {
   x: number;
@@ -164,20 +165,39 @@ function landmarkPois() {
     ],
   });
 
+  // The musholla (interiors/civiclayout.ts): the serambi on the jalan side, and the prayer hall as a second place
+  // in the group, in round the south side through the door by the wudhu taps.
   poi('musholla', 'Musholla Al-Ikhlas', 'musholla', [[2.4, -17]], {
-    inside: [door([4.75, -17])],
     porch: [stand([4.1, -15.6], [0, -15.6]), stand([4.1, -18.4], [0, -18.4])],
   });
-
-  poi('balai', 'Balai Warga', 'balai', [[-13, -31.4]], {
+  const kneel = (at: P2, face: P2 | number): SlotSpec => ({ at, face, pose: 'kneel', y: MU.fl + 0.14 });
+  const c = MU.circle;
+  poi('mushollaIn', 'Musholla Al-Ikhlas', 'musholla', [[2.4, -17], [2.6, -12.4], MU.yard, MU.hub], {
+    // Jamaah: the imam, two rows behind him, and the women's row behind the partition; all facing the qibla.
     inside: [
-      stand([-13, -27.3], [-13, -26]),
-      stand([-16, -27.3], [-15, -26.3]),
-      stand([-10, -27.3], [-11, -26.3]),
-      stand([-13, -25.2], [-13, -26.8], {
+      kneel(MU.imam, -Math.PI / 2),
+      ...MU.rows.flatMap(x => MU.rowZ.map(z => kneel([x, z], -Math.PI / 2))),
+      ...[-19, -17.8, -16.6, -15.4].map(z => kneel([MU.womenRow, z], -Math.PI / 2)),
+    ],
+    // The pengajian: Ustadz Hasan at the head of the circle, everyone else round it.
+    ustadz: [kneel([c.x - c.r, c.z], [c.x, c.z])],
+    circle: Array.from({ length: 11 }, (_, k) => {
+      const a = Math.PI + ((k + 1) / 12) * Math.PI * 2;
+      return kneel([c.x + Math.cos(a) * c.r, c.z + Math.sin(a) * c.r], [c.x, c.z]);
+    }),
+  });
+
+  // The balai: plastic chairs in two rows facing Pak RT's desk; he sits behind it.
+  poi('balai', 'Balai Warga', 'balai', [[-13, -31.4]], {
+    inside: BA.chairsZ.flatMap(z =>
+      BA.chairsX.map(x => sit([x, z], [x, z + 2], BA.fl + 0.42, { approach: [x, z - 0.5], via: [[-13, z - 0.5]] })),
+    ),
+    desk: [
+      sit(BA.rtSeat, [BA.rtSeat[0], -28], BA.fl + 0.44, {
+        approach: [-10.5, -25.25],
         via: [
-          [-10.5, -27.8],
-          [-10.5, -25.2],
+          [-10.5, -27.05],
+          [-13, -27.05],
         ],
       }),
     ],

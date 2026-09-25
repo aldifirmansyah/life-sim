@@ -77,7 +77,8 @@ export interface PoseState {
   ry: number;
   /** Seat height for sitting. */
   seatY: number;
-  pose: 'stand' | 'sit' | 'squat';
+  /** kneel: sitting on the heels on the floor (prayer, the pengajian circle); seatY is the hip height. */
+  pose: 'stand' | 'sit' | 'squat' | 'kneel';
   /** 0 standing still … 1 full stride. */
   walk: number;
   /** Walk-cycle phase in radians. */
@@ -213,7 +214,10 @@ export class Crowd {
   /** Head centre in world space (for name tags), from the last pose. */
   headY(i: number, st: PoseState) {
     const d = this.dim[i];
-    return (st.pose === 'sit' ? st.seatY + 0.04 - d.hipY : st.pose === 'squat' ? -d.hipY * 0.5 : 0) + d.headY;
+    return (
+      (st.pose === 'sit' || st.pose === 'kneel' ? st.seatY + 0.04 - d.hipY : st.pose === 'squat' ? -d.hipY * 0.5 : 0) +
+      d.headY
+    );
   }
 
   pose(i: number, st: PoseState) {
@@ -236,6 +240,12 @@ export class Crowd {
       thL = thR = -Math.PI / 2 + 0.05;
       knL = knR = Math.PI / 2 - 0.05;
       arL = arR = -0.55;
+    } else if (st.pose === 'kneel') {
+      // Thighs forward, shins folded back under them, hands on the knees.
+      y = st.seatY + 0.04 - d.hipY;
+      thL = thR = -Math.PI / 2 + 0.12;
+      knL = knR = Math.PI - 0.12;
+      arL = arR = -0.45;
     } else if (st.pose === 'squat') {
       y = -d.hipY * 0.5;
       thL = thR = -1.35;

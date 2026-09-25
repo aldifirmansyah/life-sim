@@ -42,7 +42,7 @@ export const RESIDENTS: ResidentDef[] = [
       weekday: [
         ['06:00', 'home.teras', 'relax'],
         ['07:15', 'warung.customer', 'shop'],
-        ['07:45', 'balai.inside', 'work'],
+        ['07:45', 'balai.desk', 'work'],
         ['11:40', 'musholla.inside', 'pray'],
         ['12:20', 'home.inside', 'home'],
         ['15:30', 'balai.board', 'work'],
@@ -55,7 +55,7 @@ export const RESIDENTS: ResidentDef[] = [
       sun: [
         ['06:00', 'lapangan.bench', 'relax'],
         ['07:30', 'warung.bench', 'chat'],
-        ['09:00', 'balai.inside', 'work'],
+        ['09:00', 'balai.desk', 'work'],
         ['11:00', 'home.teras', 'relax'],
         ['12:00', 'home.inside', 'home'],
         ['16:00', 'home.teras', 'relax'],
