@@ -195,14 +195,14 @@ function buildHome(s: HomeSite) {
         col(x - 0.35, x + 0.35, z - 0.35, z + 0.35, -1, 3.4);
       }
     wall(bx0 + 2, bx0 + 8, bz0 + 1, bz0 + 1.4, 0, 1.8, '#9aa3a9'); // letterboxes
-    p.put(s.x - 6, 0.4, s.z, 1.2, 0.8, 1.2, '#9e9a92', 0, p.cyl);
+    p.put(s.x - 6, 0.4, s.z, 0.7, 0.8, 0.7, '#9e9a92', 0, p.cyl);
     for (const [dx, dz] of [
       [1.2, 0],
       [-1.2, 0],
       [0, 1.2],
       [0, -1.2],
     ])
-      p.put(s.x - 6 + dx, 0.22, s.z + dz, 0.4, 0.44, 0.4, '#9e9a92', 0, p.cyl);
+      p.put(s.x - 6 + dx, 0.22, s.z + dz, 0.22, 0.44, 0.22, '#9e9a92', 0, p.cyl);
     const lx = bx1 - 4;
     wall(lx - 1.5, lx + 1.5, s.z - 1.5, s.z + 1.5, 0, 3.4, '#d9d2c3');
     p.box(lx - 0.8, lx + 0.8, 0, 2.2, s.z + 1.5, s.z + 1.56, '#b9c0c6');

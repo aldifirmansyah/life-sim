@@ -110,7 +110,13 @@ function buildSpots() {
     [0, 1.9],
     [0, -1.9],
   ].forEach(([dx, dz], i) =>
-    add(`hq.standup.${i}`, { x: mx + dx, y: Y2, z: mz + dz, ry: face(mx + dx, mz + dz, mx, mz), where: 'Merlion room' }),
+    add(`hq.standup.${i}`, {
+      x: mx + dx,
+      y: Y2,
+      z: mz + dz,
+      ry: face(mx + dx, mz + dz, mx, mz),
+      where: 'Merlion room',
+    }),
   );
   [
     [4, 6.5],
@@ -132,14 +138,29 @@ function buildSpots() {
   add('hq.reception', { x: H.x0 + 8, y: 0, z: H.z1 - 6.7, ry: 0, where: 'Chopee · Reception' });
   // The city office, Level 30.
   const C = CITY_OFFICE;
-  add('city.rachel', { x: C.x0 + 18.5, y: C.floor, z: C.z0 + 12.8, ry: 0, sit: C.floor + 0.48, where: 'Chopee · Level 30' });
-  add('city.daniel', { x: C.x0 + 23.5, y: C.floor, z: C.z0 + 21.2, ry: Math.PI, sit: C.floor + 0.48, where: 'Chopee · Level 30' });
+  add('city.rachel', {
+    x: C.x0 + 18.5,
+    y: C.floor,
+    z: C.z0 + 12.8,
+    ry: 0,
+    sit: C.floor + 0.48,
+    where: 'Chopee · Level 30',
+  });
+  add('city.daniel', {
+    x: C.x0 + 23.5,
+    y: C.floor,
+    z: C.z0 + 21.2,
+    ry: Math.PI,
+    sit: C.floor + 0.48,
+    where: 'Chopee · Level 30',
+  });
   // 448 Clementi: behind the counters, by the tray return.
   const K = CLEMENTI_HAWKER,
     kx0 = K.x - K.w / 2,
     kz0 = K.z - K.d / 2,
     ksw = K.w / 7;
-  const stall = (k: string, i: number) => add(k, { x: kx0 + ksw * (i + 0.5), y: 0, z: kz0 + 1.6, ry: 0, where: '448 Clementi' });
+  const stall = (k: string, i: number) =>
+    add(k, { x: kx0 + ksw * (i + 0.5), y: 0, z: kz0 + 1.6, ry: 0, where: '448 Clementi' });
   stall('k.ahseng', 0);
   stall('k.harun', 1);
   stall('k.lily', 6);
@@ -162,7 +183,14 @@ function buildSpots() {
   // Lau Pa Sat, Boat Quay, one-north.
   const P = LAU_PA_SAT;
   add('lps.satay', { x: P.x - P.w / 2 + 2.5, y: 0, z: P.z - P.d / 2 + 1.6, ry: 0, where: 'Lau Pa Sat' });
-  add('lps.table', { x: P.x - P.w / 2 + 4.5 + 1.05, y: 0, z: P.z - 2, ry: -Math.PI / 2, sit: 0.44, where: 'Lau Pa Sat' });
+  add('lps.table', {
+    x: P.x - P.w / 2 + 4.5 + 1.05,
+    y: 0,
+    z: P.z - 2,
+    ry: -Math.PI / 2,
+    sit: 0.44,
+    where: 'Lau Pa Sat',
+  });
   const Q = BOAT_QUAY;
   add('bq.marcus', { x: Q.x0 + 45, y: 0, z: Q.z0 - 1.2, ry: Math.PI, where: 'Boat Quay' });
   add('bq.table', { x: Q.x0 + 48, y: 0, z: Q.z0 - 4.7, ry: 0, where: 'Boat Quay' });
@@ -250,7 +278,7 @@ const DEFS: Def[] = [
     plan: office('hq.hafiz', 1, 1),
     stories: [
       'Every Saturday I play futsal at Kallang. You should come! We need a keeper, nobody wants to be keeper.',
-      'My parents stay in Tampines, same flat since I was born. My mother still packs me lunch sometimes. Don\'t tell anyone.',
+      "My parents stay in Tampines, same flat since I was born. My mother still packs me lunch sometimes. Don't tell anyone.",
     ],
     loves: ['puff'],
     gifts: ['kopi', 'bbt'],
@@ -292,7 +320,7 @@ const DEFS: Def[] = [
     dislikes: ['weather'],
     plan: office('hq.arun', 3, 3),
     stories: [
-      'I wrote half of the order service. The other half, don\'t ask who wrote. I still have nightmares.',
+      "I wrote half of the order service. The other half, don't ask who wrote. I still have nightmares.",
       'My wife and I just got our BTO keys in Tengah. Five years we waited. Five years!',
     ],
     loves: ['kopi'],
@@ -365,7 +393,7 @@ const DEFS: Def[] = [
         : [['06:00', 'away']],
     stories: [
       'You know who is dating who in this building? I know. Everything. But I say nothing. Hehe.',
-      'On weekends I sell baju kurung online. Hari Raya season, I don\'t sleep.',
+      "On weekends I sell baju kurung online. Hari Raya season, I don't sleep.",
     ],
     loves: ['bbt', 'flowers'],
     gifts: ['tarts'],
@@ -383,7 +411,14 @@ const DEFS: Def[] = [
     traits: ['ambitious'],
     likes: ['property', 'work', 'travel'],
     dislikes: ['football'],
-    plan: d => (weekdays(d) ? [['06:00', 'away'], ['09:00', 'city.rachel'], ['19:30', 'away']] : [['06:00', 'away']]),
+    plan: d =>
+      weekdays(d)
+        ? [
+            ['06:00', 'away'],
+            ['09:00', 'city.rachel'],
+            ['19:30', 'away'],
+          ]
+        : [['06:00', 'away']],
     stories: [
       'I started at Chopee when we were thirty people in a shophouse in Tanjong Pagar. The aircon broke every week.',
       'Tip from me: in a meeting, the person who writes on the whiteboard wins. Remember that.',
@@ -405,7 +440,14 @@ const DEFS: Def[] = [
     traits: ['cheerful', 'gossip'],
     likes: ['football', 'music', 'gossip'],
     dislikes: ['religion'],
-    plan: d => (weekdays(d) ? [['06:00', 'away'], ['09:30', 'city.daniel'], ['19:00', 'away']] : [['06:00', 'away']]),
+    plan: d =>
+      weekdays(d)
+        ? [
+            ['06:00', 'away'],
+            ['09:30', 'city.daniel'],
+            ['19:00', 'away'],
+          ]
+        : [['06:00', 'away']],
     stories: [
       'My family is Eurasian: Portuguese, Chinese, a bit of everything. Our Christmas devil curry, you must try.',
       'Friday nights I play bass in a band at Clarke Quay. We are terrible. Come!',
@@ -436,7 +478,7 @@ const DEFS: Def[] = [
     hates: ['bbt'],
     look: { skin: '#d4a57c', hair: 'bald', hairColor: '#bdb6ab', top: '#f4f1ea', bottom: '#3b3a36' },
     ties: { lily: -20, harun: 20, mdmtan: 30, kokwah: 40 },
-    intro: ['You want chicken rice? No? Then what you want? …Oh, just say hello. OK lah. Hello. I\'m Ah Seng.'],
+    intro: ["You want chicken rice? No? Then what you want? …Oh, just say hello. OK lah. Hello. I'm Ah Seng."],
   },
   {
     id: 'harun',
@@ -464,7 +506,7 @@ const DEFS: Def[] = [
             ['21:00', 'away'],
           ],
     stories: [
-      'Saya dari Bukittinggi, datang sini tahun 1995. Thirty years, but the rendang recipe is still my mother\'s.',
+      "Saya dari Bukittinggi, datang sini tahun 1995. Thirty years, but the rendang recipe is still my mother's.",
       'My birthday same day as Indonesia! Seventeen August. Every year at the embassy I sing the anthem loudest.',
     ],
     loves: ['keripik', 'indomie'],
@@ -535,7 +577,7 @@ const DEFS: Def[] = [
     gifts: ['kueh'],
     look: { skin: '#dcb08a', hair: 'short', hairColor: '#2e241e', top: '#8e44ad', bottom: '#2c3e50' },
     ties: { kokwah: 60, jasmine: 40, rosnah: 50, lily: 50, ravi: 20 },
-    intro: ['Aiyo, Aldi! Call me Aunty Mei. Anything in the flat broken, tell me. Just don\'t cook durian.'],
+    intro: ["Aiyo, Aldi! Call me Aunty Mei. Anything in the flat broken, tell me. Just don't cook durian."],
   },
   {
     id: 'kokwah',
@@ -543,7 +585,7 @@ const DEFS: Def[] = [
     address: 'Uncle',
     age: 62,
     gender: 'm',
-    role: 'Aunty Mei\'s husband, retired',
+    role: "Aunty Mei's husband, retired",
     birthday: '6 June',
     traits: ['cheerful'],
     likes: ['old days', 'football'],
@@ -564,7 +606,7 @@ const DEFS: Def[] = [
     address: '',
     age: 20,
     gender: 'f',
-    role: 'Aunty Mei\'s daughter, at NUS',
+    role: "Aunty Mei's daughter, at NUS",
     birthday: '22 April',
     traits: ['curious', 'artsy'],
     likes: ['music', 'shopping', 'tech'],
@@ -618,7 +660,7 @@ const DEFS: Def[] = [
           ],
     stories: [
       'Deepavali this year, you come to my flat. My wife cooks for fifty people even when ten come.',
-      'I coach my son\'s cricket team on Sundays. Singapore got cricket, you know! Small, but got.',
+      "I coach my son's cricket team on Sundays. Singapore got cricket, you know! Small, but got.",
     ],
     loves: ['puff'],
     gifts: ['kopi'],
@@ -681,7 +723,7 @@ const DEFS: Def[] = [
     plan: daily(['06:00', 'away'], ['11:00', 'bq.marcus'], ['23:30', 'away']),
     stories: [
       'Before the café I was in a bank, forty floors up. Now I see the river every day. Pay is less, life is more.',
-      'The bumboats used to carry cargo up this river. Now they carry tourists. The river doesn\'t mind.',
+      "The bumboats used to carry cargo up this river. Now they carry tourists. The river doesn't mind.",
     ],
     loves: ['tarts'],
     gifts: ['bbt'],
@@ -720,14 +762,14 @@ const DEFS: Def[] = [
       ];
     },
     stories: [
-      'You haven\'t tried Tiong Bahru chwee kueh? Cannot like that. This weekend I bring you.',
+      "You haven't tried Tiong Bahru chwee kueh? Cannot like that. This weekend I bring you.",
       'I did NS as a cook. Two years cooking for three hundred soldiers. Now I can only cook for three hundred.',
     ],
     loves: ['bbt', 'indomie'],
     gifts: ['puff'],
     look: { skin: '#e8c4a0', hair: 'cap', headwear: '#222326', top: '#3a9a73', bottom: '#1f2a36' },
     ties: { marcus: 45, rahman: 30 },
-    intro: ['Eh bro, you look lost. First time Singapore? Come, I\'m Jun Hao, I show you what to eat. Priorities.'],
+    intro: ["Eh bro, you look lost. First time Singapore? Come, I'm Jun Hao, I show you what to eat. Priorities."],
   },
   {
     id: 'farah',
@@ -758,7 +800,10 @@ export function buildPeople() {
   buildSpots();
   DEFS.forEach((d, i) => {
     const r = rng(hash('npc', d.id));
-    const appearance = generateAppearance({ age: d.age, gender: d.gender, set: d.look, hijab: 0, skins: SG_SKINS }, r.next);
+    const appearance = generateAppearance(
+      { age: d.age, gender: d.gender, set: d.look, hijab: 0, skins: SG_SKINS },
+      r.next,
+    );
     const npc: NPC = {
       id: d.id,
       name: d.name,
@@ -832,7 +877,11 @@ let lastDay = -1;
 /** Every frame: who is where; pose the ones near Aldi. */
 export function updatePeople(dt: number) {
   if (S.day !== lastDay) {
-    if (lastDay >= 0) dailyDecay(people.map(p => p.npc), S.day);
+    if (lastDay >= 0)
+      dailyDecay(
+        people.map(p => p.npc),
+        S.day,
+      );
     lastDay = S.day;
   }
   let dirty = false;
@@ -880,7 +929,11 @@ export function updatePeople(dt: number) {
 }
 /* ---------- talking ---------- */
 
-async function line(p: Person, kind: LineKind, extra: { outcome?: string; topic?: Topic; item?: string; detail?: string; other?: NPC } = {}) {
+async function line(
+  p: Person,
+  kind: LineKind,
+  extra: { outcome?: string; topic?: Topic; item?: string; detail?: string; other?: NPC } = {},
+) {
   const r = await provider.getLine({
     kind,
     npc: p.npc,
@@ -896,7 +949,7 @@ async function line(p: Person, kind: LineKind, extra: { outcome?: string; topic?
 function applied(p: Person, delta: number, uncapped = false) {
   const c = befriend(p.npc, delta, S.day, uncapped);
   if (c.after !== c.before && stageRank(c.after) > stageRank(c.before))
-    toast(`${properName(p.npc)}: ${c.after}`, 'You\'re getting closer.', 'good');
+    toast(`${properName(p.npc)}: ${c.after}`, "You're getting closer.", 'good');
   S.time = Math.min(S.time + 2, 26 * 60 - 1);
   return c.delta;
 }
@@ -915,7 +968,8 @@ async function talk(p: Person) {
     const outcome =
       g.kind === 'greet.again'
         ? undefined
-        : 'outcome' in g && (g.outcome === 'cold' || g.outcome === 'friend' || g.outcome === 'acquaintance' || g.outcome === 'stranger')
+        : 'outcome' in g &&
+            (g.outcome === 'cold' || g.outcome === 'friend' || g.outcome === 'acquaintance' || g.outcome === 'stranger')
           ? g.outcome
           : stageRank(npc.playerRelationship.stage) >= 2
             ? 'friend'
@@ -937,7 +991,13 @@ function menu(p: Person, said: string) {
       run: async () => {
         const r = ask(npc, S.day, p.stories);
         const d = applied(p, r.delta);
-        menu(p, (await line(p, r.kind, { topic: 'topic' in r ? r.topic : undefined, detail: 'detail' in r ? r.detail : undefined })) + hint(d));
+        menu(
+          p,
+          (await line(p, r.kind, {
+            topic: 'topic' in r ? r.topic : undefined,
+            detail: 'detail' in r ? r.detail : undefined,
+          })) + hint(d),
+        );
       },
     },
     {
@@ -1080,6 +1140,9 @@ export function loadPeople(d: ReturnType<typeof saveSocial> | undefined) {
     p.npc.playerRelationship = { friendship: 0, stage: 'stranger', lastTalkedDay: -1, memories: [] };
     p.npc.mood = 60;
   }
-  loadSocial(d ?? { socials: [], mended: [], npcs: [] }, people.map(p => p.npc));
+  loadSocial(
+    d ?? { socials: [], mended: [], npcs: [] },
+    people.map(p => p.npc),
+  );
   lastDay = -1;
 }

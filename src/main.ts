@@ -105,7 +105,8 @@ function vitalsTick() {
   if (lastDay >= 0 && S.day > lastDay) {
     addEnergy(100);
     addMood(3);
-    for (const p of birthdaysToday()) toast(`${properName(p.npc)}'s birthday today`, 'A gift would go down well.', 'msg');
+    for (const p of birthdaysToday())
+      toast(`${properName(p.npc)}'s birthday today`, 'A gift would go down well.', 'msg');
   } else if (lastTime >= 0 && S.time > lastTime) drain(S.time - lastTime);
   lastTime = S.time;
   lastDay = S.day;

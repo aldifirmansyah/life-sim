@@ -51,7 +51,11 @@ export function generateAppearance(
   const build = child ? 1 : range(0.9, 1.12) + (age > 40 ? 0.06 : 0);
   let hair: AppearanceParams['hair'];
   if (gender === 'f')
-    hair = child ? pick(['long', 'bun'] as const) : age >= 16 && rnd() < hijabChance ? 'hijab' : pick(['long', 'bun'] as const);
+    hair = child
+      ? pick(['long', 'bun'] as const)
+      : age >= 16 && rnd() < hijabChance
+        ? 'hijab'
+        : pick(['long', 'bun'] as const);
   else
     hair = child
       ? 'short'

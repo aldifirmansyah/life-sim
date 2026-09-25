@@ -55,7 +55,19 @@ export function buildCrowds() {
       len: 1,
       t: 0,
       speed: r.range(1.1, 1.5),
-      pose: { x: 0, z: 0, ry: 0, seatY: 0, pose: 'stand', walk: 1, phase: r.range(0, 6), headYaw: 0, gesture: 0, reach: 0, t: 0 },
+      pose: {
+        x: 0,
+        z: 0,
+        ry: 0,
+        seatY: 0,
+        pose: 'stand',
+        walk: 1,
+        phase: r.range(0, 6),
+        headYaw: 0,
+        gesture: 0,
+        reach: 0,
+        t: 0,
+      },
     });
   }
 }
@@ -76,7 +88,10 @@ function districtWeight(x: number, z: number) {
   if (land !== 'urban' && land !== 'beach' && land !== 'park') return 0;
   const t = townAt(x, z);
   if (!t) return 0.3;
-  return { cbd: 1, mall: 1, hdb: 0.9, shophouse: 1, mixed: 0.8, landmark: 0.8, campus: 0.6, civic: 0.6 }[t.kind as string] ?? 0.4;
+  return (
+    { cbd: 1, mall: 1, hdb: 0.9, shophouse: 1, mixed: 0.8, landmark: 0.8, campus: 0.6, civic: 0.6 }[t.kind as string] ??
+    0.4
+  );
 }
 
 /** Start a walker on a pavement 30–140 m from Aldi. */
