@@ -12,7 +12,8 @@ import { emit } from '../game/bus';
 import { eventsOn } from '../game/events';
 import { todaysJobs, describeJob, take } from '../game/jobs';
 import { shortDate } from '../game/calendar';
-import { social, befriend } from '../social/social';
+import { social } from '../social/social';
+import { befriendAll, gainsText } from '../game/gains';
 import { repute } from '../social/reputation';
 import { bubble } from './bubbles';
 import { toast } from './hud';
@@ -92,16 +93,17 @@ function rondaMenu() {
           rondaNight.add(S.day);
           const mins = Math.max(30, h(25) - S.time);
           passTime(mins, 'Gaple, kopi, and a slow walk round the gangs…', () => {
-            const met = crew.filter(r => social(r.npc).met);
-            for (const r of met) befriend(r.npc, 3, S.day);
+            const g = befriendAll(
+              crew.filter(r => social(r.npc).met).map(r => r.npc),
+              () => 3,
+              S.day,
+              { energy: -12, mood: 4, rep: 3 },
+            );
             st.addEnergy(-12);
             st.addMood(4);
             st.practise('charisma', 6);
             repute(3, 'You kept the night watch.', S.day, true);
-            toast(
-              'Ronda',
-              `The gang is quiet and safe.${met.length ? ` You got to know ${met.map(r => r.npc.name).join(' and ')} better.` : ''}`,
-            );
+            toast('Ronda: the gang is quiet and safe', gainsText(g));
             emit('ronda');
           });
         },
@@ -122,26 +124,35 @@ function rondaMenu() {
 /** Play for half an hour: Music practice, and neighbours in earshot who like music gather and sing. */
 export function playGuitar(where: string) {
   const lvl = st.level('music');
+  // Whoever is in earshot when you start playing.
+  const near = around(14).filter(r => social(r.npc).met);
   passTime(30, `Strumming on ${where}…`, () => {
-    const fans = around(14).filter(r => social(r.npc).met && !r.npc.dislikes.includes('music'));
+    const fans = near.filter(r => !r.npc.dislikes.includes('music'));
+    const grumps = near.filter(r => r.npc.dislikes.includes('music'));
     let sang = 0;
-    for (const r of fans) {
-      const likes = r.npc.likes.includes('music');
-      befriend(r.npc, likes ? 3 : 1, S.day);
-      if (likes || Math.random() < 0.3 + lvl * 0.05) {
+    for (const r of fans)
+      if (r.npc.likes.includes('music') || Math.random() < 0.3 + lvl * 0.05) {
         sang++;
         bubble(r, () => headPos(r), '♪ ♫', 4, true);
       }
-    }
-    const grumps = around(14).filter(r => r.npc.dislikes.includes('music') && social(r.npc).met);
-    for (const r of grumps) befriend(r.npc, -1, S.day);
+    const mood = 4 + Math.min(4, sang);
+    const g = befriendAll(
+      fans.map(r => r.npc),
+      n => (n.likes.includes('music') ? 3 : 1),
+      S.day,
+      { mood },
+    );
+    befriendAll(
+      grumps.map(r => r.npc),
+      () => -1,
+      S.day,
+      g,
+    );
     st.practise('music', 10);
-    st.addMood(4 + Math.min(4, sang));
+    st.addMood(mood);
     toast(
       sang ? `${sang} neighbour${sang > 1 ? 's' : ''} sang along` : 'You play for yourself',
-      grumps.length
-        ? `${grumps.map(r => r.npc.name).join(', ')} would rather you didn’t.`
-        : `Music practice. Level ${st.level('music')}.`,
+      `${gainsText(g)} · Music practice (level ${st.level('music')})${grumps.length ? ` · ${grumps.map(r => r.npc.name).join(', ')} would rather you didn’t` : ''}`,
     );
     emit('guitar');
   });
@@ -164,13 +175,17 @@ function fish(where: Resident[]) {
     done: r => {
       passTime(40, 'Waiting by the water…', () => {
         if (r.caught) st.add('ikan', r.caught);
-        const met = where.filter(x => social(x.npc).met);
-        for (const x of met) befriend(x.npc, 2, S.day);
+        const g = befriendAll(
+          where.filter(x => social(x.npc).met).map(x => x.npc),
+          () => 2,
+          S.day,
+          { mood: 3 + r.caught, energy: -3 },
+        );
         st.addMood(3 + r.caught);
         st.addEnergy(-3);
         toast(
-          r.caught ? `${r.caught} ikan mujair` : 'Nothing biting',
-          `${r.caught ? 'In your bag. Fry them (Cook → Ikan goreng) or give them away.' : 'Some days are like that.'}${met.length ? ` ${met.map(x => x.npc.name).join(', ')} kept you company.` : ''}`,
+          r.caught ? `${r.caught} ikan mujair (in your bag)` : 'Nothing biting',
+          `${gainsText(g)}${r.caught ? ' · fry them: Cook → Ikan goreng' : ''}`,
         );
         emit('fish');
       });
@@ -194,15 +209,16 @@ function futsal() {
     speed: 1.1,
     done: r => {
       passTime(45, 'Running round the lapangan…', () => {
-        const met = players.filter(x => social(x.npc).met);
-        for (const x of met) befriend(x.npc, 2 + (r.hits >= 3 ? 1 : 0), S.day);
+        const g = befriendAll(
+          players.filter(x => social(x.npc).met).map(x => x.npc),
+          () => 2 + (r.hits >= 3 ? 1 : 0),
+          S.day,
+          { mood: 3 + r.hits, energy: -12 },
+        );
         st.practise('fitness', 10 + r.hits * 3);
         st.addEnergy(-12);
         st.addMood(3 + r.hits);
-        toast(
-          `${r.hits} goal${r.hits === 1 ? '' : 's'} from 5`,
-          r.hits >= 3 ? 'The kids want you on their team.' : 'You’ll get the hang of it.',
-        );
+        toast(`${r.hits} goal${r.hits === 1 ? '' : 's'} from 5`, gainsText(g));
         emit('futsal');
       });
     },

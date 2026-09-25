@@ -19,7 +19,8 @@ import { item, rupiah, ITEMS } from './items';
 import { emit } from './bus';
 import { dateOf, isArisan, isFestival, isKerjaBakti, isPengajian, festivalSeason, festivalBuild } from './calendar';
 import { agustus, festival, LOMBA } from '../world/festival';
-import { social, befriend } from '../social/social';
+import { social } from '../social/social';
+import { befriendAll, gainsText } from './gains';
 import { repute } from '../social/reputation';
 import { onPhoneDay, schedulePost, sendText } from '../social/phone';
 import { toast } from '../ui/hud';
@@ -147,11 +148,13 @@ function planDay() {
       plan(r, h(7), h(9), `#${near.id}.sweep`, 'work');
     }
   }
+  pengajianGoers = [];
   if (isPengajian(S.day))
     for (const r of residents) {
       const devout = r.npc.id === 'hasan' || r.npc.likes.includes('religion') || r.npc.age >= 50;
       if (!devout || r.npc.age < 12 || awayAt(r, h(20)) || activityAt(r, h(20)) === 'ronda') continue;
       plan(r, h(19, 30), h(20, 30), 'musholla.inside', 'pray');
+      pengajianGoers.push(r.npc.id);
     }
   if (isArisan(S.day))
     for (const id of ARISAN) {
@@ -256,13 +259,15 @@ function sweep(p: Pile) {
     if (sweptToday === SHARE) {
       mark('kerja');
       const near = residents.filter(r => r.slot.poi.id.startsWith('kerja') && social(r.npc).met && r.dist < 30);
-      for (const r of near) befriend(r.npc, 2, S.day);
+      const g = befriendAll(
+        near.map(r => r.npc),
+        () => 2,
+        S.day,
+        { mood: 4, rep: 4 },
+      );
       repute(4, 'You did your share at kerja bakti.', S.day, true);
       st.addMood(4);
-      toast(
-        'Kerja bakti: your stretch is clean',
-        `Reputation +4${near.length ? ` · ${near.length} neighbours saw you at work` : ''}.`,
-      );
+      toast('Kerja bakti: your stretch is clean', gainsText(g));
       emit('kerja');
     } else if (sweptToday < SHARE) toast(`Swept ${sweptToday} of ${SHARE}`);
   });
@@ -282,15 +287,25 @@ function kerjaOver() {
 
 /* ================= pengajian, arisan ================= */
 
+/** Who is expected at tonight's pengajian (set when the day is planned). */
+let pengajianGoers: string[] = [];
 function joinPengajian() {
   mark('pengajian');
   const end = h(20, 30);
+  // Everyone who comes tonight, counted now (by the end they are already walking home).
+  const goers = residents.filter(r => pengajianGoers.includes(r.npc.id) || r.slot.poi.id === 'musholla');
   passTime(Math.max(20, end - S.time), 'Ustadz Hasan’s pengajian…', () => {
-    const there = residents.filter(r => r.slot.poi.id === 'musholla' && social(r.npc).met);
-    for (const r of there) befriend(r.npc, r.npc.id === 'hasan' ? 3 : 1, S.day);
+    const met = goers.filter(r => social(r.npc).met);
+    const g = befriendAll(
+      met.map(r => r.npc),
+      n => (n.id === 'hasan' ? 3 : 1),
+      S.day,
+      { mood: 6, rep: 2 },
+    );
     st.addMood(6);
     repute(2, 'You sat in on the pengajian.', S.day, true);
-    toast('Pengajian', `A calm hour. ${there.length ? `${there.length} neighbours were there with you.` : ''}`);
+    const unmet = goers.length - met.length;
+    toast('Pengajian: a calm hour', gainsText(g) + (unmet ? ` · ${unmet} more you haven’t met yet` : ''));
     emit('pengajian');
   });
 }
@@ -318,10 +333,15 @@ function arisanMenu() {
             } else toast(`${members[win].npc.name} takes the pot`, `${rupiah(pot)}. Maybe your name next month.`);
             // The news of the month: Raka learns how some neighbours feel about each other.
             let learned = 0;
+            const g = befriendAll(
+              members.filter(r => social(r.npc).met).map(r => r.npc),
+              () => 2,
+              S.day,
+              { mood: 5, rep: 2 },
+            );
             for (const r of members) {
               const s = social(r.npc);
               if (!s.met) continue;
-              befriend(r.npc, 2, S.day);
               const tie = Object.entries(r.npc.relationships)
                 .filter(([id]) => !s.known.ties.includes(id) && residents.some(o => o.npc.id === id))
                 .sort((a, b) => Math.abs(b[1]) - Math.abs(a[1]))[0];
@@ -332,8 +352,10 @@ function arisanMenu() {
             }
             st.addMood(5);
             repute(2, 'You joined the arisan.', S.day, true);
-            if (learned)
-              toast('The arisan news', `You learned ${learned} new things about who gets on with whom. See Contacts.`);
+            toast(
+              'The arisan',
+              gainsText(g) + (learned ? ` · learned ${learned} new things about who gets on with whom (Contacts)` : ''),
+            );
             emit('arisan');
           });
         },
@@ -351,7 +373,16 @@ const PRIZE_GIFTS = ITEMS.filter(i => (i.cat === 'gift' || i.cat === 'snack') &&
 function lombaDone(id: string, won: boolean, prize: number, place?: number) {
   mark(id);
   const crowd = residents.filter(r => r.slot.poi.id === 'fest' && social(r.npc).met);
-  for (const r of crowd) befriend(r.npc, won ? 2 : 1, S.day);
+  const g = befriendAll(
+    crowd.map(r => r.npc),
+    () => (won ? 2 : 1),
+    S.day,
+    {
+      mood: won ? 8 : 4,
+      energy: -6,
+      rep: won ? 3 : 1,
+    },
+  );
   st.addEnergy(-6);
   st.addMood(won ? 8 : 4);
   st.practise('fitness', 6);
@@ -359,13 +390,14 @@ function lombaDone(id: string, won: boolean, prize: number, place?: number) {
     st.earn(prize);
     const gift = PRIZE_GIFTS[Math.floor(Math.random() * PRIZE_GIFTS.length)];
     st.add(gift);
+    g.money = `+${rupiah(prize)} and ${item(gift).name}`;
     repute(3, 'The whole kampung cheered your win.', S.day, true);
-    toast(`Juara! +${rupiah(prize)}`, `And a prize: ${item(gift).name}. The crowd cheers.`);
+    toast('Juara! The crowd cheers', gainsText(g));
   } else {
     repute(1, 'You joined the lomba.', S.day, true);
     toast(
       place ? `You came ${['', 'first', 'second', 'third', 'fourth', 'fifth'][place]}` : 'Not this year',
-      'Everyone laughs, you most of all. That’s the point.',
+      `Everyone laughs, you most of all. ${gainsText(g)}`,
     );
   }
   S.time += 10;
@@ -428,7 +460,7 @@ function upacara() {
   passTime(Math.max(10, h(8, 10) - S.time), 'Indonesia Raya… the Merah Putih goes up the pole.', () => {
     st.addMood(5);
     repute(3, 'You stood with the kampung at the upacara.', S.day, true);
-    toast('Dirgahayu Republik Indonesia', 'The whole RT at attention in the morning sun. Then: lomba!');
+    toast('Dirgahayu Republik Indonesia', `${gainsText({ mood: 5, rep: 3 })} · then: lomba!`);
   });
 }
 
@@ -445,10 +477,16 @@ function panggungMenu() {
         disabled: did('watch') ? 'you watched already' : undefined,
         run: () => {
           mark('watch');
+          const aud = residents.filter(r => r.slot.poi.id === 'fest' && social(r.npc).met);
           passTime(60, 'Dangdut, a kids’ dance, Pak RT’s speech…', () => {
-            for (const r of residents) if (r.slot.poi.id === 'fest' && social(r.npc).met) befriend(r.npc, 1, S.day);
+            const g = befriendAll(
+              aud.map(r => r.npc),
+              () => 1,
+              S.day,
+              { mood: 10 },
+            );
             st.addMood(10);
-            toast('What a night', 'The lomba winners get their prizes. You clap until your hands hurt.');
+            toast('What a night', gainsText(g));
             emit('stage', 'watch');
           });
         },
@@ -466,19 +504,24 @@ function panggungMenu() {
         run: () => {
           mark('sing');
           const ok = Math.random() < 0.35 + music * 0.08;
+          const aud = residents.filter(r => r.slot.poi.id === 'fest' && social(r.npc).met);
           passTime(
             20,
             ok ? 'You play, and the whole lapangan sings along…' : 'Your voice cracks on the high note…',
             () => {
-              const aud = residents.filter(r => r.slot.poi.id === 'fest' && social(r.npc).met);
-              for (const r of aud) befriend(r.npc, ok ? 2 : 1, S.day);
+              const g = befriendAll(
+                aud.map(r => r.npc),
+                () => (ok ? 2 : 1),
+                S.day,
+                {
+                  mood: ok ? 12 : 4,
+                  rep: ok ? 6 : 2,
+                },
+              );
               st.practise('music', 12);
               st.addMood(ok ? 12 : 4);
               repute(ok ? 6 : 2, ok ? 'Your song on the panggung.' : 'Brave, singing on the panggung.', S.day, true);
-              toast(
-                ok ? 'Tepuk tangan!' : 'They cheer anyway',
-                ok ? 'Encore! Reputation +6.' : 'Nobody will forget it. Reputation +2.',
-              );
+              toast(ok ? 'Tepuk tangan! Encore!' : 'They cheer anyway', gainsText(g));
               emit('stage', 'sing');
             },
           );
