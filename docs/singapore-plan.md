@@ -13,8 +13,8 @@ The last kampung version is kept on the branch **`kampung-v1`** (commit `18dfd08
 - **Start:** landing at Changi Airport.
 - **Home:** rented, of the player's choosing; where Aldi lives decides the neighbours.
 - **Work:** a real CBD job that still leaves the days free to go around (below: flexible, deliverable-based work with an office in the CBD).
-- **Language:** English, with a setting for how Singlish the dialogue is (Singlish or plain English). No language skill.
-- **Transport, in three stages:** public transport first (walking, MRT, buses); then cars as a passenger (taxi and ride-hail); then Aldi's own car to drive.
+- **Language:** English with Singlish, and nothing else: every line is written in Singlish-flavoured English (lah, leh, can or not, shiok, chope, makan…), with the glossary to explain it. No setting and no language skill.
+- **Transport, in three stages:** public transport first (walking, MRT, buses); then cars as a passenger (taxi and ride-hail); then Aldi's own car to drive. The car has to be bought: it's one of the big life goals to work towards, not something given.
 - **The kampung is replaced**, not kept as a place to visit. 8–12 named people per area Aldi spends time in, plus crowds. A 30-minute day.
 - **Unchanged:** friendship and community, not romance; template dialogue behind `DialogueProvider`; the low-poly, warm, flat-shaded look.
 
@@ -70,7 +70,13 @@ Malay-speaking Singaporeans understand Aldi's Indonesian (a warm bonus with them
 
 1. **Public transport (the first version).** Walking; the MRT (lines and stations as in reality, fare gates, a card to top up, trains arriving on a timetable, platforms, standing or sitting inside while the city passes, announcements, the transfer at interchanges); buses (stops with arrival boards, the route numbers, tapping in, ringing the bell); shared bicycles and park connectors.
 2. **Cars as a passenger.** Taxis flagged at a stand or on the road, and a ride-hail app on the phone: pick a destination, a car comes, Aldi rides in the back seat through the traffic.
-3. **Aldi's own car, driven.** Buying a car is a late goal (a used car and the certificate of entitlement cost a lot); driving on the left, the expressways, ERP gantries charging on the way into town, car parks, fuel.
+3. **Aldi's own car, driven, and bought.** Owning a car is one of the big goals, earned step by step:
+   - **Saving up:** a used car with its certificate of entitlement costs tens of thousands of dollars, so it takes good reviews, raises, a bonus and side jobs; the Journal tracks the savings goal.
+   - **A licence:** converting Aldi's Indonesian licence means a theory test (a quiz on the phone) and a practical test at a driving centre (a short driving course).
+   - **Choosing and buying:** a used-car dealer in the west (and car listings in the app) with a few models at different prices; test drives; a loan with monthly payments, or paying in full.
+   - **Living with it:** parking at home (a season parking label, or hunting for a lot), fuel, ERP gantries charging on the way into town, road tax and insurance each year, and a car wash.
+   - **What it opens:** late-night drives, taking friends out (a carload for the beach or a supper run), trips to the far corners of the island, and later the Causeway to Johor.
+   Until then Aldi rides as a passenger: taxis and ride-hail cost more than the MRT but go door to door.
 
 Traffic (cars, buses, taxis, motorbikes, lorries) runs on a road graph from the first version, since buses and taxis need it.
 
@@ -94,7 +100,7 @@ The game starts in late July, so National Day comes two weeks in, as 17 Agustus 
 |---|---|
 | `core/` (time, player, collision, input, settings, state) | `world/` (the kampung's builders, layout, zones) |
 | `render/` (batches, props, the signs atlas, hands, sky, lighting, quality, prewarm) | `npc/roster.ts` (the 24 residents), `places.ts` POIs |
-| `npc/` runtime: schedules, navgraph and A*, characters, appearance, ambient | `dialogue/lines.json` (all text, now Singapore, with Singlish and plain variants) |
+| `npc/` runtime: schedules, navgraph and A*, characters, appearance, ambient | `dialogue/lines.json` (all text, now Singapore, in Singlish) |
 | `social/` rules, life, plans, phone, reputation, the arcs framework | `game/items.ts` (food and gifts), recipes, shop stock |
 | `dialogue/` provider and panel; `ui/` panel, contacts, map, mini-games | `game/events.ts`, the calendar's content, the arcs' scripts |
 | `interiors/` framework, doors, shutters | the warung, warkop, musholla, balai and homes interiors |
@@ -118,16 +124,15 @@ Same budget (spec §9): under 150 draw calls, under 300k triangles, under 8 ms o
 3. **The CBD and Marina Bay.** The office tower (lift lobby, the office floor, the pantry, meeting rooms), Raffles Place, the hawker market, the river quays, Marina Bay's landmarks. The weekly deliverables job.
 4. **Clementi and Science Park Drive.** Clementi's town centre, HDB blocks with void decks and lifts, the market and hawker centre, the mall, the bus interchange; the Science Park campus; NUS and Kent Ridge between them. Buses.
 5. **A place to live.** The property app, viewings, leases and rent, the five homes (Clementi first) with their interiors, moving in and decorating.
-6. **People and conversation.** The first 30 named people, rewritten lines with the Singlish setting, hawker food and gifts, the Clementi neighbours and the colleagues.
+6. **People and conversation.** The first 30 named people, all lines rewritten in Singlish, hawker food and gifts, the Clementi neighbours and the colleagues.
 7. **Chinatown, Tiong Bahru, Little India, Kampong Glam and Orchard.** The rest of the centre, including the mosque (wudhu and sholat carry over) and the Indonesian community on Orchard.
 8. **The calendar.** National Day, 17 Agustus and the first months' festivals; everyday rituals; balancing money and time.
 9. **The east** (Katong, Geylang Serai, East Coast Park, Changi Village and Pulau Ubin, Tampines), then **the south** (Sentosa and HarbourFront), **the rest of the west** (Jurong), and **the north and north-east** (Woodlands, Mandai, Punggol): one region per step, each with its people.
 10. **Cars as a passenger:** taxis and ride-hail, and the traffic they drive in.
-11. **Aldi's own car:** buying, driving, ERP, parking.
+11. **Aldi's own car:** saving up, the licence tests, the dealer and buying, driving, parking, ERP and running costs.
 12. **Performance pass and docs.**
 
 ## Open questions
 
 - **Aldi's company and the partner at Science Park** get invented names. Any names you'd like, or should I make them up?
-- **The Singlish setting:** default to Singlish (with the glossary) or to plain English?
 - **Where to stay after the serviced apartment:** the five homes above, or others you'd add (Clementi first, as you live there)?
