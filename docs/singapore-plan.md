@@ -125,7 +125,7 @@ The game starts in late July, so National Day comes two weeks in, as 17 Agustus 
 | `game/` actions, stats, save, weather, bus, gains, jobs | the tutorial, the glossary, `house.ts` (becomes renting and decorating) |
 | `audio/` engine | the soundscape's sources (MRT chimes, hawker clatter, traffic, the airport) |
 
-New systems: the island's regions and uneven compression; chunks and streaming; the skyline; tall buildings and multi-storey interiors (lifts, corridors, floors); the road graph and traffic; the MRT and buses; the property app, leases and monthly money; the weekly deliverables job; taxis and ride-hail; later, driving.
+New systems: the island's regions and uneven compression; chunks and streaming; the skyline; tall buildings and multi-storey interiors (lifts, corridors, floors); the road graph and traffic; the MRT and buses; the property app, leases and monthly money; the sprint-based job at Chopee; taxis and ride-hail; later, driving.
 
 ## Performance
 
