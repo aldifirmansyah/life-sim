@@ -26,6 +26,18 @@ export class PropSet {
   cone = new Batch(CONE, lam(true), { parent: this.group });
   /** Cloth, banners and flags: seen from both sides, no shadows. */
   cloth = new Batch(BOX, lam(false, true), { parent: this.group, cast: false });
+  /** Window glass: see-through, both sides, no shadows. */
+  glass = new Batch(
+    BOX,
+    new THREE.MeshLambertMaterial({
+      color: 0xffffff,
+      transparent: true,
+      opacity: 0.25,
+      depthWrite: false,
+      side: THREE.DoubleSide,
+    }),
+    { parent: this.group, cast: false, receive: false },
+  );
   /** Gable roofs (the unit prism). */
   roof = new Batch(prismGeo(), lam(), { parent: this.group });
   /** Lights that glow at night (unlit colour). */
@@ -73,7 +85,7 @@ export class PropSet {
   build() {
     if (this.built) return;
     this.built = true;
-    for (const b of [this.solid, this.cyl, this.cone, this.cloth, this.roof, this.glow]) b.build();
+    for (const b of [this.solid, this.cyl, this.cone, this.cloth, this.glass, this.roof, this.glow]) b.build();
   }
   get visible() {
     return this.group.visible;
@@ -81,7 +93,7 @@ export class PropSet {
   /** Remove a set for good (one that is rebuilt when something changes). Its colliders must be off already. */
   dispose() {
     scene.remove(this.group);
-    for (const b of [this.solid, this.cyl, this.cone, this.cloth, this.roof, this.glow]) b.mesh?.dispose();
+    for (const b of [this.solid, this.cyl, this.cone, this.cloth, this.glass, this.roof, this.glow]) b.mesh?.dispose();
   }
   show(on: boolean) {
     if (this.group.visible === on) return;

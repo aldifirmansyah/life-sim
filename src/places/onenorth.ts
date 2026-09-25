@@ -51,7 +51,7 @@ export function buildOneNorth() {
   p.box(x1, x1 + T, 2.6, h, z0, z1, '#efeae0', { col: true });
   p.box(x1, x1 + T, 0.9, 2.6, z0, z0 + 1, '#efeae0', { col: true });
   p.box(x1, x1 + T, 0.9, 2.6, z1 - 1, z1, '#efeae0', { col: true });
-  p.box(x1 + 0.02, x1 + 0.06, 0.9, 2.6, z0 + 1, z1 - 1, '#a9cbd8', { col: true, b: p.cloth });
+  p.box(x1 + 0.02, x1 + 0.06, 0.9, 2.6, z0 + 1, z1 - 1, '#a9cbd8', { col: true, b: p.glass });
   // The south wall with the doorway.
   p.box(x0 - T, DOOR_X - 0.55, 0, h, z1, z1 + T, '#efeae0', { col: true });
   p.box(DOOR_X + 0.55, x1 + T, 0, h, z1, z1 + T, '#efeae0', { col: true });

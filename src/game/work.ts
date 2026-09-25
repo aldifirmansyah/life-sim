@@ -449,6 +449,9 @@ function minute() {
 const RECEPTION: [number, number, number] = [CHOPEE_HQ.x0 + 8, 1.2, CHOPEE_HQ.z1 - 5];
 const MEETING: [number, number, number] = [CHOPEE_HQ.x0 + 5, CHOPEE_HQ.l2 + 1, CHOPEE_HQ.z0 + 4];
 const CITY: [number, number, number] = [(CITY_OFFICE.x0 + CITY_OFFICE.x1) / 2, 2, CITY_OFFICE.z1];
+const MARINA: [number, number, number] = [CITY_OFFICE.x0 + 5.5, CITY_OFFICE.floor + 1, CITY_OFFICE.z1 - 6];
+/** The city office's door from outside, the Marina room once up on Level 30. */
+const city = (): [number, number, number] => (player.y > CITY_OFFICE.floor - 5 ? MARINA : CITY);
 function target(): [string, [number, number, number]] | null {
   if (!job.pass) return S.day >= 2 && !isWeekend(S.day) ? ['Chopee reception', RECEPTION] : null;
   if (reviewNow() || (S.day === job.review && S.time > 13 * 60 && job.reviewed !== S.day))
@@ -456,9 +459,9 @@ function target(): [string, [number, number, number]] | null {
   if (isOfficeDay(S.day) && S.day !== job.joined && job.settled !== S.day && S.time > 8 * 60)
     return ['Stand-up', MEETING];
   if (S.day === sellerDay() && job.seller !== S.day && S.time > 12 * 60 && S.time < 15.5 * 60)
-    return ['Seller meeting', CITY];
+    return ['Seller meeting', city()];
   if (lastFriday(S.day) && !job.allhands.includes(dateOf(S.day).m) && S.time > 14 * 60 && S.time < 17 * 60)
-    return ['All-hands', CITY];
+    return ['All-hands', city()];
   return null;
 }
 

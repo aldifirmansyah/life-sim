@@ -47,7 +47,7 @@ function buildT3() {
   for (const d of [...doors, x1 + 3]) {
     const b = d - 3;
     if (b > a) {
-      p.box(a, b, 0, h, z1, z1 + W, '#a9cbd8', { col: true, b: p.cloth });
+      p.box(a, b, 0, h, z1, z1 + W, '#a9cbd8', { col: true, b: p.glass });
       p.box(a, b, 3.4, h, z1 - 0.05, z1 + W + 0.05, '#9fc3d1');
     }
     a = d + 3;

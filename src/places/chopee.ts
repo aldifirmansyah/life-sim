@@ -57,12 +57,12 @@ export function buildChopee() {
   addFloor((x0 + x1) / 2, (z0 + z1) / 2, (x1 - x0) / 2, (z1 - z0) / 2, 0, l2);
   // Outer walls: solid at the back (north), glass on the other three, with mullions.
   p.box(x0 - W, x1 + W, 0, h, z0 - W, z0, '#e4e0d8', { col: true });
-  p.box(x0 - W, x0, 0, h, z0, z1, glass, { col: true, b: p.cloth });
-  p.box(x1, x1 + W, 0, h, z0, z1, glass, { col: true, b: p.cloth });
+  p.box(x0 - W, x0, 0, h, z0, z1, glass, { col: true, b: p.glass });
+  p.box(x1, x1 + W, 0, h, z0, z1, glass, { col: true, b: p.glass });
   const door = (x0 + x1) / 2;
-  p.box(x0, door - 2, 0, h, z1, z1 + W, glass, { col: true, b: p.cloth });
-  p.box(door + 2, x1, 0, h, z1, z1 + W, glass, { col: true, b: p.cloth });
-  p.box(door - 2, door + 2, 3, h, z1, z1 + W, glass, { b: p.cloth });
+  p.box(x0, door - 2, 0, h, z1, z1 + W, glass, { col: true, b: p.glass });
+  p.box(door + 2, x1, 0, h, z1, z1 + W, glass, { col: true, b: p.glass });
+  p.box(door - 2, door + 2, 3, h, z1, z1 + W, glass, { b: p.glass });
   for (let x = x0; x <= x1 + 0.01; x += 4) p.box(x - 0.08, x + 0.08, 0, h, z1, z1 + W + 0.05, frame);
   for (let z = z0; z <= z1 + 0.01; z += 4) {
     p.box(x0 - W - 0.05, x0, 0, h, z - 0.08, z + 0.08, frame);
@@ -94,7 +94,7 @@ export function buildChopee() {
   p.put(door + 4, 1.6, z1 - 2, 1.2, 1.6, 1.2, '#3f7d3a', 0.4, p.cone);
   // The gantry: glass barriers across the lobby with two gate lanes in the middle.
   const bar = (ax: number, bx: number) => {
-    p.box(ax, bx, 0, 1.15, GANTRY_Z - 0.06, GANTRY_Z + 0.06, glass, { b: p.cloth });
+    p.box(ax, bx, 0, 1.15, GANTRY_Z - 0.06, GANTRY_Z + 0.06, glass, { b: p.glass });
     col(ax, bx, GANTRY_Z - 0.1, GANTRY_Z + 0.1, -1, 1.2);
   };
   bar(x0, LANES[0][0] - 0.3);
@@ -229,9 +229,9 @@ export function buildChopee() {
   });
   // The Merlion meeting room (north-west): glass walls, a table.
   const MR = { x0, x1: x0 + 10, z0, z1: z0 + 8 };
-  p.box(MR.x1 - 0.06, MR.x1 + 0.06, Y, h, MR.z0, MR.z1 - 1.2, glass, { col: true, b: p.cloth });
-  p.box(MR.x0, MR.x1 - 2.4, Y, h, MR.z1 - 0.06, MR.z1 + 0.06, glass, { col: true, b: p.cloth });
-  p.box(MR.x1 - 1.2, MR.x1 + 0.06, Y, h, MR.z1 - 0.06, MR.z1 + 0.06, glass, { col: true, b: p.cloth });
+  p.box(MR.x1 - 0.06, MR.x1 + 0.06, Y, h, MR.z0, MR.z1 - 1.2, glass, { col: true, b: p.glass });
+  p.box(MR.x0, MR.x1 - 2.4, Y, h, MR.z1 - 0.06, MR.z1 + 0.06, glass, { col: true, b: p.glass });
+  p.box(MR.x1 - 1.2, MR.x1 + 0.06, Y, h, MR.z1 - 0.06, MR.z1 + 0.06, glass, { col: true, b: p.glass });
   const tx = (MR.x0 + MR.x1) / 2 - 0.5,
     tz = (MR.z0 + MR.z1) / 2;
   p.box(tx - 2.5, tx + 2.5, Y + 0.72, Y + 0.78, tz - 1, tz + 1, '#6b5139');

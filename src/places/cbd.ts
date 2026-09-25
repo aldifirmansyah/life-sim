@@ -111,11 +111,11 @@ function buildOffice() {
   p.box(x0, x1, 0, 0.1, z0, z1, '#d8d4cc');
   p.box(x0 - W, x1 + W, lobby, lobby + 0.35, z0 - W, z1 + W, '#b9b4aa');
   p.box(x0 - W, x1 + W, 0, lobby, z0 - W, z0, '#e4e0d8', { col: true });
-  p.box(x0 - W, x0, 0, lobby, z0, z1, glass, { col: true, b: p.cloth });
-  p.box(x1, x1 + W, 0, lobby, z0, z1, glass, { col: true, b: p.cloth });
-  p.box(x0, door - 2, 0, lobby, z1, z1 + W, glass, { col: true, b: p.cloth });
-  p.box(door + 2, x1, 0, lobby, z1, z1 + W, glass, { col: true, b: p.cloth });
-  p.box(door - 2, door + 2, 3, lobby, z1, z1 + W, glass, { b: p.cloth });
+  p.box(x0 - W, x0, 0, lobby, z0, z1, glass, { col: true, b: p.glass });
+  p.box(x1, x1 + W, 0, lobby, z0, z1, glass, { col: true, b: p.glass });
+  p.box(x0, door - 2, 0, lobby, z1, z1 + W, glass, { col: true, b: p.glass });
+  p.box(door + 2, x1, 0, lobby, z1, z1 + W, glass, { col: true, b: p.glass });
+  p.box(door - 2, door + 2, 3, lobby, z1, z1 + W, glass, { b: p.glass });
   for (let x = x0; x <= x1 + 0.01; x += 4) p.box(x - 0.08, x + 0.08, 0, lobby, z1, z1 + W + 0.05, frame);
   // The concierge desk and the building's name.
   p.box(x1 - 10, x1 - 4, 0, 1.1, z0 + 9, z0 + 10, '#2b3035');
@@ -173,7 +173,7 @@ function buildOffice() {
     [x0 - W, x0, z0, z1],
     [x1, x1 + W, z0, z1],
   ]) {
-    p.box(ax, bx, F, F + 4, az, bz, glass, { b: p.cloth });
+    p.box(ax, bx, F, F + 4, az, bz, glass, { b: p.glass });
     col(ax, bx, az, bz, F - 1, F + 4);
   }
   for (let x = x0 + 5; x < x1 - 2; x += 8) p.box(x - 1.5, x + 1.5, F + 3.9, F + 3.95, z0 + 3, z1 - 3, '#fbf8ee');
@@ -198,9 +198,9 @@ function buildOffice() {
   }
   // The Marina room: a long table for meetings and the all-hands screen (south-west, facing the bay).
   const MR = { x0, x1: x0 + 11, z0: z1 - 12, z1 };
-  p.box(MR.x1 - 0.06, MR.x1 + 0.06, F, F + 4, MR.z0 + 1.2, MR.z1, glass, { b: p.cloth });
+  p.box(MR.x1 - 0.06, MR.x1 + 0.06, F, F + 4, MR.z0 + 1.2, MR.z1, glass, { b: p.glass });
   col(MR.x1 - 0.1, MR.x1 + 0.1, MR.z0 + 1.2, MR.z1, F - 1, F + 4);
-  p.box(MR.x0, MR.x1, F, F + 4, MR.z0 - 0.06, MR.z0 + 0.06, glass, { b: p.cloth });
+  p.box(MR.x0, MR.x1, F, F + 4, MR.z0 - 0.06, MR.z0 + 0.06, glass, { b: p.glass });
   col(MR.x0, MR.x1 - 1.4, MR.z0 - 0.1, MR.z0 + 0.1, F - 1, F + 4);
   const tx = (MR.x0 + MR.x1) / 2,
     tz = (MR.z0 + MR.z1) / 2;
@@ -353,7 +353,7 @@ let watchedDay = 0;
 export const showOn = () => SHOWS.some(t => S.time >= t && S.time < t + SHOW_LEN);
 
 function buildShow() {
-  const g = new THREE.CylinderGeometry(0.35, 0.35, 1, 6, 1, true);
+  const g = new THREE.CylinderGeometry(1.1, 1.1, 1, 6, 1, true);
   g.translate(0, 0.5, 0);
   const colors = [0x4fd1ff, 0xff4fd8, 0x7dff6a, 0xffd24f, 0x9f7bff, 0xff7a4f];
   for (let i = 0; i < 12; i++) {
@@ -368,7 +368,7 @@ function buildShow() {
       }),
     );
     m.position.set(562, 176, 520 + (i - 5.5) * 12);
-    m.scale.set(1, 600, 1);
+    m.scale.set(1, 420, 1);
     m.visible = false;
     scene.add(m);
     beams.push(m);
@@ -412,10 +412,15 @@ export function updateCbd() {
     const b = beams[i];
     b.visible = on;
     if (!on) continue;
-    // Pointing west over the bay, sweeping up and down and side to side.
+    // Half sweep west over the bay towards the promenade, half fan up into the sky.
     b.rotation.set(0, 0, 0);
-    b.rotation.z = Math.PI / 2 + 0.14 + Math.sin(t * 0.7 + i) * 0.18;
-    b.rotation.y = Math.sin(t * 0.45 + i * 0.6) * 0.5;
+    if (i % 2 === 0) {
+      b.rotation.z = Math.PI / 2 + 0.42 + Math.sin(t * 0.7 + i) * 0.14;
+      b.rotation.y = Math.sin(t * 0.45 + i * 0.6) * 0.5;
+    } else {
+      b.rotation.z = Math.sin(t * 0.6 + i) * 0.7;
+      b.rotation.x = Math.cos(t * 0.5 + i * 0.8) * 0.4;
+    }
     (b.material as THREE.MeshBasicMaterial).opacity = 0.35 + 0.25 * Math.sin(t * 2 + i);
   }
   screen.visible = on;
