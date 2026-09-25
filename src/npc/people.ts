@@ -889,7 +889,7 @@ const DEFS: Def[] = [
     gifts: ['kueh', 'batik'],
     look: { skin: '#b67d55', hair: 'hijab', headwear: '#e8c9bd', top: '#e8c9bd', bottom: '#2f5d8a' },
     ties: { bayu: 50, ana: 60 },
-    intro: ['Eh, mas orang Indonesia? Dari mana? Bekasi! Aku Dewi, dari Ponorogo. Minggu depan ke sini lagi ya!'],
+    intro: ['Eh, orang Indonesia ya? Dari mana? Bekasi! Aku Dewi, dari Ponorogo. Minggu depan ke sini lagi ya!'],
   },
   {
     id: 'bayu',

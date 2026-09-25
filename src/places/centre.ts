@@ -128,13 +128,14 @@ function buildMosque() {
     label: () => (hasWudhu() ? null : 'Take wudhu'),
     run: takeWudhu,
   });
+  // Anywhere in the hall.
   register({
-    x: x0 + 4,
-    y: 1,
+    x,
+    y: 0.6,
     z,
-    reach: 9,
-    size: 5,
-    label: () => prayLabel('mosque'),
+    reach: 20,
+    size: 14,
+    label: () => (S.inside === 'Masjid Sultan' ? prayLabel('mosque') : null),
     run: () => pray('mosque'),
   });
   interiors.push({
@@ -155,7 +156,7 @@ const TOKO: Shop = {
   name: 'Toko Indonesia Kak Ana',
   sub: 'Indomie · Kerupuk · Sambal',
   color: '#b8342a',
-  hello: '"Mas, dari mana? Oh, Bekasi! Ada Indomie goreng, keripik tempe, sambal bu Rudy. Lengkap!"',
+  hello: '"Dari mana? Oh, Bekasi! Ada Indomie goreng, keripik tempe, sambal bu Rudy. Lengkap!"',
   wares: [
     { name: 'Indomie goreng, a box of 40', price: 18, gift: 'indomie' },
     { name: 'Keripik tempe', price: 5, gift: 'keripik' },
@@ -172,7 +173,7 @@ const BAKSO: Shop = {
   name: 'Bakso Pak Kumis',
   sub: 'Bakso · Mie ayam · Soto',
   color: '#e07a1f',
-  hello: '"Bakso urat, mas? Pedas?"',
+  hello: '"Bakso urat? Pedas atau tidak?"',
   wares: [
     {
       name: 'Bakso urat',
