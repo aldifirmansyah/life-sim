@@ -401,8 +401,11 @@ export function makeTrip(pos: { x: number; y: number; z: number }, to: Spot): Tr
   return { legs, i: 0, to, check: 0 };
 }
 
+/** Within this of Aldi a trip is walked at a real stroll (and drawn); further out it keeps the game clock's
+    pace, so people aren't late for long just because Aldi is nearby. */
+export const SEEN = 40;
 const seenFrom = (x: number, z: number, y: number) =>
-  Math.abs(x - player.x) < 110 && Math.abs(z - player.z) < 110 && Math.abs(y - player.y) < 6;
+  Math.hypot(x - player.x, z - player.z) < SEEN && Math.abs(y - player.y) < 6;
 /** Plan a walk leg's points: the pavements when Aldi is anywhere near, else straight (it's on paper). */
 function route(l: Extract<Leg, { k: 'walk' }>, me: Spot) {
   const d = Math.hypot(l.to[0] - me.x, l.to[1] - me.z);
