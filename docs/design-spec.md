@@ -156,7 +156,7 @@ Target **60 FPS** on integrated graphics.
 - **Trains** and later traffic and crowds are instanced; far ones are only numbers.
 - **Simulation LOD** for people as before (near every frame, mid 10 Hz, far 1 Hz or abstract); social logic at 1 Hz.
 - **Budgets:** draw calls < 150, triangles < 300k, JS < 8 ms per frame. F3 (or backtick) shows the numbers and the costliest parts of the frame.
-- **Measured** (the first version, headless at 1280 × 720, High): 34–67 draw calls, 183–225k triangles, 1.3–3.1 ms of JS per frame across fifteen places and times (Clementi at lunch, the CBD, the light show and the fireworks, Orchard, Chinatown, Little India, Kampong Glam, Katong, Sentosa, the zoo, Changi, night). Real integrated graphics still to be checked.
+- **Measured** (headless at 1280 × 720, High): the first version 34–67 draw calls, 183–225k triangles, 1.3–3.1 ms of JS per frame; with v2's living city 49–85, 187–222k and 2.1–4.3 ms, across fifteen places and times (Clementi at lunch, the CBD, the light show and the fireworks, Orchard, Chinatown, Little India, Kampong Glam, Katong, Sentosa, the zoo, Changi, night). Real integrated graphics still to be checked.
 
 ---
 
@@ -195,7 +195,7 @@ All twelve are done in the first version.
 ---
 
 ## 13. Future Versions
-- **v2: a living city** (next; `docs/singapore-plan.md` steps 13–20): street life and visible routines, traffic that behaves, things to use on every street, small events, discovery, side gigs and hobbies, the world at a distance.
+- **v2: a living city** (done; `docs/singapore-plan.md` steps 13–20): street life and visible routines, traffic that behaves, things to use on every street, small events, discovery, side gigs and hobbies, the world at a distance.
 - Romance and a partner stage (data hook reserved in the NPC model).
 - An LLM dialogue provider (Claude API) behind `DialogueProvider`.
 - Ramadan season (sahur, bukber, the Geylang Serai bazaar) and Hari Raya open houses.

@@ -178,6 +178,9 @@ export function updateVendors(dt: number) {
     if (!v) continue;
     const p = poses[s];
     p.t += dt;
+    // Seated diners and anyone more than 15 m off: a new pose four times a second is plenty.
+    const far = Math.abs(player.x - v.x) > 15 || Math.abs(player.z - v.z) > 15;
+    if ((v.sit !== undefined || far) && Math.floor(p.t * 4) === Math.floor((p.t - dt) * 4)) continue;
     // Hands at the counter, working (or eating, a spoonful now and then); a look at Aldi when close.
     p.reach = v.sit !== undefined ? 0.35 + 0.35 * Math.max(0, Math.sin(p.t * 0.9)) : 0.45 + 0.2 * Math.sin(p.t * 1.3);
     const dx = player.x - v.x,
