@@ -20,7 +20,11 @@ import { toast } from '../ui/hud';
 import { player } from '../core/player';
 import { S } from '../core/state';
 import { sfx } from '../audio/audio';
-import { addVendor } from '../npc/vendors';
+import { addVendor, addDiner } from '../npc/vendors';
+import { addShutter, isOpenAt } from './shutters';
+
+/** When the stalls are open. */
+const STALL_HOURS: [number, number] = [7, 22];
 import { spend, sgd, addEnergy, addMood, addItem } from '../game/stats';
 
 export interface Dish {
@@ -230,7 +234,8 @@ export function buildHawker(o: HawkerSpec) {
         p.box(hx - 0.01, hx + 0.01, 2.2, 2.6, z0 + 2.1, z0 + 2.12, '#6b7378');
         p.put(hx, 2.0, z0 + 2.11, 0.26, 0.36, 0.2, '#b8642a', 0, p.cyl);
       }
-    addVendor(sx + 0.5, z0 + 1.75, 0);
+    addVendor(sx + 0.5, z0 + 1.75, 0, { open: STALL_HOURS[0], close: STALL_HOURS[1] });
+    addShutter(sx - sw / 2 + 0.15, sx + sw / 2 - 0.15, z0 + 3.12, 1, 2.95, STALL_HOURS);
     p.box(sx - sw / 2 + 0.1, sx + sw / 2 - 0.1, 3, 3.6, z0 + 2.9, z0 + 3.1, st.color);
     sign(
       { text: st.name, sub: st.sub, w: sw - 0.6, h: 0.55, bg: st.color, fg: '#ffffff', border: '#ffffff', font: 'ui' },
@@ -245,8 +250,20 @@ export function buildHawker(o: HawkerSpec) {
       z: z0 + 3,
       reach: 2.6,
       size: 1,
-      label: () => (meal.food ? null : meal.tray ? 'Return your tray first' : st.name),
-      run: () => (meal.tray ? toast('Return your tray first', 'The tray return is at the east end.') : stall(st)),
+      label: () =>
+        !isOpenAt(STALL_HOURS)
+          ? `${st.name} (closed till 7am)`
+          : meal.food
+            ? null
+            : meal.tray
+              ? 'Return your tray first'
+              : st.name,
+      run: () =>
+        !isOpenAt(STALL_HOURS)
+          ? toast(`${st.name} is closed`, 'The stalls open at 7am. Try the 8-Twelve for a snack.')
+          : meal.tray
+            ? toast('Return your tray first', 'The tray return is at the east end.')
+            : stall(st),
     });
   });
   // Round tables with four stools each.
@@ -258,8 +275,19 @@ export function buildHawker(o: HawkerSpec) {
       [-1.05, 0],
       [0, 1.05],
       [0, -1.05],
-    ])
+    ]) {
       p.put(tx + dx, 0.22, tz + dz, 0.36, 0.44, 0.36, '#e07a1f', 0, p.cyl);
+      // Someone may be eating here at meal times (not at Aldi's choped table, nor where Aldi sits).
+      addDiner(
+        tx + dx,
+        tz + dz,
+        Math.atan2(-dx, -dz),
+        0.44,
+        tx + dx * 0.45,
+        tz + dz * 0.45,
+        () => (here() && meal.chope === i) || (S.seated && Math.hypot(player.x - tx, player.z - tz) < 1.8),
+      );
+    }
     register({
       x: tx,
       y: 0.9,

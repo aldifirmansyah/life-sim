@@ -10,6 +10,7 @@ import { openPanel, closePanel } from '../ui/panel';
 import { toast } from '../ui/hud';
 import { passTime } from '../core/time';
 import { addVendor } from '../npc/vendors';
+import { addShutter, isOpenAt } from './shutters';
 import { spend, sgd, addEnergy, addMood, addItem, owned } from '../game/stats';
 
 export interface Ware {
@@ -32,7 +33,11 @@ export interface Shop {
   wares: Ware[];
   /** Said on opening the panel. */
   hello?: string;
+  /** Opening hours [from, to) in game hours (default 10–22). */
+  hours?: [number, number];
 }
+const hoursOf = (s: Shop): [number, number] => s.hours ?? [10, 22];
+const hh = (h: number) => `${String(Math.floor(h)).padStart(2, '0')}:${h % 1 ? '30' : '00'}`;
 
 export function shopPanel(s: Shop) {
   openPanel({
@@ -105,8 +110,8 @@ export function buildShopRow(
         x1 - 0.6,
         sy - 0.04,
         sy,
-        Math.min(front, front + face * 0.28),
-        Math.max(front, front + face * 0.28),
+        Math.min(front, front + face * 0.18),
+        Math.max(front, front + face * 0.18),
         '#8a6a4a',
       );
       for (let k = 0, gx = x0 + 0.8; gx < x1 - 0.7; gx += 0.34, k++) {
@@ -116,8 +121,8 @@ export function buildShopRow(
           gx + 0.12,
           sy,
           sy + gh,
-          Math.min(front + face * 0.05, front + face * 0.25),
-          Math.max(front + face * 0.05, front + face * 0.25),
+          Math.min(front + face * 0.03, front + face * 0.16),
+          Math.max(front + face * 0.03, front + face * 0.16),
           GOODS[(k + i * 3) % GOODS.length],
         );
       }
@@ -138,7 +143,18 @@ export function buildShopRow(
       const gx = cx - 0.9 + k * 0.9;
       p.box(gx - 0.15, gx + 0.15, 1, 1.12 + (k % 2) * 0.08, cz - 0.12, cz + 0.12, GOODS[(k * 2 + i) % GOODS.length]);
     }
-    addVendor(cx + 0.6, front + face * 0.5, face > 0 ? 0 : Math.PI);
+    addVendor(cx + 0.6, front + face * 0.5, face > 0 ? 0 : Math.PI, { open: hoursOf(s)[0], close: hoursOf(s)[1] });
+    // The roller shutter over the shopfront at night (its drum under the awning).
+    addShutter(x0 + 0.4, x1 - 0.4, front + face * 0.28, face, 2.6, hoursOf(s));
+    p.box(
+      x0 + 0.35,
+      x1 - 0.35,
+      2.6,
+      2.75,
+      Math.min(front, front + face * 0.4),
+      Math.max(front, front + face * 0.4),
+      '#8b9296',
+    );
     p.box(
       x0 + 0.2,
       x1 - 0.2,
@@ -172,8 +188,11 @@ export function buildShopRow(
       z: front + face * 1.5,
       reach: 2.8,
       size: 1,
-      label: () => s.name,
-      run: () => shopPanel(s),
+      label: () => (isOpenAt(hoursOf(s)) ? s.name : `${s.name} (closed, opens ${hh(hoursOf(s)[0])})`),
+      run: () =>
+        isOpenAt(hoursOf(s))
+          ? shopPanel(s)
+          : toast(`${s.name} is closed`, `Open ${hh(hoursOf(s)[0])} to ${hh(hoursOf(s)[1])}.`),
     });
   });
   p.box(r.x0 - 0.3, r.x1 + 0.3, h, h + 0.4, r.z0 - 0.3, r.z1 + 0.3, o.roof ?? '#b5553a');

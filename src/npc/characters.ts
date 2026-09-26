@@ -97,6 +97,10 @@ export interface PoseState {
   baseY?: number;
 }
 
+/** Something a person carries (drawn by the crowd, set with `setGear`). */
+export type Gear = 'none' | 'handbag' | 'shopping' | 'backpack' | 'lanyard' | 'phone' | 'umbrella' | 'trolley';
+const GEAR_PER = 2; // the thing, and a strap, handle or pole
+
 const ZERO = new THREE.Matrix4().makeScale(0, 0, 0);
 const _e = new THREE.Euler(),
   _q = new THREE.Quaternion(),
@@ -135,6 +139,12 @@ export class Crowd {
   readonly caps: THREE.InstancedMesh;
   readonly frusta: THREE.InstancedMesh;
   readonly cyls: THREE.InstancedMesh;
+  /** Carried things: boxes (bags, cards, poles) and umbrella canopies. */
+  readonly gear: THREE.InstancedMesh;
+  readonly canopies: THREE.InstancedMesh;
+  private gearOf: Gear[] = [];
+  /** An umbrella is only opened in the rain (set by the weather). */
+  static rain = false;
   private looks: AppearanceParams[] = [];
   private dim: Dims[] = [];
   private shown: boolean[] = [];
@@ -166,10 +176,23 @@ export class Crowd {
     this.caps = mk(cap, 1);
     this.frusta = mk(fru, FRU_PER);
     this.cyls = mk(cyl, 1);
+    this.gear = mk(new THREE.BoxGeometry(1, 1, 1), GEAR_PER);
+    this.canopies = mk(new THREE.CylinderGeometry(0.02, 1, 1, 8), 1);
   }
 
   get meshes() {
-    return [this.boxes, this.torsos, this.icos, this.caps, this.frusta, this.cyls];
+    return [this.boxes, this.torsos, this.icos, this.caps, this.frusta, this.cyls, this.gear, this.canopies];
+  }
+
+  /** What slot i carries, and its colour. */
+  setGear(i: number, g: Gear, color = '#2b2622') {
+    this.gearOf[i] = g;
+    const c = new THREE.Color(color);
+    this.gear.setColorAt(i * GEAR_PER, g === 'lanyard' ? new THREE.Color('#f4f6f8') : c);
+    this.gear.setColorAt(i * GEAR_PER + 1, g === 'umbrella' || g === 'trolley' ? new THREE.Color('#3a4046') : c);
+    this.canopies.setColorAt(i, c);
+    this.gear.instanceColor!.needsUpdate = true;
+    this.canopies.instanceColor!.needsUpdate = true;
   }
 
   setAppearance(i: number, a: AppearanceParams) {
@@ -210,6 +233,8 @@ export class Crowd {
     this.torsos.setMatrixAt(i, ZERO);
     this.caps.setMatrixAt(i, ZERO);
     this.cyls.setMatrixAt(i, ZERO);
+    for (let k = 0; k < GEAR_PER; k++) this.gear.setMatrixAt(i * GEAR_PER + k, ZERO);
+    this.canopies.setMatrixAt(i, ZERO);
     this.dirty();
   }
 
@@ -266,6 +291,12 @@ export class Crowd {
       arL += idle;
       arR -= idle;
     }
+    const g = st.pose === 'stand' ? (this.gearOf[i] ?? 'none') : 'none';
+    const umbrella = g === 'umbrella' && Crowd.rain;
+    if (umbrella) arR = -1.25;
+    else if (g === 'phone') arR = -1.15;
+    else if (g === 'trolley') arR = 0.3;
+    else if (g === 'handbag' || g === 'shopping') arR *= 0.4;
     if (st.reach > 0) {
       arL = arL * (1 - st.reach) - 0.95 * st.reach;
       arR = arR * (1 - st.reach) - 0.95 * st.reach;
@@ -346,6 +377,36 @@ export class Crowd {
     }
     if (hs === 'peci') set(this.cyls, i, trs(loc, 0, r * 0.72, -r * 0.04, 0, 0, 0, r * 0.93, r * 0.55, r * 0.93), head);
     else this.cyls.setMatrixAt(i, ZERO);
+
+    // Carried things. The right hand is at the end of the right arm.
+    const L = d.armLen * 0.95;
+    const hx = d.shoulderX + 0.02,
+      hy = d.shoulderY - L * Math.cos(arR),
+      hz = -L * Math.sin(arR);
+    const G = i * GEAR_PER;
+    const none = () => {
+      this.gear.setMatrixAt(G, ZERO);
+      this.gear.setMatrixAt(G + 1, ZERO);
+      this.canopies.setMatrixAt(i, ZERO);
+    };
+    none();
+    if (g === 'handbag') set(this.gear, G, trs(loc, hx, hy - 0.12, hz, 0, 0, 0, 0.26, 0.2, 0.1));
+    else if (g === 'shopping') set(this.gear, G, trs(loc, hx, hy - 0.2, hz, 0, 0, 0, 0.3, 0.34, 0.12));
+    else if (g === 'backpack')
+      set(this.gear, G, trs(loc, 0, d.shoulderY - 0.22, -d.torsoD / 2 - 0.08, 0, 0, 0, 0.28, 0.38, 0.15));
+    else if (g === 'lanyard') {
+      set(this.gear, G, trs(loc, 0, d.shoulderY - 0.24, d.torsoD / 2 + 0.02, 0, 0, 0, 0.07, 0.1, 0.012));
+      set(this.gear, G + 1, trs(loc, 0, d.shoulderY - 0.1, d.torsoD / 2 + 0.015, 0, 0, 0, 0.012, 0.2, 0.01));
+    } else if (g === 'phone') set(this.gear, G, trs(loc, hx - 0.04, hy + 0.05, hz, -0.9, 0, 0, 0.07, 0.13, 0.012));
+    else if (g === 'umbrella') {
+      if (umbrella) {
+        set(this.gear, G + 1, trs(loc, hx, hy + 0.45, hz, 0, 0, 0, 0.02, 0.9, 0.02));
+        set(this.canopies, i, trs(loc, hx * 0.5, hy + 0.95, hz * 0.6, 0, 0, 0, 0.55, 0.28, 0.55));
+      } else set(this.gear, G + 1, trs(loc, hx, hy - 0.3, hz, 0, 0, 0, 0.04, 0.6, 0.04));
+    } else if (g === 'trolley') {
+      set(this.gear, G, trs(loc, hx + 0.05, 0.38, -0.55, 0, 0, 0, 0.34, 0.42, 0.28));
+      set(this.gear, G + 1, trs(loc, hx + 0.03, (hy + 0.6) / 2, (hz - 0.55) / 2, -0.5, 0, 0, 0.02, 0.5, 0.02));
+    }
     this.dirty();
   }
 

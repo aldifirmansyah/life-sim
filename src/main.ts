@@ -28,6 +28,7 @@ import { updateTrains, pickStop } from './city/trains';
 import { updateFares, buildCrossings } from './city/fares';
 import { updateMeal } from './places/hawker';
 import { updateVendors } from './npc/vendors';
+import { updateShutters, resnapShutters } from './places/shutters';
 import { updateInteraction, interact } from './game/interact';
 import { startArrival, updateArrival, loadArrival } from './game/arrival';
 import { updateWork, openLaptop, loadWork } from './game/work';
@@ -118,6 +119,7 @@ function newGame() {
   loadWork(undefined);
   loadHomes(undefined);
   loadPeople(undefined);
+  resnapShutters();
   loadCentre(undefined);
   loadEvents(undefined);
   loadRegions(undefined);
@@ -190,6 +192,7 @@ function loop(now: number) {
   updateChangi(dt);
   updateCbd();
   updateMeal(dt);
+  updateShutters(dt);
   updateNear(player.x, player.z);
   updateEvents(dt);
   updateFares();
@@ -354,6 +357,7 @@ if (import.meta.env.DEV) {
     import('./city/roadgraph'),
     import('./game/car'),
     import('./npc/vendors'),
+    import('./npc/crowds'),
   ]).then(
     ([
       geo,
@@ -386,6 +390,7 @@ if (import.meta.env.DEV) {
       roadgraph,
       car,
       vendors,
+      crowds,
     ]) => {
       (window as unknown as Record<string, unknown>).__sg = {
         S,
@@ -420,6 +425,7 @@ if (import.meta.env.DEV) {
         roadgraph,
         car,
         vendors,
+        crowds,
         renderer,
         parts,
         ms: () => ({ upd: updMs, draw: drawMs }),

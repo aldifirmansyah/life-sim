@@ -1,6 +1,7 @@
 /* Save and load (one slot in localStorage): where Aldi is, the day and the time,
    the wallet, cards, energy and mood, the arrival goals, the serviced apartment, the job. Each module with game state will add a saveX()/loadX() pair here as
    it arrives (see docs/singapore-plan.md). Older versions load with the missing parts at their defaults; newer ones are ignored. */
+import { resnapShutters } from '../places/shutters';
 import { S } from '../core/state';
 import { player } from '../core/player';
 import { dateLabel } from './calendar';
@@ -68,6 +69,7 @@ export function loadGame(): boolean {
   loadWork(d.work);
   loadHomes(d.homes);
   loadPeople(d.people);
+  resnapShutters();
   loadCentre(d.faith);
   loadEvents(d.events);
   loadRegions(d.regions);

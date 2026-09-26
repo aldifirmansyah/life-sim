@@ -43,6 +43,7 @@ import {
 } from '../social/social';
 import { provider, PERSONAL } from '../dialogue/template';
 import { eventSpot } from '../game/events';
+import { nearestNode, findPath, nodes } from '../city/roadgraph';
 import type { LineKind } from '../dialogue/types';
 import {
   CHOPEE_HQ,
@@ -67,7 +68,7 @@ import {
 /** Slots in the shared crowd: named people first, then the passers-by (npc/crowds.ts), then the
     stallholders (npc/vendors.ts). */
 export const NAMED_SLOTS = 40;
-export const VENDOR_SLOTS = 24;
+export const VENDOR_SLOTS = 48;
 export const crowd = new Crowd(NAMED_SLOTS + 40 + VENDOR_SLOTS);
 
 interface Spot {
@@ -94,6 +95,12 @@ interface Person {
   shown: boolean;
   circle: { x: number; z: number; r: number };
   pose: PoseState;
+  /** Where the plan says to be now (null: away); `at` catches up by walking. */
+  goal?: Spot | null;
+  /** A walk in progress: the points along the pavements, and how far along. */
+  walk: { pts: [number, number][]; i: number; u: number } | null;
+  /** Their position while walking (what `at` points at then). */
+  walking: Spot;
 }
 export const people: Person[] = [];
 const spots: Record<string, Spot> = {};
@@ -1165,6 +1172,8 @@ export function buildPeople() {
       at: null,
       shown: false,
       circle: { x: 1e6, z: 1e6, r: 0.3 },
+      walk: null,
+      walking: { x: 0, y: 0, z: 0, ry: 0, where: 'Out and about' },
       pose: { x: 0, z: 0, ry: 0, seatY: 0, pose: 'stand', walk: 0, phase: 0, headYaw: 0, gesture: 0, reach: 0, t: 0 },
     };
     crowd.setAppearance(i, appearance);
@@ -1202,6 +1211,101 @@ function spotNow(p: Person): Spot | null {
   return key === 'away' ? null : (spots[key] ?? null);
 }
 
+/* ---------- walking between places ---------- */
+
+/** The way out of a place with walls (and back in): its door, for the spots on its ground floor. */
+function exitFor(s: Spot): [number, number] | null {
+  const w = s.where;
+  if (w.startsWith('Chopee') && s.y < 1) return [(CHOPEE_HQ.x0 + CHOPEE_HQ.x1) / 2, CHOPEE_HQ.z1 + 2.5];
+  if (w === 'Masjid Sultan') return [MOSQUE.x, MOSQUE.z + MOSQUE.d / 2 + 2.5];
+  if (w === 'Lucky Place') return [(LUCKY.x0 + LUCKY.x1) / 2, LUCKY.z1 + 2.5];
+  return null;
+}
+/** Pavement points from near (ax, az) to near (bx, bz): the road graph's path, kept to the left-hand
+    pavement of each road (half its width plus a kerb), or null. */
+function pavementPath(ax: number, az: number, bx: number, bz: number): [number, number][] | null {
+  const a = nearestNode(ax, az, 150),
+    b = nearestNode(bx, bz, 150);
+  if (!a || !b) return null;
+  const path = a === b ? [a] : findPath(a, b);
+  if (!path) return null;
+  const out: [number, number][] = [];
+  for (let k = 1; k < path.length; k++) {
+    const n0 = path[k - 1],
+      n1 = path[k];
+    const len = Math.hypot(n1.x - n0.x, n1.z - n0.z) || 1;
+    const w = n0.out.find(e => e.to === n1.id)?.w ?? 7;
+    const off = w / 2 + 1.8;
+    const nx = ((n1.z - n0.z) / len) * off,
+      nz = (-(n1.x - n0.x) / len) * off;
+    out.push([n0.x + nx, n0.z + nz], [n1.x + nx, n1.z + nz]);
+  }
+  if (!out.length) out.push([a.x, a.z]);
+  return out;
+}
+/** Somewhere a little way off along the road from a spot: where someone going 'away' disappears (and
+    where someone coming back appears). */
+function awayPoint(s: Spot): [number, number] {
+  const n = nearestNode(s.x, s.z, 150);
+  if (!n) return [s.x + 40, s.z];
+  let m = n;
+  for (let k = 0; k < 2 && m.out.length; k++) m = nodes[m.out[k % m.out.length].to];
+  return [m.x, m.z];
+}
+/** Start walking from wherever they are to the new goal, when Aldi could see any of it; else just move. */
+function startWalk(p: Person, g: Spot | null) {
+  const from = p.at;
+  const ground = (s: Spot | null) => !s || s.y < 0.5;
+  const near = (s: Spot | null) => !!s && Math.hypot(s.x - player.x, s.z - player.z) < 150;
+  if ((!from && !g) || !ground(from) || !ground(g) || (!near(from) && !near(g))) {
+    p.walk = null;
+    p.at = g;
+    return;
+  }
+  const start: [number, number] = from ? [from.x, from.z] : awayPoint(g!);
+  const end: [number, number] = g ? [g.x, g.z] : awayPoint(from!);
+  const pts: [number, number][] = [start];
+  const ex0 = from && exitFor(from),
+    ex1 = g && exitFor(g);
+  if (ex0) pts.push(ex0);
+  const [sx, sz] = pts[pts.length - 1];
+  const [tx, tz] = ex1 ?? end;
+  // Short hops (inside one place, or across the street) go straight; longer ones follow the pavements.
+  if (Math.hypot(tx - sx, tz - sz) > 40) pts.push(...(pavementPath(sx, sz, tx, tz) ?? []));
+  if (ex1) pts.push(ex1);
+  pts.push(end);
+  p.walk = { pts, i: 1, u: 0 };
+  Object.assign(p.walking, { x: start[0], z: start[1], y: 0 });
+  p.at = p.walking;
+}
+/** Along the walk: at a stroll where Aldi can see, quickly out of sight (so nobody is late for long). */
+function stepWalk(p: Person, dt: number) {
+  const w = p.walk!;
+  const me = p.walking;
+  const seen = Math.hypot(me.x - player.x, me.z - player.z) < 110;
+  let left = dt * (seen ? 1.35 : 30);
+  while (left > 0 && w.i < w.pts.length) {
+    const [tx, tz] = w.pts[w.i];
+    const dx = tx - me.x,
+      dz = tz - me.z,
+      d = Math.hypot(dx, dz);
+    if (d < 1e-3) {
+      w.i++;
+      continue;
+    }
+    const step = Math.min(d, left);
+    me.x += (dx / d) * step;
+    me.z += (dz / d) * step;
+    me.ry = Math.atan2(dx, dz);
+    left -= step;
+    if (step >= d) w.i++;
+  }
+  if (w.i >= w.pts.length) {
+    p.walk = null;
+    p.at = p.goal ?? null;
+  }
+}
+
 let talking: Person | null = null;
 let lastDay = -1;
 /** The game minute the spots were last worked out for (plans change by the minute at most). */
@@ -1221,7 +1325,14 @@ export function updatePeople(dt: number) {
   const fresh = key !== spotKey;
   spotKey = key;
   for (const p of people) {
-    if (fresh) p.at = spotNow(p);
+    if (fresh) {
+      const g = spotNow(p);
+      if (p.goal === undefined) p.at = g;
+      else if (g !== p.goal) startWalk(p, g);
+      p.goal = g;
+    }
+    const walking = !!p.walk;
+    if (p.walk && talking !== p) stepWalk(p, dt);
     const s = p.at;
     const near = !!s && Math.hypot(s.x - player.x, s.z - player.z) < 70 && Math.abs(s.y - player.y) < 30;
     if (!near) {
@@ -1241,6 +1352,8 @@ export function updatePeople(dt: number) {
     st.pose = s!.sit ? 'sit' : 'stand';
     st.seatY = s!.sit ? s!.sit - s!.y : 0;
     st.ry = s!.ry;
+    st.walk = walking && talking !== p ? 1 : 0;
+    if (st.walk) st.phase += dt * 1.35 * 4.2;
     // Look at Aldi when close; gesture while talking.
     const dx = player.x - s!.x,
       dz = player.z - s!.z,
@@ -1474,7 +1587,10 @@ export function loadPeople(d: ReturnType<typeof saveSocial> | undefined) {
   for (const p of people) {
     p.npc.playerRelationship = { friendship: 0, stage: 'stranger', lastTalkedDay: -1, memories: [] };
     p.npc.mood = 60;
+    p.goal = undefined;
+    p.walk = null;
   }
+  spotKey = -1;
   loadSocial(
     d ?? { socials: [], mended: [], npcs: [] },
     people.map(p => p.npc),

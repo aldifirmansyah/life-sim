@@ -10,6 +10,7 @@ import { scene, camera } from '../render/context';
 import { setOvercast, hemi } from '../render/lighting';
 import { setRain } from '../audio/audio';
 import { toast } from '../ui/hud';
+import { Crowd } from '../npc/characters';
 
 const QUIET = [15, 23, 62, 106];
 /** Today's storm, if any: start and end in game minutes. */
@@ -86,6 +87,7 @@ let flash = 0,
   nextFlash = 0;
 export function updateWeather(dt: number) {
   const level = rainNow();
+  Crowd.rain = level > 0.2;
   setOvercast(Math.min(1, level * 1.2));
   setRain(level);
   uniforms.level.value = level;
