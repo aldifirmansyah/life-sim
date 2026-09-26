@@ -1159,6 +1159,24 @@ function muralGround() {
     }
   }
 }
+/** The community centre in Clementi (a badminton hall and the karaoke room, game/gigs): ground kept free. */
+export const ccSpot = { x: 0, z: 0, ok: false };
+function ccGround() {
+  const t = TOWNS.find(t => t.name === 'Clementi');
+  if (!t) return;
+  const r = rng(hash('cc-spot'));
+  for (let k = 0; k < 80; k++) {
+    const a = r.range(0, Math.PI * 2),
+      d = r.range(25, t.r * 0.8);
+    const x = t.x + Math.cos(a) * d,
+      z = t.z + Math.sin(a) * d;
+    if (landAt(x, z) !== 'urban' || isReserved(x, z, 16) || nearTrack(x, z, 18) || !freeAt(x, z, 16)) continue;
+    if (segsNear(x, z, 30).some(o => segDist(x, z, o.ax, o.az, o.bx, o.bz) < o.w / 2 + 14)) continue;
+    reserve(x, z, 17);
+    Object.assign(ccSpot, { x, z, ok: true });
+    return;
+  }
+}
 /** A spot per HDB town for a void-deck tent (weddings and wakes, game/incidents), its ground kept free. */
 export const tentSpots: { town: string; x: number; z: number }[] = [];
 function tentGround() {
@@ -1450,6 +1468,7 @@ export function generateCity() {
   // Bridges and street things before the lots, so the buildings keep off them.
   overheadBridges();
   streetThings();
+  ccGround();
   tentGround();
   muralGround();
   for (let ix = Math.floor(BOUNDS.x0 / LOT); ix < Math.ceil(BOUNDS.x1 / LOT); ix++)

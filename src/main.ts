@@ -32,6 +32,7 @@ import { buildStreet, updateStreet, streetMenu } from './places/street';
 import { buildIncidents, updateIncidents, loadIncidents } from './game/incidents';
 import { updateBubbles } from './ui/bubbles';
 import { buildExplore, updateExplore, loadExplore } from './places/explore';
+import { buildGigs, updateGigs } from './game/gigs';
 import { updateShutters, resnapShutters } from './places/shutters';
 import { updateInteraction, interact } from './game/interact';
 import { startArrival, updateArrival, loadArrival } from './game/arrival';
@@ -43,7 +44,7 @@ import { buildClementi } from './places/clementi';
 import { buildCbd, updateCbd } from './places/cbd';
 import { buildHomes, updateHomes, homeMarker, homeApp, loadHomes } from './places/homes';
 import { openPhone, apps } from './game/phone';
-import { buildPeople, updatePeople, contacts, loadPeople, birthdaysToday } from './npc/people';
+import { buildPeople, updatePeople, contacts, loadPeople, loadFavours, birthdaysToday } from './npc/people';
 import { buildCrowds, updateCrowds } from './npc/crowds';
 import { buildCentre, loadCentre } from './places/centre';
 import { updateNear } from './places/shops';
@@ -98,6 +99,7 @@ buildCar();
 buildStreet();
 buildIncidents();
 buildExplore();
+buildGigs(apps);
 buildWeather();
 apps.push({ label: 'HomeLah', note: 'rooms for rent', run: homeApp });
 buildPeople();
@@ -132,6 +134,7 @@ function newGame() {
   loadRegions(undefined);
   loadCar(undefined);
   loadIncidents(undefined);
+  loadFavours(undefined);
   loadExplore(undefined);
 }
 
@@ -216,6 +219,7 @@ function loop(now: number) {
     homeMarker();
     carMarker();
     updateWork();
+    updateGigs(dt);
     vitalsTick();
   }
   updateMarker();
@@ -373,6 +377,7 @@ if (import.meta.env.DEV) {
     import('./npc/crowds'),
     import('./game/incidents'),
     import('./places/explore'),
+    import('./game/gigs'),
   ]).then(
     ([
       geo,
@@ -408,6 +413,7 @@ if (import.meta.env.DEV) {
       crowds,
       incidents,
       explore,
+      gigs,
     ]) => {
       (window as unknown as Record<string, unknown>).__sg = {
         S,
@@ -445,6 +451,7 @@ if (import.meta.env.DEV) {
         crowds,
         incidents,
         explore,
+        gigs,
         renderer,
         parts,
         ms: () => ({ upd: updMs, draw: drawMs }),

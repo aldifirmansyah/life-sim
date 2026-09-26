@@ -16,6 +16,7 @@ import { saveEvents, loadEvents } from './events';
 import { saveRegions, loadRegions } from '../places/regions';
 import { saveCar, loadCar } from './car';
 import { saveIncidents, loadIncidents } from './incidents';
+import { saveFavours, loadFavours } from '../npc/people';
 import { saveExplore, loadExplore } from '../places/explore';
 
 const KEY = 'sg-save';
@@ -40,6 +41,7 @@ export function saveGame(): boolean {
     regions: saveRegions(),
     car: saveCar(),
     incidents: saveIncidents(),
+    favours: saveFavours(),
     explore: saveExplore(),
   };
   try {
@@ -79,6 +81,7 @@ export function loadGame(): boolean {
   loadRegions(d.regions);
   loadCar(d.car);
   loadIncidents(d.incidents);
+  loadFavours(d.favours);
   loadExplore(d.explore);
   return true;
 }

@@ -18,7 +18,7 @@ import { toast } from '../ui/hud';
 import { openPanel, closePanel, type Row } from '../ui/panel';
 import { register } from '../game/interact';
 import { weekday, dateOf } from '../game/calendar';
-import { bag, ITEM_NAMES, takeItem } from '../game/stats';
+import { bag, ITEM_NAMES, takeItem, earn, addMood } from '../game/stats';
 import { Crowd, type PoseState } from './characters';
 import { generateAppearance, SG_SKINS } from './appearance';
 import type { AppearanceParams, NPC, Topic, Trait } from './types';
@@ -1436,6 +1436,25 @@ async function talk(p: Person) {
   menu(p, text);
 }
 
+/** Things people ask Aldi to pick up: where they're sold, and what they pay back. */
+const FAVOURS: Record<string, [string, number]> = {
+  kueh: ['the kueh stall at 448 Clementi', 8],
+  tarts: ['the kueh stall at 448 Clementi', 12],
+  puff: ['the kueh stall at 448 Clementi', 5],
+  bbt: ['the bubble tea stall at Lau Pa Sat', 6],
+  tea: ['Tea Chapter in Chinatown', 18],
+  bakkwa: ['Bee Kee in Chinatown', 30],
+  croissant: ['the bakehouse at Tiong Bahru Market', 9],
+  keripik: ['Toko Indonesia at Lucky Place', 6],
+};
+/** Favours asked, by person: the item, the day, and whether it's been brought. */
+const favours: Record<string, { item: string; day: number; done: boolean }> = {};
+export const saveFavours = () => JSON.parse(JSON.stringify(favours));
+export function loadFavours(d: typeof favours | undefined) {
+  for (const k of Object.keys(favours)) delete favours[k];
+  Object.assign(favours, d ?? {});
+}
+
 function menu(p: Person, said: string) {
   const npc = p.npc;
   const items = Object.keys(bag);
@@ -1473,6 +1492,33 @@ function menu(p: Person, said: string) {
     },
   ];
   if (items.length) rows.push({ label: 'Give a gift…', note: `${items.length} in the bag`, run: () => gifts(p, said) });
+  // Favours: something from a shop, for people Aldi knows.
+  const f = favours[npc.id];
+  if (f && !f.done && (bag[f.item] ?? 0) > 0)
+    rows.unshift({
+      label: `Here's the ${ITEM_NAMES[f.item].toLowerCase()} you asked for`,
+      run: () => {
+        takeItem(f.item);
+        f.done = true;
+        const d = applied(p, 6, true);
+        earn(FAVOURS[f.item][1]);
+        addMood(3);
+        menu(p, `Wah, you remembered! Thank you ah. Here, the money, don't say no.${hint(d)}`);
+      },
+    });
+  else if ((!f || f.done) && social(npc).met && stageRank(npc.playerRelationship.stage) >= 1 && f?.day !== S.day)
+    rows.push({
+      label: 'Need a hand with anything?',
+      run: () => {
+        const keys = Object.keys(FAVOURS);
+        const item = keys[Math.floor(rng(hash('favour', npc.id, S.day)).next() * keys.length)];
+        favours[npc.id] = { item, day: S.day, done: false };
+        menu(
+          p,
+          `Eh, since you asked… if you pass by ${FAVOURS[item][0]}, can help me buy ${ITEM_NAMES[item].toLowerCase()}? I pay you back.`,
+        );
+      },
+    });
   const known = people.filter(o => o !== p && social(o.npc).met && npc.relationships[o.npc.id] !== undefined);
   if (known.length)
     rows.push({

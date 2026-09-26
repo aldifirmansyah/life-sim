@@ -42,8 +42,23 @@ const slotOwner: (Vendor | null)[] = Array(VENDOR_SLOTS).fill(null);
 const poses: PoseState[] = [];
 
 /** A counter's stallholder: where they stand and which way they face (ry as for people: 0 faces +z). */
-export function addVendor(x: number, z: number, ry: number, o: { y?: number; open?: number; close?: number } = {}) {
-  vendors.push({ x, z, ry, y: o.y ?? 0, open: o.open ?? 7, close: o.close ?? 23, slot: -1, id: vendors.length });
+export function addVendor(
+  x: number,
+  z: number,
+  ry: number,
+  o: { y?: number; open?: number; close?: number; busy?: (h: number) => number } = {},
+) {
+  vendors.push({
+    x,
+    z,
+    ry,
+    y: o.y ?? 0,
+    open: o.open ?? 7,
+    close: o.close ?? 23,
+    slot: -1,
+    id: vendors.length,
+    busy: o.busy,
+  });
 }
 /** A stool at a hawker table: someone may eat here at meal times (a plate at (px, pz) on the table). */
 export function addDiner(
@@ -113,7 +128,7 @@ export function updateVendors(dt: number) {
           Math.abs(v.y - player.y) < 6 &&
           h >= v.open &&
           h < v.close &&
-          (v.sit === undefined ||
+          ((v.sit === undefined && !v.busy) ||
             (!v.skip?.() && rng(hash('diner', v.id, S.day, Math.floor(h * 2))).next() < (v.busy ?? fill)(h))) &&
           !people.some(p => p.at && Math.hypot(p.at.x - v.x, p.at.z - v.z) < 1.6),
       )
