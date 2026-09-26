@@ -199,6 +199,35 @@ Same budget (spec §9): under 150 draw calls, under 300k triangles, under 8 ms o
 - **Directions**: a planner over walking, the buses and the MRT (up to two rides) that tells Aldi which bus stop and which side of the road, which station and which platform, where to get off and which way out; the steps in a box, the next one on the marker, the route on both maps. The user's example: "take bus 96 to Chopee, but where do I take the bus?"
 - **Timetables** at bus stops and stations (the next buses and trains, the time to each stop), and the minutes to each stop while riding.
 
+## v3: people with lives
+
+**The aim (with the user):** the city now feels busy, but the people Aldi knows mostly stand at their spots and wait to be talked to. v3 makes the named people the heart of the game again, as the kampung version was: they have homes, evenings and weekends; they know and talk about each other; they text, invite and turn up; the closest have stories that change over months; and what Aldi does (good or bad) comes back through them.
+
+**How it works (the ideas):**
+- **Seen living.** The people Aldi knows go to work, eat, go home, go out, and Aldi can bump into them anywhere (Jun Hao at the Clementi mall, Hafiz at Tekka on a Sunday, Rachel jogging at Marina Bay). No teleporting when Aldi could notice.
+- **A web, not a list.** Everyone has ties to others (colleagues, family, neighbours, friends, a rival). They chat when they meet; what they think of Aldi spreads along the ties.
+- **The phone is the social life.** Group chats and private chats that come from what is happening in the game, with replies to pick.
+- **Plans both ways.** Friends invite Aldi out; Aldi invites them. An accepted plan is an appointment: they really go there and wait. Turning up matters; standing them up costs.
+- **Stories that grow.** The closest people each have a personal arc in a few beats, opened by friendship and time, with something for Aldi to do in each beat and an ending that changes something you can see.
+- **Deeds come back.** Communities (the office, Blk 420, the Indonesian kakis, the hawker uncles) remember; people act on it.
+- **Port, don't reinvent.** `kampung-v1` has most of the machinery (`social/life.ts`, `plans.ts`, `phone.ts`, `arcs.ts`, `reputation.ts`, the navgraph and schedules); port it and rewrite the content for Singapore.
+- **Rules in the game, words in the provider.** Every new line goes through `DialogueProvider` templates, so an LLM provider can plug in later.
+
+**Performance:** the same budget. People far away tick at 1 Hz and move along their routes on paper (no meshes); only people within 70 m are drawn; conversations between people are rules plus a bubble, no extra geometry.
+
+## Steps for v3 (a check with the user after each)
+
+21. **Lives you can see.** Every named person gets a home (a block and unit, or a flat in a town), weekday and weekend routines (work, lunch, after-work, errands, hobbies, Friday prayers, Sunday markets) and walks or rides between them everywhere, not only near Aldi: routes on paper when far (road graph, buses and the MRT, the same planner as the directions), a body when near. Stairs and lifts for upstairs spots (no more switching). Contacts shows where they are now and where they're going. Bumping into someone away from their usual place gives a short, different greeting.
+22. **People and each other.** A tie between each pair who know each other (colleague, family, neighbour, friend, rival) with its own friendship. When two meet they stop and chat (bubbles; Aldi can overhear a line); ties drift with each chat. What they think of Aldi, and news (a deed, a promotion, a bad review, a missed plan), spreads along the ties as gossip, and people bring it up. Port `social/life.ts`.
+23. **The phone's chats.** A Chats app: groups (the Chopee team "Sprint Squad", the Blk 420 family, the Indo kakis at Lucky Place, the Clementi CC badminton group) and private chats. Messages come from the game (a stand-up moved, a photo of lunch, "where are you?", birthday wishes, festival greetings, news and gossip), some with a reply to pick that changes friendship or starts a plan. Unread badge and a toast. Port `social/phone.ts`.
+24. **Plans both ways.** Outings for Singapore: kopi after work, supper at a hawker centre, a Sunday market, a movie at VivaCity, badminton, a run at East Coast, a meal at their home, Friday prayers together. Friends invite Aldi by text or in person; Aldi invites from Contacts or in conversation (where and when). An accepted plan is an appointment: they walk there and wait; meeting them there gives a proper scene (sitting together, eating, talking through a few topics); being late or not turning up costs, and they text about it. Port `social/plans.ts`.
+25. **Gatherings.** Several people at once: the team's makan after a good sprint, a birthday hot pot, Blk 420's family dinner, open houses at Hari Raya and Deepavali with guests, the Mid-Autumn lantern walk, a National Day party watching the parade on TV. Guests sit together; Aldi joins one table's talk at a time. Birthdays are remembered (a present, a cake, a toast).
+26. **Stories.** A personal arc of four or five beats for about twelve people (for example Hafiz's wedding, Jasmine's O-levels, Pak Harun's stall rent going up, Jun Hao's side startup, Farah moving out, Mei Ling's promotion, Mr Ravi's retirement, Mbak Dewi's work permit, Uncle Ah Seng's son taking over, Kenji going home to Japan), opened by friendship stages and the calendar; each beat has something to do (give, meet, ask someone, pay, go somewhere, help at work) and ends in a scene; endings change something you can see (a new stall sign, a wedding tent, a farewell party). A Journal on the phone keeps them. Port `social/arcs.ts`.
+27. **Deeds come back.** Reputation per community (the office, Blk 420, the Indonesian kakis, the hawker uncles, the mosque). People act on it: a table saved at lunch, a packet of food at the door, Wei Jie's good word in the review, a discount, being asked to help at an event; and the other way for bad deeds (a cold greeting, gossip, not being invited). The street events' deeds feed it.
+28. **Performance pass and docs for v3.**
+
+**Open questions for the user:** which people get the twelve stories (and whether any should hint at romance for later); whether plans should also use taxis and the car (a friend driving, or Aldi giving a lift); whether some chats should come in Bahasa Indonesia between the Indonesian characters (with a line of English under it), since the language rule is English with Singlish.
+
 ## Open questions
 
 - **Where to stay after the serviced apartment:** the five homes above, or others you'd add (Clementi first, as you live there)?
