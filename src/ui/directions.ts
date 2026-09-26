@@ -122,7 +122,7 @@ type Memo = Map<string, Opt>;
 export function journey(ax: number, az: number, bx: number, bz: number): Leg[] {
   const walk = walkT(ax, az, bx, bz);
   let best: Opt = { secs: walk, legs: [], key: 'walk' };
-  for (const o of options(ax, az, bx, bz, false, null, 1, new Map(), walk)) if (o.secs < best.secs) best = o;
+  for (const o of options(ax, az, bx, bz, false, null, 2, new Map(), walk)) if (o.secs < best.secs) best = o;
   return best.legs;
 }
 /** The quickest way from (x, z) to the target, with at most `depth` more rides. */

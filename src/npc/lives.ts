@@ -8,6 +8,7 @@
    paper, so nobody teleports where Aldi could notice. */
 import { hash, rng } from '../core/util';
 import { player } from '../core/player';
+import { timeWarp } from '../core/time';
 import { TOWNS } from '../city/geo';
 import { nearestNode, findPath, nodes } from '../city/roadgraph';
 import { freeAt } from '../city/gen';
@@ -416,6 +417,8 @@ function route(l: Extract<Leg, { k: 'walk' }>, me: Spot) {
 const WALK_GM = 80,
   RIDE_GM = 500;
 export function stepTrip(t: Trip, me: Spot, dt: number, gm: number): boolean {
+  // In view, at a stroll (sped up with the clock while T is held).
+  dt *= timeWarp();
   while (t.i < t.legs.length) {
     const l = t.legs[t.i];
     const seen = seenFrom(me.x, me.z, me.y);
