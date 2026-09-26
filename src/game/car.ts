@@ -19,7 +19,7 @@ import { PropSet } from '../render/props';
 import { sign } from '../render/signs';
 import { S } from '../core/state';
 import { player, keys, type Ride } from '../core/player';
-import { collide } from '../core/collision';
+import { collide, collideCircles } from '../core/collision';
 import { register } from './interact';
 import { openPanel, closePanel, type Row } from '../ui/panel';
 import { toast } from '../ui/hud';
@@ -30,7 +30,7 @@ import { markTo } from './marker';
 import { goalLines } from './work';
 import { townAt } from '../city/geo';
 import { nearestNode, nodes } from '../city/roadgraph';
-import { carBody, carCabin } from '../city/traffic';
+import { carBody, carCabin, junctions, lightAt, obstacle } from '../city/traffic';
 import { home } from '../places/homes';
 import { DRIVE_CENTRE, DEALER, PETROL, ERP } from '../places/sites';
 
@@ -230,6 +230,7 @@ function driverSeat(): Ride {
       const p = { x: car.x + fx * drive.v * dt, z: car.z + fz * drive.v * dt };
       const before = { x: p.x, z: p.z };
       collide(p, 1.1, 0);
+      collideCircles(p, 1.1);
       if (Math.hypot(p.x - before.x, p.z - before.z) > 0.01) {
         if (Math.abs(drive.v) > 6) toast('Bump!', 'Careful lah.', 'bad');
         drive.v *= 0.2;
@@ -237,6 +238,7 @@ function driverSeat(): Ride {
       const moved = Math.hypot(p.x - car.x, p.z - car.z);
       if (!drive.test) car.fuel = Math.max(0, car.fuel - moved * 0.0012);
       checkErp(car.x, car.z, p.x, p.z);
+      if (!drive.test) checkRedLight(car.x, car.z, p.x, p.z);
       car.x = p.x;
       car.z = p.z;
       show();
@@ -637,11 +639,41 @@ function checkErp(ax: number, az: number, bx: number, bz: number) {
   }
 }
 
+/** The red-light camera: entering a lit junction (within 7 m of its middle) on red, faster than a crawl. */
+let inJunction = -1;
+function checkRedLight(ax: number, az: number, bx: number, bz: number) {
+  const n = nearestNode(bx, bz, 7);
+  const id = n && junctions.has(n.id) ? n.id : -1;
+  if (id >= 0 && id !== inJunction && Math.abs(drive.v) > 3) {
+    // The approach: the neighbour in the direction the car came from.
+    let best = -1,
+      bd = -2;
+    const vx = ax - n!.x,
+      vz = az - n!.z,
+      vl = Math.hypot(vx, vz) || 1;
+    for (const e of n!.out) {
+      const m = nodes[e.to];
+      const d = ((m.x - n!.x) * vx + (m.z - n!.z) * vz) / ((Math.hypot(m.x - n!.x, m.z - n!.z) || 1) * vl);
+      if (d > bd) {
+        bd = d;
+        best = e.to;
+      }
+    }
+    if (lightAt(id, best) === 'r' && spend(400))
+      toast('Red-light camera: S$400', 'A flash at the junction. The fine comes by post, and demerit points.', 'bad');
+  }
+  inJunction = id;
+}
+
 /* ---------- every frame, every month ---------- */
 
 let lastMin = -1;
 export function updateCar() {
   if (drive.active) S.clockScale = 0.3;
+  // The traffic stops for Aldi's car (or for Aldi on foot).
+  obstacle.driving = drive.active;
+  obstacle.x = car.x;
+  obstacle.z = car.z;
   const m = Math.floor(S.time);
   if (m === lastMin || !car.model) return;
   lastMin = m;

@@ -423,8 +423,12 @@ function place(b: Bus, dt: number) {
   const l = Math.hypot(b.hx, b.hz) || 1;
   b.hx /= l;
   b.hz /= l;
-  b.x = x + b.hz * LANE;
-  b.z = z - b.hx * LANE;
+  // Pulling in to the kerb at a stop: the lane offset grows over the last 30 m before it (and back out after).
+  let near = Infinity;
+  for (const st of b.r.stops) near = Math.min(near, Math.abs(st.s - b.s));
+  const lane = LANE + 1.3 * Math.max(0, Math.min(1, 1 - (near - 4) / 26));
+  b.x = x + b.hz * lane;
+  b.z = z - b.hx * lane;
   b.ry = Math.atan2(-b.hz, b.hx);
   b.mesh.position.set(b.x, 0, b.z);
   b.mesh.rotation.y = b.ry;

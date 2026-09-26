@@ -106,6 +106,7 @@ const _e = new THREE.Euler(),
   _q = new THREE.Quaternion(),
   _p = new THREE.Vector3(),
   _s = new THREE.Vector3();
+const _c = new THREE.Color();
 const root = new THREE.Matrix4(),
   head = new THREE.Matrix4(),
   hip = new THREE.Matrix4(),
@@ -143,11 +144,16 @@ export class Crowd {
   readonly gear: THREE.InstancedMesh;
   readonly canopies: THREE.InstancedMesh;
   private gearOf: Gear[] = [];
+  private gearCol: string[] = [];
+  /** Packed drawing: the instance position of each slot (−1: hidden), its owner, how many are shown. */
+  private phys: Int32Array;
+  private owner: Int32Array;
+  private used = 0;
+  private perMesh: [THREE.InstancedMesh, number][] = [];
   /** An umbrella is only opened in the rain (set by the weather). */
   static rain = false;
   private looks: AppearanceParams[] = [];
   private dim: Dims[] = [];
-  private shown: boolean[] = [];
 
   constructor(readonly count: number) {
     const mat = new THREE.MeshLambertMaterial({ color: 0xffffff, flatShading: true });
@@ -178,6 +184,19 @@ export class Crowd {
     this.cyls = mk(cyl, 1);
     this.gear = mk(new THREE.BoxGeometry(1, 1, 1), GEAR_PER);
     this.canopies = mk(new THREE.CylinderGeometry(0.02, 1, 1, 8), 1);
+    this.perMesh = [
+      [this.boxes, BOX_PER],
+      [this.torsos, 1],
+      [this.icos, ICO_PER],
+      [this.caps, 1],
+      [this.frusta, FRU_PER],
+      [this.cyls, 1],
+      [this.gear, GEAR_PER],
+      [this.canopies, 1],
+    ];
+    this.phys = new Int32Array(count).fill(-1);
+    this.owner = new Int32Array(count).fill(-1);
+    this.counts();
   }
 
   get meshes() {
@@ -187,22 +206,25 @@ export class Crowd {
   /** What slot i carries, and its colour. */
   setGear(i: number, g: Gear, color = '#2b2622') {
     this.gearOf[i] = g;
-    const c = new THREE.Color(color);
-    this.gear.setColorAt(i * GEAR_PER, g === 'lanyard' ? new THREE.Color('#f4f6f8') : c);
-    this.gear.setColorAt(i * GEAR_PER + 1, g === 'umbrella' || g === 'trolley' ? new THREE.Color('#3a4046') : c);
-    this.canopies.setColorAt(i, c);
-    this.gear.instanceColor!.needsUpdate = true;
-    this.canopies.instanceColor!.needsUpdate = true;
+    this.gearCol[i] = color;
+    if (this.phys[i] >= 0) this.paint(i);
   }
 
   setAppearance(i: number, a: AppearanceParams) {
     this.looks[i] = a;
     this.dim[i] = dims(a);
-    const c = (m: THREE.InstancedMesh, k: number, col: string) => m.setColorAt(k, new THREE.Color(col));
+    if (this.phys[i] >= 0) this.paint(i);
+  }
+  /** Colour slot i's instances (at its packed position) from its look and gear. */
+  private paint(i: number) {
+    const a = this.looks[i],
+      P = this.phys[i];
+    if (!a || P < 0) return;
+    const c = (m: THREE.InstancedMesh, k: number, col: string) => m.setColorAt(k, _c.set(col));
     const legs = a.bottom,
       shins = a.skirt ? a.skin : a.bottom,
       arms = a.longSleeves ? a.top : a.skin;
-    const b = i * BOX_PER;
+    const b = P * BOX_PER;
     c(this.boxes, b + Bx.ThighL, legs);
     c(this.boxes, b + Bx.ThighR, legs);
     c(this.boxes, b + Bx.ShinL, shins);
@@ -213,28 +235,60 @@ export class Crowd {
     c(this.boxes, b + Bx.EyeR, '#1b1614');
     c(this.boxes, b + Bx.HairBack, a.hairColor);
     c(this.boxes, b + Bx.Visor, a.headwear);
-    c(this.torsos, i, a.top);
-    c(this.icos, i * ICO_PER, a.skin);
-    c(this.icos, i * ICO_PER + 1, a.hairColor);
-    c(this.icos, i * ICO_PER + 2, a.headwear);
-    c(this.caps, i, a.hair === 'cap' ? a.headwear : a.hairColor);
-    c(this.frusta, i * FRU_PER, a.bottom);
-    c(this.frusta, i * FRU_PER + 1, a.headwear);
-    c(this.cyls, i, a.headwear);
+    c(this.torsos, P, a.top);
+    c(this.icos, P * ICO_PER, a.skin);
+    c(this.icos, P * ICO_PER + 1, a.hairColor);
+    c(this.icos, P * ICO_PER + 2, a.headwear);
+    c(this.caps, P, a.hair === 'cap' ? a.headwear : a.hairColor);
+    c(this.frusta, P * FRU_PER, a.bottom);
+    c(this.frusta, P * FRU_PER + 1, a.headwear);
+    c(this.cyls, P, a.headwear);
+    const g = this.gearOf[i] ?? 'none',
+      gc = this.gearCol[i] ?? '#2b2622';
+    c(this.gear, P * GEAR_PER, g === 'lanyard' ? '#f4f6f8' : gc);
+    c(this.gear, P * GEAR_PER + 1, g === 'umbrella' || g === 'trolley' ? '#3a4046' : gc);
+    c(this.canopies, P, gc);
     for (const m of this.meshes) m.instanceColor!.needsUpdate = true;
   }
+  /** Give slot i a packed instance position (the next free one) when it's first shown. */
+  private alloc(i: number) {
+    if (this.phys[i] >= 0) return this.phys[i];
+    const P = this.used++;
+    this.phys[i] = P;
+    this.owner[P] = i;
+    this.paint(i);
+    this.counts();
+    return P;
+  }
+  private counts() {
+    const n = this.used;
+    this.boxes.count = n * BOX_PER;
+    this.torsos.count = this.caps.count = this.cyls.count = this.canopies.count = n;
+    this.icos.count = n * ICO_PER;
+    this.frusta.count = n * FRU_PER;
+    this.gear.count = n * GEAR_PER;
+  }
 
+  /** Stop drawing slot i: the last shown slot moves into its packed position, and the counts shrink. */
   hide(i: number) {
-    if (this.shown[i] === false) return;
-    this.shown[i] = false;
-    for (let k = 0; k < BOX_PER; k++) this.boxes.setMatrixAt(i * BOX_PER + k, ZERO);
-    for (let k = 0; k < ICO_PER; k++) this.icos.setMatrixAt(i * ICO_PER + k, ZERO);
-    for (let k = 0; k < FRU_PER; k++) this.frusta.setMatrixAt(i * FRU_PER + k, ZERO);
-    this.torsos.setMatrixAt(i, ZERO);
-    this.caps.setMatrixAt(i, ZERO);
-    this.cyls.setMatrixAt(i, ZERO);
-    for (let k = 0; k < GEAR_PER; k++) this.gear.setMatrixAt(i * GEAR_PER + k, ZERO);
-    this.canopies.setMatrixAt(i, ZERO);
+    const P = this.phys[i];
+    if (P < 0) return;
+    const last = this.used - 1;
+    if (P !== last) {
+      const j = this.owner[last];
+      for (const [m, per] of this.perMesh) {
+        const mat = m.instanceMatrix.array as Float32Array,
+          col = m.instanceColor!.array as Float32Array;
+        mat.copyWithin(P * per * 16, last * per * 16, (last + 1) * per * 16);
+        col.copyWithin(P * per * 3, last * per * 3, (last + 1) * per * 3);
+        m.instanceColor!.needsUpdate = true;
+      }
+      this.phys[j] = P;
+      this.owner[P] = j;
+    }
+    this.phys[i] = -1;
+    this.used--;
+    this.counts();
     this.dirty();
   }
 
@@ -250,7 +304,7 @@ export class Crowd {
   pose(i: number, st: PoseState) {
     const a = this.looks[i],
       d = this.dim[i];
-    this.shown[i] = true;
+    const P = this.alloc(i);
     const set = (m: THREE.InstancedMesh, k: number, local: THREE.Matrix4, parent = root) =>
       m.setMatrixAt(k, out.multiplyMatrices(parent, local));
     const w = st.walk,
@@ -309,7 +363,7 @@ export class Crowd {
     }
 
     trs(root, st.x, y + (st.baseY ?? 0), st.z, 0, st.ry, 0);
-    const b = i * BOX_PER;
+    const b = P * BOX_PER;
     // Legs: thigh from the hip, shin from the knee.
     for (const [side, th, kn, T, S] of [
       [-1, thL, knL, Bx.ThighL, Bx.ShinL],
@@ -324,36 +378,36 @@ export class Crowd {
     // Arms from the shoulders, splayed out slightly.
     set(this.boxes, b + Bx.ArmL, trs(loc, -d.shoulderX, d.shoulderY, 0, arL, 0, -0.07, d.armW, d.armLen, d.armW * 1.1));
     set(this.boxes, b + Bx.ArmR, trs(loc, d.shoulderX, d.shoulderY, 0, arR, 0, rollR, d.armW, d.armLen, d.armW * 1.1));
-    set(this.torsos, i, trs(loc, 0, d.hipY - 0.02, 0, 0, 0, 0, d.torsoW, d.torsoH + 0.02, d.torsoD));
+    set(this.torsos, P, trs(loc, 0, d.hipY - 0.02, 0, 0, 0, 0, d.torsoW, d.torsoH + 0.02, d.torsoD));
 
     // Skirt: hangs from the hips, or lies along the thighs when sitting.
     if (a.skirt) {
       if (st.pose === 'stand')
         set(
           this.frusta,
-          i * FRU_PER,
+          P * FRU_PER,
           trs(loc, 0, d.hipY + 0.03, 0, 0, 0, 0, d.torsoW * 0.5, d.hipY * 0.9, d.torsoD * 0.62),
         );
       else
         set(
           this.frusta,
-          i * FRU_PER,
+          P * FRU_PER,
           trs(loc, 0, d.hipY, 0.02, -Math.PI / 2 + 0.1, 0, 0, d.torsoW * 0.5, d.thigh * 1.25, d.torsoD * 0.75),
         );
-    } else this.frusta.setMatrixAt(i * FRU_PER, ZERO);
+    } else this.frusta.setMatrixAt(P * FRU_PER, ZERO);
 
     // Head and everything on it turn together.
     const r = d.headR;
     head.multiplyMatrices(root, trs(loc, 0, d.headY, 0, 0, st.headYaw, 0));
-    set(this.icos, i * ICO_PER, trs(loc, 0, 0, 0, 0, 0, 0, r, r * 1.08, r * 0.98), head);
+    set(this.icos, P * ICO_PER, trs(loc, 0, 0, 0, 0, 0, 0, r, r * 1.08, r * 0.98), head);
     set(this.boxes, b + Bx.EyeL, trs(loc, -r * 0.36, r * 0.2, r * 0.9, 0, 0, 0, r * 0.15, r * 0.22, r * 0.1), head);
     set(this.boxes, b + Bx.EyeR, trs(loc, r * 0.36, r * 0.2, r * 0.9, 0, 0, 0, r * 0.15, r * 0.22, r * 0.1), head);
     const hs = a.hair;
     const capOn = hs === 'short' || hs === 'long' || hs === 'bun' || hs === 'peci' || hs === 'cap';
     if (capOn) {
-      if (hs === 'cap') set(this.caps, i, trs(loc, 0, r * 0.12, 0, 0, 0, 0, r * 1.1, r * 1.0, r * 1.1), head);
-      else set(this.caps, i, trs(loc, 0, r * 0.08, -r * 0.05, 0, 0, 0, r * 1.07, r * 1.02, r * 1.08), head);
-    } else this.caps.setMatrixAt(i, ZERO);
+      if (hs === 'cap') set(this.caps, P, trs(loc, 0, r * 0.12, 0, 0, 0, 0, r * 1.1, r * 1.0, r * 1.1), head);
+      else set(this.caps, P, trs(loc, 0, r * 0.08, -r * 0.05, 0, 0, 0, r * 1.07, r * 1.02, r * 1.08), head);
+    } else this.caps.setMatrixAt(P, ZERO);
     if (hs === 'long')
       set(this.boxes, b + Bx.HairBack, trs(loc, 0, r * 0.4, -r * 0.62, 0, 0, 0, r * 1.9, r * 2.6, r * 0.5), head);
     else this.boxes.setMatrixAt(b + Bx.HairBack, ZERO);
@@ -361,33 +415,33 @@ export class Crowd {
       set(this.boxes, b + Bx.Visor, trs(loc, 0, r * 0.36, r * 0.95, -0.12, 0, 0, r * 1.2, r * 0.08, r * 0.9), head);
     else this.boxes.setMatrixAt(b + Bx.Visor, ZERO);
     if (hs === 'bun')
-      set(this.icos, i * ICO_PER + 1, trs(loc, 0, r * 0.55, -r * 0.85, 0, 0, 0, r * 0.42, r * 0.42, r * 0.42), head);
-    else this.icos.setMatrixAt(i * ICO_PER + 1, ZERO);
+      set(this.icos, P * ICO_PER + 1, trs(loc, 0, r * 0.55, -r * 0.85, 0, 0, 0, r * 0.42, r * 0.42, r * 0.42), head);
+    else this.icos.setMatrixAt(P * ICO_PER + 1, ZERO);
     if (hs === 'hijab') {
-      set(this.icos, i * ICO_PER + 2, trs(loc, 0, r * 0.1, -r * 0.3, 0, 0, 0, r * 1.18, r * 1.24, r * 1.16), head);
+      set(this.icos, P * ICO_PER + 2, trs(loc, 0, r * 0.1, -r * 0.3, 0, 0, 0, r * 1.18, r * 1.24, r * 1.16), head);
       // The cape sits on the shoulders, so it follows the body, not the head.
       set(
         this.frusta,
-        i * FRU_PER + 1,
+        P * FRU_PER + 1,
         trs(loc, 0, d.headY - r * 0.5, -0.01, 0, 0, 0, d.torsoW * 0.55, d.torsoH * 0.5, d.torsoD * 0.66),
       );
     } else {
-      this.icos.setMatrixAt(i * ICO_PER + 2, ZERO);
-      this.frusta.setMatrixAt(i * FRU_PER + 1, ZERO);
+      this.icos.setMatrixAt(P * ICO_PER + 2, ZERO);
+      this.frusta.setMatrixAt(P * FRU_PER + 1, ZERO);
     }
-    if (hs === 'peci') set(this.cyls, i, trs(loc, 0, r * 0.72, -r * 0.04, 0, 0, 0, r * 0.93, r * 0.55, r * 0.93), head);
-    else this.cyls.setMatrixAt(i, ZERO);
+    if (hs === 'peci') set(this.cyls, P, trs(loc, 0, r * 0.72, -r * 0.04, 0, 0, 0, r * 0.93, r * 0.55, r * 0.93), head);
+    else this.cyls.setMatrixAt(P, ZERO);
 
     // Carried things. The right hand is at the end of the right arm.
     const L = d.armLen * 0.95;
     const hx = d.shoulderX + 0.02,
       hy = d.shoulderY - L * Math.cos(arR),
       hz = -L * Math.sin(arR);
-    const G = i * GEAR_PER;
+    const G = P * GEAR_PER;
     const none = () => {
       this.gear.setMatrixAt(G, ZERO);
       this.gear.setMatrixAt(G + 1, ZERO);
-      this.canopies.setMatrixAt(i, ZERO);
+      this.canopies.setMatrixAt(P, ZERO);
     };
     none();
     if (g === 'handbag') set(this.gear, G, trs(loc, hx, hy - 0.12, hz, 0, 0, 0, 0.26, 0.2, 0.1));
@@ -401,7 +455,7 @@ export class Crowd {
     else if (g === 'umbrella') {
       if (umbrella) {
         set(this.gear, G + 1, trs(loc, hx, hy + 0.45, hz, 0, 0, 0, 0.02, 0.9, 0.02));
-        set(this.canopies, i, trs(loc, hx * 0.5, hy + 0.95, hz * 0.6, 0, 0, 0, 0.55, 0.28, 0.55));
+        set(this.canopies, P, trs(loc, hx * 0.5, hy + 0.95, hz * 0.6, 0, 0, 0, 0.55, 0.28, 0.55));
       } else set(this.gear, G + 1, trs(loc, hx, hy - 0.3, hz, 0, 0, 0, 0.04, 0.6, 0.04));
     } else if (g === 'trolley') {
       set(this.gear, G, trs(loc, hx + 0.05, 0.38, -0.55, 0, 0, 0, 0.34, 0.42, 0.28));

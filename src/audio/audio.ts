@@ -462,7 +462,9 @@ export type Sfx =
   | 'sandal'
   | 'knock'
   | 'chime'
-  | 'tap';
+  | 'tap'
+  | 'horn'
+  | 'greenman';
 /** A short UI or action sound. `pitch` shifts dialogue blips per speaker. */
 export function sfx(kind: Sfx, pitch = 1) {
   if (!ctx || !S.started) return;
@@ -535,6 +537,15 @@ export function sfx(kind: Sfx, pitch = 1) {
       // A card on the gate reader: two quick beeps.
       tone(ui, 'square', 1760, null, t, 0.003, 0.06, 0.05);
       tone(ui, 'square', 1760, null, t + 0.1, 0.003, 0.06, 0.05);
+      break;
+    case 'horn':
+      // A car horn down the street: two detuned squares, a little muffled by distance (pitch).
+      tone(fx, 'square', 392 * pitch, null, t, 0.01, 0.35, 0.05 * pitch);
+      tone(fx, 'square', 494 * pitch, null, t, 0.01, 0.35, 0.04 * pitch);
+      break;
+    case 'greenman':
+      // The pedestrian crossing's quick beeps while the green man shows.
+      tone(fx, 'square', 2000, null, t, 0.002, 0.04, 0.035);
       break;
     case 'chime':
       // The MRT's three-note chime before an announcement.
