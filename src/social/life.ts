@@ -106,7 +106,11 @@ function meetings() {
       const rival = tieKind(a.npc.id, b.npc.id) === 'rival';
       if (like < 10 && !rival) continue;
       pairLast.set(key, now);
-      if (Math.random() > (rival ? 0.25 : 0.3 + like / 250)) continue;
+      // A missed chance comes round again in ten minutes for people who stay together.
+      if (Math.random() > (rival ? 0.25 : 0.3 + like / 250)) {
+        pairLast.set(key, now - 50);
+        continue;
+      }
       const until = Math.min(S.time + 6 + Math.random() * 10, 26 * 60 - 5);
       a.chat = { with: b, until, speaking: true, next: 0 };
       b.chat = { with: a, until, speaking: false, next: 0 };
