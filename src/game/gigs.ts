@@ -27,6 +27,7 @@ import { landAt, townAt, WATERS, placeName } from '../city/geo';
 import { ccSpot, freeAt } from '../city/gen';
 import { addVendor } from '../npc/vendors';
 import { near } from '../places/shops';
+import { interiors } from '../interiors/interior';
 import { CLEMENTI_HAWKER, LAU_PA_SAT, TEKKA, TB_MARKET, LAGOON, TRAIL } from '../places/sites';
 
 const hour = () => (S.time / 60) % 24;
@@ -200,6 +201,8 @@ function buildCC() {
   for (const dx of [-W / 2, 0, W / 2])
     for (const dz of [-D / 2, D / 2]) p.post(x + dx, z + dz, 0, 6, 0.2, '#e8e4da', true);
   p.box(x - W / 2 - 0.5, x + W / 2 + 0.5, 6, 6.3, z - D / 2 - 0.5, z + D / 2 + 0.5, '#b5553a');
+  // Lamps under the roof, lit in the evening.
+  for (const dx of [-8, -3, 3, 8]) for (const dz of [-3.5, 3.5]) p.light(x + dx, 5.85, z + dz, 0.35, '#fff4d6');
   // Two badminton courts: white lines and the nets.
   for (const cx of [x - 5.5, x + 5.5]) {
     for (const [a, b, c, d] of [
@@ -255,6 +258,16 @@ function buildCC() {
   );
   p.build();
   near.push({ p, x, z, r: 300 });
+  interiors.push({
+    name: 'Clementi CC',
+    rooms: [{ name: 'Badminton hall', x0: x - W / 2, x1: x + W / 2, z0: z - D / 2, z1: z + D / 2 }],
+    props: p,
+    door: { update() {} },
+    lamp: [x, 5.5, z],
+    lampOn: () => hour() >= 18.5 || hour() < 7,
+    amount: 0.45,
+    showWithin: 300,
+  });
   // The Thursday regulars on court.
   const thu = (h: number) => (weekday(S.day) === 4 && h >= 19.5 && h < 22 ? 1 : 0);
   for (const cx of [x - 5.5, x + 5.5])
@@ -400,6 +413,8 @@ function buildRunClub() {
 
 /* ---------- fishing at MacRitchie ---------- */
 
+const jetty = { x: 0, z: 0, ux: 0, uz: 0 };
+
 function buildJetty() {
   const poly = WATERS.macritchie;
   if (!poly) return;
@@ -412,7 +427,8 @@ function buildJetty() {
     for (let t = 0; t <= 1; t += 0.05) {
       const x = ax + (bx - ax) * t,
         z = az + (bz - az) * t;
-      const d = Math.hypot(x - TRAIL.x, z - TRAIL.z);
+      // About 45 m along the shore from the trailhead (clear of its own sign and prompt).
+      const d = Math.abs(Math.hypot(x - TRAIL.x, z - TRAIL.z) - 45);
       if (d < bd) {
         bd = d;
         best = [x, z];
@@ -438,6 +454,7 @@ function buildJetty() {
   addFloor(mx, mz, L / 2, 1, ry, 0.52);
   const ex = sx + ux * (L - 2.5),
     ez = sz + uz * (L - 2.5);
+  Object.assign(jetty, { x: ex, z: ez, ux, uz });
   let fished = -1;
   register({
     x: ex + ux * 1.5,
@@ -497,4 +514,4 @@ export function updateGigs(dt: number) {
   if (!S.started) return;
   updateRider(dt);
 }
-export const gigDebug = { rider, newJob };
+export const gigDebug = { rider, newJob, jetty };

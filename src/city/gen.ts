@@ -115,6 +115,8 @@ function box(p: PoolName, x: number, y0: number, z: number, w: number, h: number
   put({ p, x, y: y0 + h / 2, z, sx: w, sy: h, sz: d, ry, c });
 }
 function tree(r: Rng, x: number, z: number, s = 1) {
+  // Never on ground a place keeps free, nor on a road.
+  if (isReserved(x, z, 1.5) || nearRoad(x, z, 0.5)) return;
   const h = r.range(3.5, 6) * s;
   put({ p: 'cyl', x, y: h / 2, z, sx: 0.22 * s, sy: h, sz: 0.22 * s, ry: 0, c: '#6b5139' });
   const cr = r.range(2.2, 3.4) * s;
@@ -131,6 +133,7 @@ function tree(r: Rng, x: number, z: number, s = 1) {
   });
 }
 function palm(r: Rng, x: number, z: number) {
+  if (isReserved(x, z, 1.5) || nearRoad(x, z, 0.5)) return;
   const h = r.range(6, 9);
   put({ p: 'cyl', x, y: h / 2, z, sx: 0.2, sy: h, sz: 0.2, ry: 0, c: '#8a7355' });
   put({ p: 'crown', x, y: h, z, sx: 2.6, sy: 0.9, sz: 2.6, ry: r.range(0, 6), c: '#4f9a4a' });
