@@ -32,7 +32,7 @@ The game used to be set in an Indonesian kampung ("Kampung Sukamaju", player Rak
 11. **Aldi's own car: DONE.** The licence (theory and the circuit), Leng Kee Autos and the loan, driving, petrol, ERP, parking, monthly costs.
 12. **Performance pass and docs: DONE.** A sweep of 15 places and times; people, passers-by and trains made cheaper; these notes brought up to date.
 
-All twelve steps are done. What comes next (v2) is in the spec's "Future Versions" and the known gaps below; agree it with the user first.
+All twelve steps are done. **Next: v2, a living city** (the plan's "v2: a living city": density over size, as San Andreas and Skyrim do it): 13. Street life. 14. Traffic that behaves. 15. Things to use on every street. 16. Small events. 17. Discovery (the Explore app). 18. Side gigs and hobbies. 19. The world at a distance. 20. Performance pass and docs. Waiting for the user's go-ahead and the order; the spec's other "Future Versions" (LLM dialogue, Ramadan, trips home, romance) come after.
 
 Do one step at a time. At the end of each, check it and stop for the user's go-ahead (unless the user says to keep going).
 

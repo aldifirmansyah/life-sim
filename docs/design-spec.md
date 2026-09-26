@@ -195,6 +195,7 @@ All twelve are done in the first version.
 ---
 
 ## 13. Future Versions
+- **v2: a living city** (next; `docs/singapore-plan.md` steps 13–20): street life and visible routines, traffic that behaves, things to use on every street, small events, discovery, side gigs and hobbies, the world at a distance.
 - Romance and a partner stage (data hook reserved in the NPC model).
 - An LLM dialogue provider (Claude API) behind `DialogueProvider`.
 - Ramadan season (sahur, bukber, the Geylang Serai bazaar) and Hari Raya open houses.

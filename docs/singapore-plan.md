@@ -167,6 +167,33 @@ Same budget (spec §9): under 150 draw calls, under 300k triangles, under 8 ms o
 11. **(done: BB Drive Centre's theory test and circuit, Leng Kee Autos with three cars and a loan, driving from the driver's seat, petrol, ERP gantries, street and season parking, the monthly costs, the My car app)** **Aldi's own car:** saving up, the licence tests, the dealer and buying, driving, parking, ERP and running costs.
 12. **(done: a sweep of 15 places and times at 34–67 draw calls, 183–225k triangles and 1.3–3.1 ms of JS headless; people, passers-by and trains made cheaper; CLAUDE.md, the spec and this plan brought up to date)** **Performance pass and docs.**
 
+## v2: a living city
+
+**The aim (with the user):** make the island feel bigger and busier than it is, the way San Andreas and Skyrim do. Neither world is large; both feel large because there is always something to see, hear or do within a few steps, and because the world visibly goes on without the player.
+
+**How those games do it, and what it means here:**
+- **Density over size.** Something new every 20–30 seconds of travel: a landmark on the skyline, a person doing something, a thing to use, a small event. The island stays 3 × 2 km; what changes is how much happens per street.
+- **Layers.** A backdrop (the skyline, the sea, planes over Changi, ships in the strait); ambient life (crowds, traffic, birds, cats, sounds); things to use (vending machines, benches, ATMs, bike share); small activities (games, gigs, hobbies); stories (people, favours, events). Every street should have at least the first three.
+- **Routines you can see.** Skyrim's people go to work, eat and sleep where the player can watch. Here: named people walk between their places, shops pull their shutters up in the morning and down at night, the hawker centre fills at lunch and the office crowd leaves at six.
+- **Small events that find the player.** A lost tourist, a dropped wallet, an auntie with a heavy trolley, a busker, a cat. Short, optional, remembered by the people involved.
+- **Discovery.** Things worth finding off the main roads (San Andreas' tags and oysters, Skyrim's books and shrines): Singapore's version is a makan list of dishes, community cats, murals, rooftop views and heritage plaques, kept in a phone app with progress.
+- **Details that tell stories.** Shoes outside HDB doors, laundry poles, a chope'd seat, a wedding or funeral tent at a void deck, chalk hopscotch, a queue at the popular stall.
+- **Tricks at a distance.** Moving things far away (planes landing, trains on the viaducts, ships, the Flyer turning, lit windows at night) make the edge of the world feel inhabited without costing much.
+
+**Performance:** the same budget (150 draw calls, 300k triangles, 8 ms). Everything new is instanced or pooled, drawn only near Aldi (like `near` prop sets and the crowd's slots), and ticks at 1 Hz unless it's close. Each step ends with the F3 sweep.
+
+## Steps for v2 (a check with the user after each)
+
+13. **Street life.** Named people walk between their places along the pavements (to work, lunch and home) instead of jumping; passers-by get purposes and props (office workers with lanyards at lunch, aunties with shopping trolleys, students with bags, joggers in the parks, umbrellas in the rain) and walk in twos and threes; the hawker centres fill with seated diners at mealtimes; shops raise and lower their shutters by the hour.
+14. **Traffic that behaves.** Traffic lights at the main junctions with the green man and its beeping, pedestrian crossings, cars that queue behind each other and stop for red lights and for Aldi, buses pulling in at stops, a horn now and then. Aldi's car obeys the same rules (a fine for running a red).
+15. **Things to use on every street.** Street furniture with a small use each: vending machines (a drink), ATMs (the bank), benches and bus-stop seats to sit on, fitness corners, void-deck chess tables, bike-share bikes to ride ("SG Bike" pun), newspaper stands, rain shelters, overhead bridges. Placed by the generator along streets and at void decks, so every town has them.
+16. **Small events.** About every minute or two of walking, something nearby: a tourist who asks the way (point on the map), a dropped wallet (return it, or not), an auntie's trolley on the stairs, a busker, a flyer, a community cat, an uncle's chess challenge, sudden rain sending everyone under a shelter, a void-deck wedding or wake. Each is short and optional; some give mood, reputation, a contact or a story people mention later.
+17. **Discovery.** An Explore app on the phone: the makan list (dishes to try across the hawker centres), community cats to photograph, murals, rooftop and bridge viewpoints, heritage plaques; each found one is marked on the map with progress per district, and some unlock something (a secret menu item, a rooftop bar, a person).
+18. **Side gigs and hobbies.** Repeatable things with variety (San Andreas' side missions, Skyrim's radiant tasks): Nab Food deliveries on a bike share (timed runs to a door), badminton or futsal at the community centre with people, karaoke nights, a running club at East Coast Park, fishing at the reservoir, neighbours' favours.
+19. **The world at a distance.** Planes landing and taking off at Changi, ships at anchor in the strait, birds over the trees, the Flyer turning, lit bridges and towers at night, and a sound bed per district (the CBD's hum, HDB estates' children and pigeons, the hawker centres' clatter, the sea).
+20. **Performance pass and docs for v2.**
+
 ## Open questions
 
 - **Where to stay after the serviced apartment:** the five homes above, or others you'd add (Clementi first, as you live there)?
+- **v2 order:** start with step 13 (street life), or with the quick wins of steps 15 and 16 (things to use and small events)? Anything to add to or drop from the list?
