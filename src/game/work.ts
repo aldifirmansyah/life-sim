@@ -11,6 +11,7 @@
    - Salary on the 25th.
    The goals box shows the sprint once the arrival is done, and the marker points
    to what's next (reception, the stand-up, the review). */
+import { addNews } from '../social/news';
 import { $, hash, rng } from '../core/util';
 import { S } from '../core/state';
 import { player } from '../core/player';
@@ -314,6 +315,8 @@ function standup(mood: number) {
   passTime(15, 'Stand-up…', () => toast('Stand-up done', 'Fifteen minutes, as promised. Back to work.', null));
 }
 
+/** Aldi's team at Chopee: they hear first how Aldi's sprints go. */
+const OFFICE = ['weijie', 'hafiz', 'meiling', 'arun', 'siti', 'kenji'];
 function review(inPerson: boolean) {
   job.reviewed = S.day;
   const done = pointsDone(),
@@ -330,6 +333,9 @@ function review(inPerson: boolean) {
         ? 'Wei Jie: "Not bad. Some tickets carry over, no stress."'
         : 'Wei Jie: "This sprint a bit slow hor. Let\'s talk about what\'s blocking you."';
   addMood(stars >= 4 ? 8 : stars === 3 ? 2 : -6);
+  // The team hears how it went.
+  if (stars >= 4) addNews(`got ${stars} stars in the sprint review`, true, OFFICE);
+  else if (stars <= 2) addNews('had a slow sprint', false, OFFICE);
   const summary = `${done} of ${all} points done · stand-ups ${job.went}/${job.went + job.missed} · ${'★'.repeat(stars)}${'☆'.repeat(5 - stars)}`;
   // Unfinished tickets carry over into the next sprint, with the work already done.
   const carry = job.tickets.filter(t => !isDone(t));
@@ -434,6 +440,7 @@ function minute() {
   if (isOfficeDay(S.day) && S.day !== job.joined && job.settled !== S.day && S.time >= 10.5 * 60) {
     job.settled = S.day;
     job.missed++;
+    addNews('missed the stand-up', false, OFFICE);
     addMood(-3);
     toast('Wei Jie (Chopee)', 'Eh Aldi, never see you at stand-up today? All OK?', 'msg');
   }

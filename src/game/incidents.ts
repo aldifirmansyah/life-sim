@@ -12,6 +12,7 @@
    S$20) or pay respects.
    Good deeds are remembered (`deeds`): the named people mention the latest when Aldi
    next talks to them. The people in the events use the crowd's event slots. */
+import { addNews } from '../social/news';
 import * as THREE from 'three';
 import { scene } from '../render/context';
 import { PropSet } from '../render/props';
@@ -62,19 +63,10 @@ let cur: Incident | null = null;
 export const deeds: { day: number; text: string }[] = [];
 function deed(text: string) {
   deeds.push({ day: S.day, text });
+  // Someone nearby saw it; the news travels from them (social/life.ts).
+  addNews(text, true, [], [player.x, player.z]);
   if (deeds.length > 20) deeds.shift();
 }
-/** A line for a person Aldi talks to: the latest good deed of the last two days, once per person. */
-const told = new Set<string>();
-export function deedLine(who: string): string | null {
-  const d = deeds[deeds.length - 1];
-  if (!d || S.day - d.day > 2) return null;
-  const k = who + '|' + d.day + '|' + d.text;
-  if (told.has(k)) return null;
-  told.add(k);
-  return `Eh, I heard you ${d.text}. Very nice of you, you know.`;
-}
-
 /* ---------- the pieces: the cat, the wallet ---------- */
 
 const cat = new THREE.Group();
@@ -627,7 +619,6 @@ export function loadIncidents(d: { deeds?: { day: number; text: string }[] } | u
   end();
   deeds.length = 0;
   deeds.push(...(d?.deeds ?? []));
-  told.clear();
   walked = 0;
 }
 export const incidentDebug = {

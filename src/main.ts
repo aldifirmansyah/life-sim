@@ -59,6 +59,8 @@ import { updateInteraction, interact } from './game/interact';
 import { startArrival, updateArrival, loadArrival } from './game/arrival';
 import { updateWork, openLaptop, loadWork } from './game/work';
 import { updateMarker } from './game/marker';
+import { updateLife, lifeDebug } from './social/life';
+import { loadNews, news } from './social/news';
 import { initMinimap, updateMinimap } from './ui/minimap';
 import { bindMapClicks } from './ui/map';
 import { directionsDebug } from './ui/directions';
@@ -163,6 +165,7 @@ function newGame() {
   loadIncidents(undefined);
   loadFavours(undefined);
   loadExplore(undefined);
+  loadNews(undefined);
 }
 
 /** Energy runs down with the hours awake; a night's sleep fills it up. */
@@ -217,6 +220,7 @@ function loop(now: number) {
   lap('vehicles');
   if (S.started) {
     updatePeople(dt);
+    updateLife(dt);
     lap('people');
     updateCrowds(dt);
     updateVendors(dt);
@@ -455,6 +459,8 @@ if (import.meta.env.DEV) {
       (window as unknown as Record<string, unknown>).__sg = {
         S,
         directions: directionsDebug,
+        life: lifeDebug,
+        news,
         player,
         geo,
         gen,

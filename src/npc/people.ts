@@ -55,7 +55,7 @@ import {
   type Plan,
   type Trip,
 } from './lives';
-import { deedLine } from '../game/incidents';
+import { newsFor } from '../social/news';
 import type { LineKind } from '../dialogue/types';
 import {
   CHOPEE_HQ,
@@ -86,7 +86,7 @@ export const EVENT_BASE = NAMED_SLOTS + 40 + VENDOR_SLOTS,
   EVENT_SLOTS = 4;
 export const crowd = new Crowd(EVENT_BASE + EVENT_SLOTS);
 
-interface Person {
+export interface Person {
   npc: NPC;
   role: string;
   /** The plan for a day: [from "HH:MM", spot key or 'away']. */
@@ -109,6 +109,8 @@ interface Person {
   trip: Trip | null;
   /** Their position while on a trip (what `at` points at then). */
   walking: Spot;
+  /** A chat with another person (social/life.ts): who, until when, whose turn, seconds to the next line. */
+  chat: { with: Person; until: number; speaking: boolean; next: number } | null;
 }
 export const people: Person[] = [];
 const spots: Record<string, Spot> = {};
@@ -1182,6 +1184,7 @@ export function buildPeople() {
       shown: false,
       circle: { x: 1e6, z: 1e6, r: 0.3 },
       trip: null,
+      chat: null,
       walking: { x: 0, y: 0, z: 0, ry: 0, where: 'Out and about' },
       pose: { x: 0, z: 0, ry: 0, seatY: 0, pose: 'stand', walk: 0, phase: 0, headYaw: 0, gesture: 0, reach: 0, t: 0 },
     };
@@ -1238,6 +1241,8 @@ export function whereNow(p: Person) {
 }
 
 let talking: Person | null = null;
+/** Who Aldi is talking to now (social/life.ts leaves them out of chats). */
+export const talkingNow = () => talking;
 let lastDay = -1;
 let lastNow = 0;
 const waiting: Person[] = [];
@@ -1315,8 +1320,16 @@ export function updatePeople(dt: number) {
       while (hy < -Math.PI) hy += Math.PI * 2;
       hy = Math.max(-1.1, Math.min(1.1, hy));
     }
+    // In a chat with someone (and not looking at Aldi): turned to them, hands going on their turn.
+    const w = p.chat?.with.at;
+    if (!hy && w && talking !== p) {
+      hy = Math.atan2(w.x - s!.x, w.z - s!.z) - s!.ry;
+      while (hy > Math.PI) hy -= Math.PI * 2;
+      while (hy < -Math.PI) hy += Math.PI * 2;
+      hy = Math.max(-1.1, Math.min(1.1, hy));
+    }
     st.headYaw += (hy - st.headYaw) * Math.min(1, dt * 4);
-    st.gesture = talking === p ? 0.5 + 0.5 * Math.sin(st.t * 3) : 0;
+    st.gesture = talking === p || p.chat?.speaking ? 0.5 + 0.5 * Math.sin(st.t * 3) : 0;
     st.baseY = s!.y;
     crowd.pose(p.slot, st);
     p.circle.x = s!.sit ? 1e6 : s!.x;
@@ -1384,9 +1397,18 @@ async function talk(p: Person) {
     else if (out && p.goalKey?.startsWith('out.'))
       text = await line(p, 'greet.out', { outcome: 'haunt', detail: p.at?.where });
     else text = await line(p, g.kind === 'greet.again' ? 'greet.again' : 'greet', { outcome });
-    // Word gets around: the latest good deed, once.
-    const heard = deedLine(npc.id);
-    if (heard) text += `\n\n${heard}`;
+    // Word gets around (social/news.ts): the latest news they've heard about Aldi, once.
+    const heard = newsFor(npc.id);
+    if (heard) {
+      const from = people.find(q => q.npc.id === heard.from);
+      text +=
+        '\n\n' +
+        (await line(p, 'news', {
+          outcome: `${heard.n.good ? 'good' : 'bad'}${from ? '.from' : ''}`,
+          detail: heard.n.text,
+          other: from?.npc,
+        }));
+    }
   }
   menu(p, text);
 }

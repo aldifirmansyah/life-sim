@@ -18,6 +18,7 @@ import { saveCar, loadCar } from './car';
 import { saveIncidents, loadIncidents } from './incidents';
 import { saveFavours, loadFavours } from '../npc/people';
 import { saveExplore, loadExplore } from '../places/explore';
+import { saveNews, loadNews } from '../social/news';
 
 const KEY = 'sg-save';
 const VERSION = 3;
@@ -43,6 +44,7 @@ export function saveGame(): boolean {
     incidents: saveIncidents(),
     favours: saveFavours(),
     explore: saveExplore(),
+    news: saveNews(),
   };
   try {
     localStorage.setItem(KEY, JSON.stringify(d));
@@ -83,6 +85,7 @@ export function loadGame(): boolean {
   loadIncidents(d.incidents);
   loadFavours(d.favours);
   loadExplore(d.explore);
+  loadNews(d.news);
   return true;
 }
 export function deleteSave() {
