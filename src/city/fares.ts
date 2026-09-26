@@ -11,6 +11,8 @@ import { sign } from '../render/signs';
 import { register } from '../game/interact';
 import { wallet, spend, sgd } from '../game/stats';
 import { fareGates } from './mrtbuild';
+import { timetable } from './trains';
+import { setPin } from '../ui/directions';
 import { LINES, PLAT_OUT } from './mrtdata';
 
 /** Where each platform's trains go: side −1 serves the trains towards the last station, side +1 the first
@@ -66,6 +68,53 @@ export function buildCrossings() {
               player.yaw = Math.atan2(-(side * qx), -(side * qz));
               toast(st.name, to ? `Platform for trains to ${to.name}.` : 'The arrivals platform.', null);
             }),
+        });
+        // The timetable on this platform (its trains only), mirrored across the stairs from the crossing.
+        const i = l.stations.indexOf(st);
+        const dir = side < 0 ? 1 : -1;
+        const pick = (to: (typeof l.stations)[number]) => {
+          const g = fareGates.find(f => f.station === to) ?? to;
+          setPin(g.x, g.z, `${to.name} MRT`);
+        };
+        const [tx, tz] = P(-6, side * (PLAT_OUT - 0.2));
+        sign(
+          {
+            text: 'Timetable',
+            sub: `Next trains · E`,
+            w: 2.2,
+            h: 0.7,
+            bg: '#1d2b36',
+            fg: '#ffffff',
+            subfg: '#ffffff',
+            border: '#ffffff',
+            font: 'ui',
+          },
+          tx,
+          l.floor + 1.9,
+          tz,
+          Math.atan2(-side * qx, -side * qz),
+        );
+        const [bx, bz] = P(-6, side * (PLAT_OUT - 0.8));
+        register({
+          x: bx,
+          y: l.floor + 1.4,
+          z: bz,
+          reach: 3.5,
+          size: 1.2,
+          label: () =>
+            Math.abs(player.y - l.floor) < 1 ? `Timetable: trains ${to ? `to ${to.name}` : 'from here'}` : null,
+          run: () => timetable(l, i, [dir, ...(to ? [] : [-dir as 1 | -1])], pick),
+        });
+        // And at the foot of the stairs, by the station sign: both ways.
+        const [fx, fz] = P(2.6, side * (PLAT_OUT + l.stair + 1));
+        register({
+          x: fx,
+          y: 1.5,
+          z: fz,
+          reach: 3,
+          size: 1,
+          label: () => (player.y < 1.5 && !player.ride ? `Timetable: ${st.name} MRT` : null),
+          run: () => timetable(l, i, [1, -1], pick),
         });
       }
     }

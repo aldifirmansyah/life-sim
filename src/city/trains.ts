@@ -11,7 +11,7 @@ import * as THREE from 'three';
 import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js';
 import { scene } from '../render/context';
 import { player, type Ride } from '../core/player';
-import { timeWarp } from '../core/time';
+import { timeWarp, RATE, hhmm } from '../core/time';
 import { S, inWorld } from '../core/state';
 import { toast } from '../ui/hud';
 import { sfx } from '../audio/audio';
@@ -545,7 +545,7 @@ export function pickStop() {
     rows: [
       ...ahead.map((i, k) => ({
         label: l.stations[i].name,
-        note: `${l.stations[i].code} · about ${Math.round((k + 1) * 2.3)} min`,
+        note: `${l.stations[i].code} · ${k + 1} stop${k ? 's' : ''} · ${mins(rideMinutes(i))}`,
         run: () => {
           r.dest = i;
           r.reached = false;
@@ -592,6 +592,101 @@ function announce() {
 }
 
 /** Where the player is riding, for the HUD, or null. */
+/* ---------- timetables ---------- */
+
+/** On the trains and platforms, game minutes per rail second. */
+const GAME_PER_RAIL = () => RATE * STATION_CLOCK;
+const schedOf = (l: Line) => SCHEDS.find(sc => sc.line === l)!;
+const tauOf = (tr: LiveTrain) => {
+  const c = tr.sc.cycle;
+  return (((railT + (tr.k * c) / tr.sc.trains) % c) + c) % c;
+};
+/** Rail seconds from where a train is in its cycle (tau) until it arrives at station i (while going dir). */
+function untilArrival(sc: Sched, tau: number, i: number, dir: number) {
+  const L = sc.legs;
+  let lo = 0;
+  for (let k = 0; k < L.length; k++) if (L[k].t0 <= tau) lo = k;
+  let t = L[lo].t0 + L[lo].dur - tau;
+  if (L[lo].stop === i && L[lo].dir === dir) return 0;
+  for (let n = 1; n <= L.length; n++) {
+    const g = L[(lo + n) % L.length];
+    if (g.stop === i && g.dir === dir) return t;
+    if (g.to === i && g.dir === dir) return t + g.dur;
+    t += g.dur;
+  }
+  return Infinity;
+}
+/** The next departures from station i towards dir (+1: the last station), in game minutes from now. */
+export function nextTrains(l: Line, i: number, dir: 1 | -1, n = 3): number[] {
+  const sc = schedOf(l);
+  // A train standing there with its doors open counts as now.
+  return liveTrains
+    .filter(tr => tr.sc === sc)
+    .map(tr => {
+      const tau = tauOf(tr);
+      const k = sc.legs.findIndex(g => g.stop === i && g.dir === dir);
+      if (k < 0) return Infinity;
+      const g = sc.legs[k];
+      if (tau >= g.t0 && tau < g.t0 + g.dur - DOORS_AFTER) return 0;
+      return (((g.t0 - tau) % sc.cycle) + sc.cycle) % sc.cycle;
+    })
+    .filter(t => t < Infinity)
+    .sort((a, b) => a - b)
+    .slice(0, n)
+    .map(t => t * GAME_PER_RAIL());
+}
+/** Game minutes on the train from leaving station a to arriving at b (b ahead of a in dir). */
+export function travelMinutes(l: Line, a: number, b: number) {
+  const dir = b > a ? 1 : -1;
+  const sc = schedOf(l);
+  const k = sc.legs.findIndex(g => g.stop === a && g.dir === dir);
+  if (k < 0) return NaN;
+  return untilArrival(sc, sc.legs[k].t0 + sc.legs[k].dur, b, dir) * GAME_PER_RAIL();
+}
+/** Aboard: game minutes until the train arrives at station i (ahead), or NaN. */
+export function rideMinutes(i: number) {
+  if (!ride) return NaN;
+  const { sc } = ride.tr;
+  if (ride.tr.st.stop === i) return 0;
+  return untilArrival(sc, tauOf(ride.tr), i, ride.tr.st.dir) * GAME_PER_RAIL();
+}
+const mins = (m: number) => (m < 0.5 ? 'now' : `${Math.max(1, Math.round(m))} min`);
+/** The timetable board: the next trains each way (or one way, on a platform) and the time to every station. */
+export function timetable(l: Line, i: number, dirs: (1 | -1)[], onPick?: (st: Station) => void) {
+  const sts = l.stations;
+  const lines: string[] = [];
+  const rows = [];
+  for (const dir of dirs) {
+    const end = dir === 1 ? sts[sts.length - 1] : sts[0];
+    if (end === sts[i]) continue;
+    const next = nextTrains(l, i, dir);
+    lines.push(`To ${end.name}: ${next.map(m => `${hhmm(S.time + m)} (${mins(m)})`).join(' · ')}`);
+    for (let j = i + dir; j >= 0 && j < sts.length; j += dir) {
+      const t = travelMinutes(l, i, j);
+      rows.push({
+        label: `${sts[j].name}`,
+        note: `${Math.abs(j - i)} stop${Math.abs(j - i) === 1 ? '' : 's'} · ${Math.round(t)} min`,
+        run: () => {
+          closePanel();
+          onPick?.(sts[j]);
+        },
+      });
+    }
+  }
+  openPanel({
+    title: `${sts[i].name} · Timetable`,
+    sub: `${l.name} · a train about every ${Math.max(1, Math.round((schedOf(l).cycle / schedOf(l).trains) * GAME_PER_RAIL()))} min`,
+    body: lines.join('\n') + (onPick ? '\nPick a station to put a pin on it.' : ''),
+    rows: [...rows, { label: 'Close', run: () => closePanel() }],
+  });
+}
+
+/** The train Aldi is on: its line, direction (+1 towards the last station), where it is and the station it stands at (or −1). */
+export function trainRideInfo() {
+  if (!ride) return null;
+  const st = ride.tr.st;
+  return { line: ride.tr.sc.line, dir: st.dir, s: st.s, stop: st.stop, next: st.next };
+}
 export const rideLabel = () => (ride ? (player.ride?.label() ?? null) : null);
 /** The station a player on a platform is at (for the HUD). */
 export function stationAt(x: number, z: number, y: number) {
@@ -600,3 +695,5 @@ export function stationAt(x: number, z: number, y: number) {
       if (y > l.floor - 1 && y < l.floor + 3 && Math.hypot(x - st.x, z - st.z) < 40) return { line: l, st };
   return null;
 }
+/** For headless checks. */
+export const trainDebug = { liveTrains };

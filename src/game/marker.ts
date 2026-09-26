@@ -6,6 +6,7 @@ import { $ } from '../core/util';
 import { S } from '../core/state';
 import { player } from '../core/player';
 import { camera } from '../render/context';
+import { guide } from '../ui/directions';
 
 let want: { label: string; at: [number, number, number] } | null = null;
 /** Ask for the marker this frame. */
@@ -15,10 +16,12 @@ export function markTo(label: string, at: [number, number, number]) {
 
 const _v = new THREE.Vector3();
 /** Every frame, after everyone has had their say. */
-export function updateMarker() {
+export function updateMarker(dt: number) {
   const m = $('marker');
-  const w = want;
+  let w = want;
   want = null;
+  // The directions turn a far target into the next step of the way (a bus stop, a station, where to get off).
+  if (S.started) w = guide(w, dt);
   if (!w || !S.started || S.map || S.paused) {
     m.hidden = true;
     return;

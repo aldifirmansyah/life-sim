@@ -43,6 +43,7 @@
           <span><kbd>L</kbd> laptop</span>
           <span><kbd>P</kbd> phone</span>
           <span><kbd>M</kbd> map</span>
+          <span><kbd>N</kbd> minimap <kbd>−</kbd><kbd>=</kbd> zoom</span>
           <span><kbd>T</kbd> hold to fast-forward</span>
           <span><kbd>F3</kbd> performance</span>
           <span><kbd>Esc</kbd> pause</span>
@@ -50,6 +51,8 @@
         <div id="goals" hidden></div>
         <div id="task" hidden></div>
         <div id="marker" hidden><span></span><i></i></div>
+        <div id="route" hidden></div>
+        <div id="minimap" hidden><canvas id="mini" width="190" height="190"></canvas><span class="mininorth">N</span><span id="minizoom"></span></div>
         <div id="bubbles"></div>
         <div id="npctags" hidden></div>
         <pre id="debug" hidden></pre>
@@ -171,6 +174,7 @@
               <p class="eyebrow">Map</p>
               <h2>Singapore</h2>
             </div>
+            <p class="maptip">Click to drop a pin and get directions · click the pin to clear it</p>
             <button id="closemap" class="ghost" type="button">Close <kbd>M</kbd></button>
           </header>
           <canvas id="mapc" width="1080" height="560"></canvas>

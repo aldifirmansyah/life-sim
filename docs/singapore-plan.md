@@ -193,6 +193,12 @@ Same budget (spec §9): under 150 draw calls, under 300k triangles, under 8 ms o
 19. **The world at a distance (done: planes landing and taking off at Changi, ships in the strait, birds, the turning Flyer, aviation lights, bridge lamps, district sounds).** Planes landing and taking off at Changi, ships at anchor in the strait, birds over the trees, the Flyer turning, lit bridges and towers at night, and a sound bed per district (the CBD's hum, HDB estates' children and pigeons, the hawker centres' clatter, the sea).
 20. **(done: the sweep of fifteen places at 49–85 draw calls, 187–222k triangles and 2.1–4.3 ms of JS headless; the crowd packs its visible people, extras re-posed less often, traffic lights drawn near Aldi only; CLAUDE.md, the spec and this plan brought up to date)** **Performance pass and docs for v2.**
 
+## After v2: finding the way (asked for by the user)
+- **A map legend**, the bus routes on the map, and **pins**: click the map to drop one and get directions there.
+- **A minimap** in the corner, zoomed in far more than the map (three zoom levels, − and =, N hides it).
+- **Directions**: a planner over walking, the buses and the MRT (up to two rides) that tells Aldi which bus stop and which side of the road, which station and which platform, where to get off and which way out; the steps in a box, the next one on the marker, the route on both maps. The user's example: "take bus 96 to Chopee, but where do I take the bus?"
+- **Timetables** at bus stops and stations (the next buses and trains, the time to each stop), and the minutes to each stop while riding.
+
 ## Open questions
 
 - **Where to stay after the serviced apartment:** the five homes above, or others you'd add (Clementi first, as you live there)?

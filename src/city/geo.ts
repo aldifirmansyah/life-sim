@@ -116,7 +116,7 @@ export function segDist(px: number, pz: number, ax: number, az: number, bx: numb
 }
 
 /** Areas with their own ground and no ordinary buildings. */
-const ZONE_POLYS = {
+export const ZONE_POLYS = {
   airport: [
     [1190, -260],
     [1400, -330],

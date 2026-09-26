@@ -59,6 +59,9 @@ import { updateInteraction, interact } from './game/interact';
 import { startArrival, updateArrival, loadArrival } from './game/arrival';
 import { updateWork, openLaptop, loadWork } from './game/work';
 import { updateMarker } from './game/marker';
+import { initMinimap, updateMinimap } from './ui/minimap';
+import { bindMapClicks } from './ui/map';
+import { directionsDebug } from './ui/directions';
 import { buildBuses, updateBuses, busMenu } from './city/buses';
 import { buildChopee } from './places/chopee';
 import { buildClementi } from './places/clementi';
@@ -96,6 +99,8 @@ actions.laptop = () => openLaptop();
 // P: the phone.
 actions.phone = () => openPhone();
 bindOverlayButtons();
+bindMapClicks();
+initMinimap();
 initInput();
 bindSettingsUI();
 
@@ -245,7 +250,8 @@ function loop(now: number) {
     updateGigs(dt);
     vitalsTick();
   }
-  updateMarker();
+  updateMarker(dt);
+  updateMinimap(dt);
   lap('places');
   const water =
     landAt(player.x, player.z) === 'sea' ? 1 : Math.max(0, 1 - polyEdgeDist(ISLANDS.main, player.x, player.z) / 40);
@@ -448,6 +454,7 @@ if (import.meta.env.DEV) {
     ]) => {
       (window as unknown as Record<string, unknown>).__sg = {
         S,
+        directions: directionsDebug,
         player,
         geo,
         gen,

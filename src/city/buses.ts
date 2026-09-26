@@ -15,7 +15,7 @@ import { PropSet } from '../render/props';
 import { sign } from '../render/signs';
 import { S } from '../core/state';
 import { player, type Ride } from '../core/player';
-import { timeWarp, RATE } from '../core/time';
+import { timeWarp, RATE, hhmm } from '../core/time';
 import { register } from '../game/interact';
 import { openPanel, closePanel, type Row } from '../ui/panel';
 import { toast } from '../ui/hud';
@@ -32,7 +32,7 @@ const V = 12,
   LANE = 2.2,
   KERB = 4.6;
 
-interface Route {
+export interface Route {
   no: string;
   pts: [number, number][];
   /** Cumulative length at each point. */
@@ -122,14 +122,14 @@ export const R138 = route(
   ],
 );
 /** The routes and how many buses each runs. */
-const ROUTES: [Route, number][] = [
+export const ROUTES: [Route, number][] = [
   [R96, 3],
   [R12, 2],
   [R138, 2],
 ];
 
 /** Point and direction of the route at arc length s. */
-function at(r: Route, s: number): [number, number, number, number] {
+export function routeAt(r: Route, s: number): [number, number, number, number] {
   s = Math.max(0, Math.min(r.len, s));
   let i = 1;
   while (i < r.cum.length - 1 && r.cum[i] < s) i++;
@@ -223,7 +223,7 @@ function glassGeometry() {
 
 /* ---------- the stops ---------- */
 
-interface Pole {
+export interface Pole {
   r: Route;
   stop: number;
   /** The direction of the buses that stop here. */
@@ -231,10 +231,10 @@ interface Pole {
   x: number;
   z: number;
 }
-const poles: Pole[] = [];
+export const poles: Pole[] = [];
 
 function lateral(r: Route, s: number, dir: number, off: number): [number, number, number, number] {
-  const [x, z, dx, dz] = at(r, s);
+  const [x, z, dx, dz] = routeAt(r, s);
   const hx = dx * dir,
     hz = dz * dir;
   // Left of the heading (Singapore drives on the left).
@@ -413,7 +413,7 @@ function step(b: Bus, dt: number) {
 }
 
 function place(b: Bus, dt: number) {
-  const [x, z, dx, dz] = at(b.r, b.s);
+  const [x, z, dx, dz] = routeAt(b.r, b.s);
   // Turn smoothly toward the heading (the U-turn at the ends happens while it stands).
   const tx = dx * b.dir,
     tz = dz * b.dir;
@@ -515,7 +515,7 @@ export function busMenu(): boolean {
     if (b.dwell > 0 && i === b.stop) continue;
     rows.push({
       label: `Ring the bell for ${st[i].name}`,
-      note: ride.dest === i ? 'bell rung' : undefined,
+      note: `${ride.dest === i ? 'bell rung · ' : ''}${Math.max(1, Math.round(busRideMinutes(i)))} min`,
       run: () => {
         if (ride) ride.dest = i;
         sfx('chime');
@@ -551,13 +551,39 @@ function board(pole: Pole) {
     })
     .sort((a, b) => a - b);
   const towards = pole.dir === 1 ? r.stops[r.stops.length - 1].name : r.stops[0].name;
-  const fmt = (m: number) => (m < 0.6 ? 'arriving' : `${Math.round(m)} min`);
+  const fmt = (m: number) => `${hhmm(S.time + m)} (${m < 0.6 ? 'arriving' : `${Math.round(m)} min`})`;
+  // From the interchange the buses leave one way only.
+  const dir = pole.stop === 0 ? 1 : pole.dir;
+  const rows: Row[] = [];
+  for (let j = pole.stop + dir; j >= 0 && j < r.stops.length; j += dir) {
+    const n = Math.abs(j - pole.stop);
+    rows.push({
+      label: r.stops[j].name,
+      note: `${n} stop${n === 1 ? '' : 's'} · ${Math.max(1, Math.round(busMinutes(r, r.stops[pole.stop].s, j)))} min`,
+      run: () => closePanel(),
+    });
+  }
+  rows.push({ label: 'OK', run: () => closePanel() });
   openPanel({
-    title: r.stops[pole.stop].name,
-    sub: `Bus ${r.no} towards ${towards}`,
-    body: `Next buses: ${etas.slice(0, 2).map(fmt).join(', then ')}.`,
-    rows: [{ label: 'OK', run: () => closePanel() }],
+    title: `${r.stops[pole.stop].name} · Bus ${r.no}`,
+    sub: `Towards ${towards} · the time to each stop`,
+    body: `Next buses: ${etas.slice(0, 3).map(fmt).join(' · ')}`,
+    rows,
   });
+}
+/** Game minutes aboard from arc length s to stop j (the stops in between included). */
+function busMinutes(r: Route, s: number, j: number, dwell = 0) {
+  const to = r.stops[j].s;
+  let between = 0;
+  for (const st of r.stops) if (Math.min(s, to) + 0.5 < st.s && st.s < Math.max(s, to) - 0.5) between++;
+  return (Math.abs(to - s) / (V * 0.85) + between * DWELL + dwell) * RATE * BUS_CLOCK;
+}
+/** Aboard: game minutes until the bus reaches stop j. */
+export function busRideMinutes(j: number) {
+  if (!ride) return NaN;
+  const b = ride.b;
+  if (b.dwell > 0 && b.stop === j) return 0;
+  return busMinutes(b.r, b.s, j, b.dwell);
 }
 
 /* ---------- every frame ---------- */
@@ -580,5 +606,16 @@ export function updateBuses(dt: number) {
 }
 
 export const onBus = () => !!ride;
+/** Where a stop's buses in direction dir pull in (where Aldi gets off). */
+export function stopPoint(r: Route, i: number, dir: number): [number, number] {
+  const [x, z] = lateral(r, r.stops[i].s, dir, KERB);
+  return [x, z];
+}
+/** The bus Aldi is on: its route, direction, where it is, the stop it stands at (or −1) and the bell. */
+export function busRideInfo() {
+  if (!ride) return null;
+  const b = ride.b;
+  return { r: b.r, dir: b.dir, s: b.s, stop: b.dwell > 0 ? b.stop : -1, next: nextStop(b), dest: ride.dest };
+}
 /** For headless checks. */
 export const busDebug = { buses, poles };

@@ -163,7 +163,10 @@ Target **60 FPS** on integrated graphics.
 ## 10. UI / UX
 - **Dialogue panel** at the bottom: name, stage, hearts, typewriter text, numbered choices.
 - **Phone:** contacts with portraits, chats, the property app, maps with a destination marker, bag, journal, glossary.
-- **Map (M):** the whole island, towns, roads, the MRT, where Aldi is.
+- **Map (M):** the whole island, towns, roads, the MRT, the bus routes, a legend, where Aldi is; click to drop a pin.
+- **Minimap:** a round, north-up close-up in the corner (three zooms): buildings, streets, stops, stations, the route.
+- **Directions:** to the marker or the pin, by foot, bus and MRT: which stop and side of the road, which platform, where to get off; the steps in a box and the next one on the marker.
+- **Timetables:** at bus stops and stations, the next departures and the minutes to each stop; aboard, the minutes to each stop.
 - **Notifications:** toasts, never blocking. Esc pauses and releases the pointer.
 
 ---

@@ -8,6 +8,11 @@ import { player, keys } from './player';
 import { toast } from '../ui/hud';
 import { dateLabel } from '../game/calendar';
 
+/** A time of day as HH:MM (minutes since midnight; past midnight wraps). */
+export const hhmm = (t: number) => {
+  const m = ((Math.round(t) % 1440) + 1440) % 1440;
+  return `${String(Math.floor(m / 60)).padStart(2, '0')}:${String(m % 60).padStart(2, '0')}`;
+};
 /** Game-minutes per real second. */
 export const RATE = 0.8;
 /** Holding T: time runs this much faster (game-minutes per real second)… */
