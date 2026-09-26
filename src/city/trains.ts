@@ -608,6 +608,8 @@ function untilArrival(sc: Sched, tau: number, i: number, dir: number) {
   for (let k = 0; k < L.length; k++) if (L[k].t0 <= tau) lo = k;
   let t = L[lo].t0 + L[lo].dur - tau;
   if (L[lo].stop === i && L[lo].dir === dir) return 0;
+  // Already on the hop into it.
+  if (L[lo].to === i && L[lo].dir === dir) return t;
   for (let n = 1; n <= L.length; n++) {
     const g = L[(lo + n) % L.length];
     if (g.stop === i && g.dir === dir) return t;
