@@ -16,7 +16,7 @@ import { LINES, along, PLAT_IN, PLAT_OUT, type Line, type Station } from '../cit
 import { toast } from './hud';
 
 type Pt = [number, number];
-interface BusLeg {
+export interface BusLeg {
   k: 'bus';
   r: Route;
   dir: number;
@@ -26,7 +26,7 @@ interface BusLeg {
   board: Pt;
   off: Pt;
 }
-interface MrtLeg {
+export interface MrtLeg {
   k: 'mrt';
   line: Line;
   dir: 1 | -1;
@@ -37,11 +37,11 @@ interface MrtLeg {
   gin: FareGate | null;
   gout: FareGate;
 }
-interface ExitLeg {
+export interface ExitLeg {
   k: 'exit';
   gate: FareGate;
 }
-type Leg = BusLeg | MrtLeg | ExitLeg;
+export type Leg = BusLeg | MrtLeg | ExitLeg;
 interface Opt {
   secs: number;
   legs: Leg[];
@@ -118,6 +118,13 @@ export function stationHere(): { line: Line; st: Station; i: number } | null {
 
 /* ---------- the planner ---------- */
 type Memo = Map<string, Opt>;
+/** The quickest way between two points for anyone (the named people use it): the rides, or [] to walk. */
+export function journey(ax: number, az: number, bx: number, bz: number): Leg[] {
+  const walk = walkT(ax, az, bx, bz);
+  let best: Opt = { secs: walk, legs: [], key: 'walk' };
+  for (const o of options(ax, az, bx, bz, false, null, 1, new Map(), walk)) if (o.secs < best.secs) best = o;
+  return best.legs;
+}
 /** The quickest way from (x, z) to the target, with at most `depth` more rides. */
 function tail(
   x: number,

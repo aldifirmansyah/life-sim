@@ -25,6 +25,16 @@ const L: Record<string, string[]> = {
     'Aldi! Sit down lah, chit chat a while.',
   ],
   'greet.cold': ['Hmm. You again.', "Oh. It's you.", 'Yah, what?'],
+  'greet.out.walking': [
+    "Eh Aldi! I'm on the way {detail}. Walk with me a bit?",
+    'Aldi! Fancy bumping into you here. Going {detail} lah.',
+    'Oi Aldi! Where you going? Me, {detail}.',
+  ],
+  'greet.out.haunt': [
+    'Wah, Aldi! You also come {detail} ah? Small world!',
+    "Eh, Aldi! Didn't expect to see you at {detail}.",
+    'Aldi! Here also can meet you. Singapore really small, hor?',
+  ],
   'greet.again': ['Eh, we just talked leh!', 'Back again? Ha, OK lah.', 'Miss me already ah?'],
   'topic.like': [
     'Wah, {topic}! You also like ah? We can talk until tomorrow.',

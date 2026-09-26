@@ -9,6 +9,7 @@ export type LineKind =
   | 'intro'
   | 'greet'
   | 'greet.again'
+  | 'greet.out'
   | 'topic.like'
   | 'topic.neutral'
   | 'topic.dislike'
