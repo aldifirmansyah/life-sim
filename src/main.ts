@@ -26,6 +26,7 @@ import { buildMrt } from './city/mrtbuild';
 import { initStream, updateStream, applyCityFog, liveChunks, pools } from './city/stream';
 import { updateTrains, pickStop } from './city/trains';
 import { updateFares, buildCrossings } from './city/fares';
+import { updateMeal } from './places/hawker';
 import { updateInteraction, interact } from './game/interact';
 import { startArrival, updateArrival, loadArrival } from './game/arrival';
 import { updateWork, openLaptop, loadWork } from './game/work';
@@ -186,6 +187,7 @@ function loop(now: number) {
   updateInteriors(dt);
   updateChangi(dt);
   updateCbd();
+  updateMeal(dt);
   updateNear(player.x, player.z);
   updateEvents(dt);
   updateFares();

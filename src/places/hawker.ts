@@ -6,9 +6,11 @@
    3. eat at your table,
    4. return the tray (it's the law; leaving it gets a scolding).
    Walking off with the food makes it a takeaway (tapau). Drinks are just drunk.
-   One meal at a time, in whichever centre Aldi is. */
+   One meal at a time, in whichever centre Aldi is. The tray is in Aldi's hands
+   (in view) while it's carried; eating is sitting at the table, the tray in front,
+   the plate emptying bite by bite while the clock runs on (no fade). */
 import * as THREE from 'three';
-import { scene } from '../render/context';
+import { scene, camera } from '../render/context';
 import { PropSet } from '../render/props';
 import { sign } from '../render/signs';
 import { interiors } from '../interiors/interior';
@@ -16,7 +18,8 @@ import { register } from '../game/interact';
 import { openPanel, closePanel } from '../ui/panel';
 import { toast } from '../ui/hud';
 import { player } from '../core/player';
-import { passTime } from '../core/time';
+import { S } from '../core/state';
+import { sfx } from '../audio/audio';
 import { spend, sgd, addEnergy, addMood, addItem } from '../game/stats';
 
 export interface Dish {
@@ -56,6 +59,114 @@ const tissue = new THREE.Mesh(
 tissue.visible = false;
 scene.add(tissue);
 export const mealState = meal;
+
+/** The colour of a dish on the plate, from what it is. */
+const FOOD_COLS: [RegExp, string][] = [
+  [/rice|nasi|briyani|porridge/i, '#f3eee0'],
+  [/laksa|curry|mee siam|lontong|penyet/i, '#e0873a'],
+  [/satay|stingray|bbq|bak kwa/i, '#8a4b2a'],
+  [/prata|carrot|puff|roti/i, '#e2b36b'],
+  [/mee|noodle|kway|hokkien|bee hoon|pok|bakso/i, '#d9b25a'],
+];
+const foodColour = (name: string) => FOOD_COLS.find(([r]) => r.test(name))?.[1] ?? '#c98a4a';
+/** A tray: the orange hawker tray, a plate, the food on it, a spoon. */
+function makeTray() {
+  const g = new THREE.Group();
+  const lam = (c: number) => new THREE.MeshLambertMaterial({ color: c });
+  const tray = new THREE.Mesh(new THREE.BoxGeometry(0.44, 0.025, 0.32), lam(0xe07a1f));
+  const plate = new THREE.Mesh(new THREE.CylinderGeometry(0.12, 0.1, 0.03, 16), lam(0xf4f6f8));
+  plate.position.set(0.02, 0.028, 0);
+  const foodMat = lam(0xc98a4a);
+  const food = new THREE.Mesh(new THREE.SphereGeometry(0.095, 12, 8), foodMat);
+  food.scale.set(1, 0.45, 1);
+  food.position.set(0.02, 0.05, 0);
+  const spoon = new THREE.Mesh(new THREE.BoxGeometry(0.16, 0.012, 0.025), lam(0xd9dde0));
+  spoon.position.set(-0.15, 0.022, 0.06);
+  spoon.rotation.y = 0.5;
+  g.add(tray, plate, food, spoon);
+  return { g, food, foodMat };
+}
+/** In Aldi's hands, below the view; and on the table while eating. */
+const held = makeTray();
+held.g.position.set(0.14, -0.27, -0.62);
+held.g.rotation.set(0.5, -0.12, 0);
+held.g.scale.setScalar(0.8);
+held.g.visible = false;
+camera.add(held.g);
+scene.add(camera);
+const placed = makeTray();
+placed.g.visible = false;
+scene.add(placed.g);
+/** Eating at the table: real seconds for the meal, while 20 game minutes go by. */
+const EAT_S = 9,
+  EAT_MIN = 20;
+const eat = { on: false, t: 0, dish: null as Dish | null, bites: 0 };
+export const eatState = eat;
+let done: (() => void) | null = null;
+
+/** Every frame: the tray in hand, and the meal at the table. */
+export function updateMeal(dt: number) {
+  held.g.visible = !!(meal.food || meal.tray) && !eat.on && !player.ride && S.started;
+  held.food.visible = !!meal.food;
+  if (meal.food) held.foodMat.color.set(foodColour(meal.food.name));
+  if (!eat.on) return;
+  eat.t += dt;
+  const f = Math.min(1, eat.t / EAT_S);
+  S.time = Math.min(S.time + (dt * EAT_MIN) / EAT_S, 26 * 60 - 1);
+  // Bite by bite: the food goes down in steps, with a small nod at each spoonful.
+  const bites = Math.floor(f * 7);
+  if (bites > eat.bites) {
+    eat.bites = bites;
+    sfx('tick', 0.7);
+  }
+  const k = Math.max(0, 1 - bites / 7);
+  placed.food.scale.set(Math.max(0.001, k), 0.45 * Math.max(0.001, k), Math.max(0.001, k));
+  placed.food.visible = k > 0;
+  const phase = (eat.t * 7) / EAT_S - bites;
+  player.pitch = -0.42 + 0.1 * Math.sin(Math.min(1, phase * 2) * Math.PI);
+  if (f >= 1) {
+    eat.on = false;
+    S.seated = false;
+    player.eye = 1.7;
+    player.pitch = -0.1;
+    placed.g.visible = false;
+    done?.();
+    done = null;
+  }
+}
+/** Sit at a table's nearest stool and eat there. */
+function sitAndEat(tx: number, tz: number, dish: Dish, then: () => void) {
+  let best: [number, number] = [tx + 1.05, tz],
+    bd = Infinity;
+  for (const [dx, dz] of [
+    [1.05, 0],
+    [-1.05, 0],
+    [0, 1.05],
+    [0, -1.05],
+  ]) {
+    const d = Math.hypot(tx + dx - player.x, tz + dz - player.z);
+    if (d < bd) {
+      bd = d;
+      best = [tx + dx, tz + dz];
+    }
+  }
+  const [sx, sz] = best;
+  const fx = tx - sx,
+    fz = tz - sz;
+  Object.assign(player, { x: sx - fx * 0.15, z: sz - fz * 0.15, vx: 0, vz: 0, eye: 1.25 });
+  player.yaw = Math.atan2(-fx, -fz);
+  player.pitch = -0.42;
+  S.seated = true;
+  placed.foodMat.color.set(foodColour(dish.name));
+  placed.g.position.set(tx - fx * 0.45, 0.78, tz - fz * 0.45);
+  placed.g.rotation.set(0, player.yaw, 0);
+  placed.food.scale.set(1, 0.45, 1);
+  placed.food.visible = true;
+  placed.g.visible = true;
+  Object.assign(eat, { on: true, t: 0, dish, bites: 0 });
+  done = then;
+  toast('Makan…', `${dish.name}. Shiok.`, null);
+}
 
 export function buildHawker(o: HawkerSpec) {
   const { x: cx, z: cz, w, d, stalls } = o;
@@ -225,10 +336,10 @@ export function buildHawker(o: HawkerSpec) {
       meal.food = null;
       meal.chope = -1;
       tissue.visible = false;
-      passTime(20, 'Makan…', () => {
+      meal.tray = true;
+      sitAndEat(TABLES[i][0], TABLES[i][1], dish, () => {
         addEnergy(dish.energy);
         addMood(dish.mood);
-        meal.tray = true;
         toast(dish.name, `${dish.note} Now return the tray.`, null);
       });
       return;
