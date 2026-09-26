@@ -25,6 +25,7 @@ import { spend, sgd, addEnergy, addMood } from '../game/stats';
 import { job, openLaptop, cityLabel, cityMeeting } from '../game/work';
 import { buildHawker } from './hawker';
 import { CITY_OFFICE, LAU_PA_SAT, BOAT_QUAY, PROMENADE } from './sites';
+import { makanRegular } from './explore';
 
 const { x0, x1, z0, z1, lobby, floor: F } = CITY_OFFICE;
 const LIFT = { x: x0 + 6, z: z0 + 1.6 };
@@ -48,6 +49,14 @@ export function buildCbd() {
             energy: 24,
             mood: 8,
             note: 'Smoky, sweet, with peanut sauce and ketupat. Like at home, but different.',
+          },
+          {
+            name: "Uncle's satay bee hoon (off the menu)",
+            price: 7,
+            energy: 28,
+            mood: 14,
+            note: 'Rice vermicelli drowned in satay sauce, cuttlefish, kangkong. "For regulars only, don\'t tell."',
+            secret: makanRegular,
           },
         ],
       },

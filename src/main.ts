@@ -31,6 +31,7 @@ import { updateVendors } from './npc/vendors';
 import { buildStreet, updateStreet, streetMenu } from './places/street';
 import { buildIncidents, updateIncidents, loadIncidents } from './game/incidents';
 import { updateBubbles } from './ui/bubbles';
+import { buildExplore, updateExplore, loadExplore } from './places/explore';
 import { updateShutters, resnapShutters } from './places/shutters';
 import { updateInteraction, interact } from './game/interact';
 import { startArrival, updateArrival, loadArrival } from './game/arrival';
@@ -96,6 +97,7 @@ buildTaxis();
 buildCar();
 buildStreet();
 buildIncidents();
+buildExplore();
 buildWeather();
 apps.push({ label: 'HomeLah', note: 'rooms for rent', run: homeApp });
 buildPeople();
@@ -130,6 +132,7 @@ function newGame() {
   loadRegions(undefined);
   loadCar(undefined);
   loadIncidents(undefined);
+  loadExplore(undefined);
 }
 
 /** Energy runs down with the hours awake; a night's sleep fills it up. */
@@ -200,6 +203,7 @@ function loop(now: number) {
   updateMeal(dt);
   updateStreet(dt);
   updateIncidents(dt);
+  updateExplore(dt);
   updateBubbles();
   updateShutters(dt);
   updateNear(player.x, player.z);
@@ -368,6 +372,7 @@ if (import.meta.env.DEV) {
     import('./npc/vendors'),
     import('./npc/crowds'),
     import('./game/incidents'),
+    import('./places/explore'),
   ]).then(
     ([
       geo,
@@ -402,6 +407,7 @@ if (import.meta.env.DEV) {
       vendors,
       crowds,
       incidents,
+      explore,
     ]) => {
       (window as unknown as Record<string, unknown>).__sg = {
         S,
@@ -438,6 +444,7 @@ if (import.meta.env.DEV) {
         vendors,
         crowds,
         incidents,
+        explore,
         renderer,
         parts,
         ms: () => ({ upd: updMs, draw: drawMs }),

@@ -19,7 +19,7 @@ import { passTime } from '../core/time';
 import { spend, sgd, addEnergy, addMood } from '../game/stats';
 import { weekday } from '../game/calendar';
 import { buildHawker } from './hawker';
-import { buildShopRow, shopPanel, type Shop } from './shops';
+import { buildShopRow, shopPanel, listMenu, type Shop } from './shops';
 import { MOSQUE, LUCKY, CT_MARKET, HAJI_LANE, TEKKA, TB_MARKET } from './sites';
 import { TOWNS } from '../city/geo';
 
@@ -241,6 +241,7 @@ function buildLucky() {
     [null, x0 + 19, x1 - 1, z0, z0 + 5, 1],
   ];
   for (const [s, ax, bx, az, bz] of units) {
+    if (s) listMenu(s);
     p.box(ax, bx, 0, 3, az, az + 0.3, s ? s.color : '#2f6fb3');
     p.box(ax, bx, 0, 1, bz - 0.6, bz, '#d8d2c4', { col: true });
     const shopX = (ax + bx) / 2;

@@ -22,6 +22,7 @@ import { S } from '../core/state';
 import { sfx } from '../audio/audio';
 import { addVendor, addDiner } from '../npc/vendors';
 import { addShutter, isOpenAt } from './shutters';
+import { addMakan, tasted } from './explore';
 
 /** When the stalls are open. */
 const STALL_HOURS: [number, number] = [7, 22];
@@ -36,6 +37,8 @@ export interface Dish {
   drink?: boolean;
   /** Bought to carry away as a gift (an item id in the bag). */
   gift?: string;
+  /** Only on the menu when this says so (an off-menu dish for regulars). */
+  secret?: () => boolean;
 }
 export interface Stall {
   name: string;
@@ -203,6 +206,7 @@ export function buildHawker(o: HawkerSpec) {
   const sw = w / stalls.length;
   stalls.forEach((st, i) => {
     const sx = x0 + sw * (i + 0.5);
+    for (const d of st.dishes) if (!d.drink && !d.gift && !d.secret) addMakan(d.name, o.name);
     p.box(sx - sw / 2 + 0.1, sx + sw / 2 - 0.1, 0, 3, z0, z0 + 0.2, '#e4e0d8', { col: true });
     p.box(sx - sw / 2 + 0.1, sx - sw / 2 + 0.2, 0, 3, z0, z0 + 3, '#e4e0d8', { col: true });
     p.box(sx - sw / 2 + 0.3, sx + sw / 2 - 0.3, 0, 1, z0 + 2.4, z0 + 3, '#d8d2c4', { col: true });
@@ -363,7 +367,9 @@ export function buildHawker(o: HawkerSpec) {
           ? 'Tip: chope a table first. A tissue packet on it means taken.'
           : undefined,
       rows: [
-        ...st.dishes.map(dish => ({ label: dish.name, note: sgd(dish.price), run: () => buy(dish) })),
+        ...st.dishes
+          .filter(dish => !dish.secret || dish.secret())
+          .map(dish => ({ label: dish.name, note: sgd(dish.price), run: () => buy(dish) })),
         { label: 'Maybe later', run: () => closePanel() },
       ],
     });
@@ -403,6 +409,7 @@ export function buildHawker(o: HawkerSpec) {
       sitAndEat(TABLES[i][0], TABLES[i][1], dish, () => {
         addEnergy(dish.energy);
         addMood(dish.mood);
+        tasted(dish.name, o.name);
         toast(dish.name, `${dish.note} Now return the tray.`, null);
       });
       return;
@@ -425,6 +432,7 @@ export function buildHawker(o: HawkerSpec) {
       meal.food = null;
       addEnergy(dish.energy * 0.8);
       addMood(dish.mood * 0.6);
+      tasted(dish.name, o.name);
       toast('Tapau', `${dish.name}, eaten on the go. Aldi left the tray at the stall.`, null);
     }
     if (meal.tray) {

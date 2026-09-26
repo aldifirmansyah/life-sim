@@ -11,6 +11,7 @@ import { toast } from '../ui/hud';
 import { passTime } from '../core/time';
 import { addVendor } from '../npc/vendors';
 import { addShutter, isOpenAt } from './shutters';
+import { addMakan, tasted } from './explore';
 import { spend, sgd, addEnergy, addMood, addItem, owned } from '../game/stats';
 
 export interface Ware {
@@ -68,6 +69,7 @@ function buy(s: Shop, w: Ware) {
   const done = () => {
     addEnergy(w.energy ?? 0);
     addMood(w.mood ?? 0);
+    if (w.minutes) tasted(w.name, s.name);
     toast(w.name, w.note ?? `From ${s.name}.`, null);
   };
   if (w.minutes) passTime(w.minutes, `${s.name}…`, done);
@@ -75,6 +77,11 @@ function buy(s: Shop, w: Ware) {
 }
 
 const GOODS = ['#d7263d', '#f2c14e', '#2f6fb3', '#3f7d3a', '#e8a0b8', '#f4f1ea', '#8a4b2a', '#e07a1f'];
+
+/** Put the things eaten at a shop on the makan list (game/explore). */
+export function listMenu(s: Shop) {
+  for (const w of s.wares) if (w.minutes && !w.gift && !w.own) addMakan(w.name, s.name);
+}
 
 /** A row of shopfronts or stalls along x, facing south (+z) or north (−z). */
 export function buildShopRow(
@@ -89,6 +96,7 @@ export function buildShopRow(
   const w = (r.x1 - r.x0) / shops.length;
   const front = face > 0 ? r.z1 : r.z0;
   shops.forEach((s, i) => {
+    listMenu(s);
     const x0 = r.x0 + i * w,
       x1 = x0 + w,
       cx = (x0 + x1) / 2;

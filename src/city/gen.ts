@@ -1115,6 +1115,50 @@ export function freeAt(x: number, z: number, m: number) {
       }
   return true;
 }
+/** Free-standing mural walls near the heritage districts (the Explore app's murals), their ground kept free. */
+export const muralSpots: { name: string; x: number; z: number; ry: number }[] = [];
+function muralGround() {
+  const anchors: [string, number, number][] = [
+    ['Chinatown', (CT_MARKET.x0 + CT_MARKET.x1) / 2, CT_MARKET.z1 + 10],
+    ['Haji Lane', (HAJI_LANE.x0 + HAJI_LANE.x1) / 2, HAJI_LANE.z1 + 14],
+    ['Tiong Bahru', TB_MARKET.x, TB_MARKET.z + TB_MARKET.d / 2 + 12],
+    ['Little India', TEKKA.x, TEKKA.z - TEKKA.d / 2 - 12],
+    ['Kampong Glam', MOSQUE.x - MOSQUE.w / 2 - 14, MOSQUE.z],
+    ['Katong', (KATONG_ROW.x0 + KATONG_ROW.x1) / 2, KATONG_ROW.z1 + 14],
+  ];
+  for (const [name, ax, az] of anchors) {
+    const r = rng(hash('mural', name));
+    for (let k = 0; k < 40; k++) {
+      const a = r.range(0, Math.PI * 2),
+        d = k === 0 ? 0 : r.range(4, 30);
+      const x = ax + Math.cos(a) * d,
+        z = az + Math.sin(a) * d;
+      const land = landAt(x, z);
+      if ((land !== 'urban' && land !== 'park') || isReserved(x, z, 4) || nearTrack(x, z, 6) || !freeAt(x, z, 4.5))
+        continue;
+      if (segsNear(x, z, 12).some(o => segDist(x, z, o.ax, o.az, o.bx, o.bz) < o.w / 2 + 3)) continue;
+      // Face the nearest road, so it's seen from the street.
+      let best = 1e9,
+        ry = 0;
+      for (const o of segsNear(x, z, 60)) {
+        const vx = o.bx - o.ax,
+          vz = o.bz - o.az;
+        const t = Math.max(0, Math.min(1, ((x - o.ax) * vx + (z - o.az) * vz) / (vx * vx + vz * vz || 1)));
+        const cx = o.ax + vx * t,
+          cz = o.az + vz * t;
+        const dd = Math.hypot(cx - x, cz - z);
+        if (dd < best) {
+          best = dd;
+          ry = Math.atan2(cx - x, cz - z);
+        }
+      }
+      reserve(x, z, 5);
+      muralSpots.push({ name, x, z, ry });
+      putCol(x, z, 3.1, 0.2, ry); // the wall runs across its facing (cos ry, −sin ry)
+      break;
+    }
+  }
+}
 /** A spot per HDB town for a void-deck tent (weddings and wakes, game/incidents), its ground kept free. */
 export const tentSpots: { town: string; x: number; z: number }[] = [];
 function tentGround() {
@@ -1407,6 +1451,7 @@ export function generateCity() {
   overheadBridges();
   streetThings();
   tentGround();
+  muralGround();
   for (let ix = Math.floor(BOUNDS.x0 / LOT); ix < Math.ceil(BOUNDS.x1 / LOT); ix++)
     for (let iz = Math.floor(BOUNDS.z0 / LOT); iz < Math.ceil(BOUNDS.z1 / LOT); iz++) lot(ix, iz);
   // Roads: every segment, cut into pieces per chunk; expressways get a pale divider.

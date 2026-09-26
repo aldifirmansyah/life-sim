@@ -6,6 +6,9 @@ import { ISLANDS, WATERS, TOWNS, BOUNDS } from '../city/geo';
 import { allSegs } from '../city/roads';
 import { LINES } from '../city/mrtdata';
 
+/** Extra layers other modules draw on the map (e.g. the Explore app's finds), before Aldi's arrow. */
+export const mapLayers: ((g: CanvasRenderingContext2D, P: (x: number, z: number) => [number, number]) => void)[] = [];
+
 export function drawMap() {
   const c = $<HTMLCanvasElement>('mapc');
   const g = c.getContext('2d')!;
@@ -73,6 +76,7 @@ export function drawMap() {
     g.fillStyle = '#3b3a36';
     g.fillText(t.name, x, z - t.r * k - 3);
   }
+  for (const layer of mapLayers) layer(g, P);
   // Aldi.
   const [x, z] = P(player.x, player.z);
   g.save();
