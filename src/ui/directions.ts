@@ -54,6 +54,8 @@ export interface Plan {
   tx: number;
   tz: number;
   label: string;
+  /** When walking is quickest: the best ride instead, in a line. */
+  alt?: string;
   /** Where the plan was made from (the route is drawn from here). */
   fx: number;
   fz: number;
@@ -267,6 +269,18 @@ function replan(tx: number, tz: number, label: string) {
   const same = plan && Math.hypot(plan.tx - tx, plan.tz - tz) < 20 ? all.find(o => o.key === plan!.key) : undefined;
   if (same && same.secs < best.secs * 1.2 + 10) best = same;
   plan = { ...best, tx, tz, label, fx: player.x, fz: player.z };
+  if (!best.legs.length) {
+    let ride: Opt | null = null;
+    for (const o of all) if (o.legs.length && (!ride || o.secs < ride.secs)) ride = o;
+    const f = ride?.legs[0];
+    if (ride && f && ride.secs < best.secs * 1.8)
+      plan.alt =
+        f.k === 'bus'
+          ? `Or bus ${f.r.no} from ${f.r.stops[f.from].name}, towards ${busEnd(f.r, f.dir)}`
+          : f.k === 'mrt' && f.from >= 0
+            ? `Or the ${f.line.name} from ${f.line.stations[f.from].name} to ${f.line.stations[f.to].name}`
+            : undefined;
+  }
 }
 
 /* ---------- the pin (dropped on the map) ---------- */
@@ -398,13 +412,19 @@ export function guide(w: { label: string; at: [number, number, number] } | null,
     }
   });
   const last = plan.legs[plan.legs.length - 1];
-  const from: Pt =
-    last.k === 'bus' ? last.off : last.k === 'mrt' ? [last.gout.x, last.gout.z] : [last.gate.x, last.gate.z];
+  const from: Pt = !last
+    ? [player.x, player.z]
+    : last.k === 'bus'
+      ? last.off
+      : last.k === 'mrt'
+        ? [last.gout.x, last.gout.z]
+        : [last.gate.x, last.gate.z];
   steps.push(`Walk to ${w.label} (${Math.round(Math.hypot(from[0] - w.at[0], from[1] - w.at[2]) / 10) * 10} m)`);
   box.hidden = false;
   const html =
     `<b>Getting to ${esc(w.label)}</b>` +
     steps.map((s, i) => `<span class="${i < now ? 'done' : i === now ? 'now' : ''}">${esc(s)}</span>`).join('') +
+    (plan.alt ? `<em>${esc(plan.alt)}</em>` : '') +
     (plan.secs > 200 && !player.ride ? `<em>Or book a Nab on the phone (P)</em>` : '');
   if (box.innerHTML !== html) box.innerHTML = html;
   return way;
