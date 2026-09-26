@@ -44,6 +44,7 @@ import {
 import { provider, PERSONAL } from '../dialogue/template';
 import { eventSpot } from '../game/events';
 import { nearestNode, findPath, nodes } from '../city/roadgraph';
+import { deedLine } from '../game/incidents';
 import type { LineKind } from '../dialogue/types';
 import {
   CHOPEE_HQ,
@@ -69,7 +70,10 @@ import {
     stallholders (npc/vendors.ts). */
 export const NAMED_SLOTS = 40;
 export const VENDOR_SLOTS = 48;
-export const crowd = new Crowd(NAMED_SLOTS + 40 + VENDOR_SLOTS);
+/** The people in small events (game/incidents.ts), after the extras. */
+export const EVENT_BASE = NAMED_SLOTS + 40 + VENDOR_SLOTS,
+  EVENT_SLOTS = 4;
+export const crowd = new Crowd(EVENT_BASE + EVENT_SLOTS);
 
 interface Spot {
   x: number;
@@ -1425,6 +1429,9 @@ async function talk(p: Person) {
               ? 'acquaintance'
               : 'stranger';
     text = await line(p, g.kind === 'greet.again' ? 'greet.again' : 'greet', { outcome });
+    // Word gets around: the latest good deed, once.
+    const heard = deedLine(npc.id);
+    if (heard) text += `\n\n${heard}`;
   }
   menu(p, text);
 }

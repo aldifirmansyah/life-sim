@@ -464,7 +464,8 @@ export type Sfx =
   | 'chime'
   | 'tap'
   | 'horn'
-  | 'greenman';
+  | 'greenman'
+  | 'busk';
 /** A short UI or action sound. `pitch` shifts dialogue blips per speaker. */
 export function sfx(kind: Sfx, pitch = 1) {
   if (!ctx || !S.started) return;
@@ -543,6 +544,14 @@ export function sfx(kind: Sfx, pitch = 1) {
       tone(fx, 'square', 392 * pitch, null, t, 0.01, 0.35, 0.05 * pitch);
       tone(fx, 'square', 494 * pitch, null, t, 0.01, 0.35, 0.04 * pitch);
       break;
+    case 'busk': {
+      // A busker's guitar: a little arpeggio, a different one each time.
+      const base = [196, 220, 247, 262][Math.floor(Math.random() * 4)] * pitch;
+      [1, 1.25, 1.5, 2, 1.5, 1.25].forEach((m, i) =>
+        tone(fx, 'triangle', base * m, null, t + i * 0.18, 0.005, 0.5, 0.05 * pitch),
+      );
+      break;
+    }
     case 'greenman':
       // The pedestrian crossing's quick beeps while the green man shows.
       tone(fx, 'square', 2000, null, t, 0.002, 0.04, 0.035);

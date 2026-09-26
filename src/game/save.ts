@@ -15,6 +15,7 @@ import { saveCentre, loadCentre } from '../places/centre';
 import { saveEvents, loadEvents } from './events';
 import { saveRegions, loadRegions } from '../places/regions';
 import { saveCar, loadCar } from './car';
+import { saveIncidents, loadIncidents } from './incidents';
 
 const KEY = 'sg-save';
 const VERSION = 3;
@@ -37,6 +38,7 @@ export function saveGame(): boolean {
     events: saveEvents(),
     regions: saveRegions(),
     car: saveCar(),
+    incidents: saveIncidents(),
   };
   try {
     localStorage.setItem(KEY, JSON.stringify(d));
@@ -74,6 +76,7 @@ export function loadGame(): boolean {
   loadEvents(d.events);
   loadRegions(d.regions);
   loadCar(d.car);
+  loadIncidents(d.incidents);
   return true;
 }
 export function deleteSave() {

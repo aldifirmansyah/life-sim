@@ -1101,7 +1101,7 @@ function pickKind(r: Rng, kind: string | undefined): FurnKind | null {
   return null;
 }
 /** A collider-free spot (none of the chunks' colliders within m metres). */
-function freeAt(x: number, z: number, m: number) {
+export function freeAt(x: number, z: number, m: number) {
   const [cx, cz] = chunkOf(x, z);
   for (let i = cx - 1; i <= cx + 1; i++)
     for (let j = cz - 1; j <= cz + 1; j++)
@@ -1115,7 +1115,26 @@ function freeAt(x: number, z: number, m: number) {
       }
   return true;
 }
-/** Street things every 45 m along the town roads (not the expressways), on the kerb, facing the road. */
+/** A spot per HDB town for a void-deck tent (weddings and wakes, game/incidents), its ground kept free. */
+export const tentSpots: { town: string; x: number; z: number }[] = [];
+function tentGround() {
+  for (const t of TOWNS) {
+    if (!['hdb', 'lowhdb', 'mixed'].includes(t.kind as string)) continue;
+    const r = rng(hash('tent-spot', t.name));
+    for (let k = 0; k < 40; k++) {
+      const a = r.range(0, Math.PI * 2),
+        d = r.range(20, t.r * 0.6);
+      const x = t.x + Math.cos(a) * d,
+        z = t.z + Math.sin(a) * d;
+      if (landAt(x, z) !== 'urban' || isReserved(x, z, 8) || nearTrack(x, z, 10) || !freeAt(x, z, 7)) continue;
+      if (segsNear(x, z, 16).some(o => segDist(x, z, o.ax, o.az, o.bx, o.bz) < o.w / 2 + 8)) continue;
+      reserve(x, z, 9);
+      tentSpots.push({ town: t.name, x, z });
+      break;
+    }
+  }
+}
+/** Street things every 30 m along the town roads (not the expressways), on the kerb, facing the road. */
 function streetThings() {
   const segs = allSegs.filter(s => s.road.kind !== 'expressway');
   segs.forEach((s, si) => {
@@ -1387,6 +1406,7 @@ export function generateCity() {
   // Bridges and street things before the lots, so the buildings keep off them.
   overheadBridges();
   streetThings();
+  tentGround();
   for (let ix = Math.floor(BOUNDS.x0 / LOT); ix < Math.ceil(BOUNDS.x1 / LOT); ix++)
     for (let iz = Math.floor(BOUNDS.z0 / LOT); iz < Math.ceil(BOUNDS.z1 / LOT); iz++) lot(ix, iz);
   // Roads: every segment, cut into pieces per chunk; expressways get a pale divider.
