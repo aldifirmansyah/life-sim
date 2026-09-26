@@ -638,34 +638,7 @@ function marinaBay() {
     fr = 32,
     fy = fr + 8,
     fry = 0.9;
-  for (let k = 0; k < 28; k++) {
-    const a = (k / 28) * Math.PI * 2;
-    const u = Math.cos(a) * fr;
-    put({
-      p: 'solid',
-      x: fx + Math.cos(fry) * u,
-      y: fy + Math.sin(a) * fr,
-      z: fz - Math.sin(fry) * u,
-      sx: (Math.PI * 2 * fr) / 28 + 0.4,
-      sy: 0.8,
-      sz: 0.8,
-      ry: fry,
-      rz: a + Math.PI / 2,
-      c: '#e6e8ea',
-    });
-    if (k % 2 === 0)
-      put({
-        p: 'crown',
-        x: fx + Math.cos(fry) * u,
-        y: fy + Math.sin(a) * fr - 1.5,
-        z: fz - Math.sin(fry) * u,
-        sx: 1.3,
-        sy: 1.1,
-        sz: 1.3,
-        ry: 0,
-        c: '#cfe6ee',
-      });
-  }
+  // The wheel itself turns (render/distant.ts); the legs, the base and the sign stay here.
   for (const s of [-1, 1])
     put({ p: 'solid', x: fx + s * 6, y: fy / 2, z: fz, sx: 1.2, sy: fy, sz: 1.2, ry: fry, rz: s * 0.25, c: '#d9dcdf' });
   put({ p: 'solid', x: fx, y: 3, z: fz, sx: 40, sy: 6, sz: 18, ry: fry, c: '#d4d0c6' });

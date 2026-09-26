@@ -33,6 +33,27 @@ import { buildIncidents, updateIncidents, loadIncidents } from './game/incidents
 import { updateBubbles } from './ui/bubbles';
 import { buildExplore, updateExplore, loadExplore } from './places/explore';
 import { buildGigs, updateGigs } from './game/gigs';
+import { buildDistant, updateDistant, planeNear } from './render/distant';
+import { CLEMENTI_HAWKER, LAU_PA_SAT, TEKKA, TB_MARKET, LAGOON } from './places/sites';
+import { townAt } from './city/geo';
+
+/** Which sound bed: the CBD, an HDB estate, the green, or none. */
+function soundDistrict(): 'cbd' | 'estate' | 'park' | null {
+  if (player.indoor) return null;
+  const land = landAt(player.x, player.z);
+  if (land === 'park' || land === 'forest') return 'park';
+  const k = townAt(player.x, player.z)?.kind as string | undefined;
+  return k === 'cbd' ? 'cbd' : k === 'hdb' || k === 'lowhdb' || k === 'mixed' ? 'estate' : null;
+}
+/** How close a food centre is at a meal time (0..1). */
+function hawkerNear() {
+  const h = (S.time / 60) % 24;
+  if (!((h >= 11.5 && h < 14) || (h >= 18 && h < 20.5))) return 0;
+  let best = 0;
+  for (const c of [CLEMENTI_HAWKER, LAU_PA_SAT, TEKKA, TB_MARKET, LAGOON])
+    best = Math.max(best, 1 - Math.hypot(c.x - player.x, c.z - player.z) / 45);
+  return best;
+}
 import { updateShutters, resnapShutters } from './places/shutters';
 import { updateInteraction, interact } from './game/interact';
 import { startArrival, updateArrival, loadArrival } from './game/arrival';
@@ -100,6 +121,7 @@ buildStreet();
 buildIncidents();
 buildExplore();
 buildGigs(apps);
+buildDistant();
 buildWeather();
 apps.push({ label: 'HomeLah', note: 'rooms for rent', run: homeApp });
 buildPeople();
@@ -207,6 +229,7 @@ function loop(now: number) {
   updateStreet(dt);
   updateIncidents(dt);
   updateExplore(dt);
+  updateDistant(dt);
   updateBubbles();
   updateShutters(dt);
   updateNear(player.x, player.z);
@@ -226,7 +249,13 @@ function loop(now: number) {
   lap('places');
   const water =
     landAt(player.x, player.z) === 'sea' ? 1 : Math.max(0, 1 - polyEdgeDist(ISLANDS.main, player.x, player.z) / 40);
-  updateAudio({ road: roadCloseness(player.x, player.z), water });
+  updateAudio({
+    road: roadCloseness(player.x, player.z),
+    water,
+    district: soundDistrict(),
+    hawker: hawkerNear(),
+    plane: planeNear(),
+  });
   updateEnv((S.time / 60) % 24);
   updateWeather(dt);
   lap('env+sound');
@@ -378,6 +407,7 @@ if (import.meta.env.DEV) {
     import('./game/incidents'),
     import('./places/explore'),
     import('./game/gigs'),
+    import('./render/distant'),
   ]).then(
     ([
       geo,
@@ -414,6 +444,7 @@ if (import.meta.env.DEV) {
       incidents,
       explore,
       gigs,
+      distant,
     ]) => {
       (window as unknown as Record<string, unknown>).__sg = {
         S,
@@ -452,6 +483,7 @@ if (import.meta.env.DEV) {
         incidents,
         explore,
         gigs,
+        distant,
         renderer,
         parts,
         ms: () => ({ upd: updMs, draw: drawMs }),

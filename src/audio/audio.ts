@@ -192,7 +192,7 @@ export const setRain = (v: number) => (rainLevel = v);
 /* ================= the soundscape, every frame ================= */
 
 let lastT = 0;
-let next = { bird: 0, cricket: 0, tokek: 0, bike: 0, rooster: 0, murmur: 0 };
+let next = { bird: 0, cricket: 0, tokek: 0, bike: 0, rooster: 0, murmur: 0, estate: 0, pigeon: 0, clatter: 0, jet: 0 };
 let stepDist = 0,
   lastX = 0,
   lastZ = 0;
@@ -205,6 +205,11 @@ export function updateAudio(extra: {
   bakso?: [number, number] | null;
   chats?: [number, number][];
   ronda?: boolean;
+  /** The district Aldi is in, for its sound bed. */
+  district?: 'cbd' | 'estate' | 'park' | null;
+  /** How close a food centre at a meal time is (0..1), and a plane (0..1). */
+  hawker?: number;
+  plane?: number;
 }) {
   if (!ctx) return;
   applyVolumeLazy();
@@ -217,7 +222,9 @@ export function updateAudio(extra: {
   const k = 0.05;
   // Beds: traffic near the roads, water by the sea and the rivers, rain.
   const road = extra.road ?? 0;
-  traffic.g.gain.setTargetAtTime(live ? 0.05 + road * 0.22 * (day ? 1 : 0.5) : 0, t, k * 10);
+  // The CBD hums: a little more of the traffic bed there.
+  const hum = extra.district === 'cbd' ? 0.06 : 0;
+  traffic.g.gain.setTargetAtTime(live ? 0.05 + hum + road * 0.22 * (day ? 1 : 0.5) : 0, t, k * 10);
   water.g.gain.setTargetAtTime(live ? (extra.water ?? 0) * 0.12 : 0, t, k * 10);
   rain.g.gain.setTargetAtTime(live ? rainLevel * 0.35 : 0, t, 0.5);
   if (!live) return;
@@ -240,6 +247,31 @@ export function updateAudio(extra: {
   if (hour >= 5.8 && hour < 7.2 && t > next.rooster) {
     next.rooster = t + 12 + Math.random() * 25;
     rooster(t, player.x - 30 + Math.random() * 60, player.z - 30 + Math.random() * 60);
+  }
+  // HDB estates by day: children at play in the distance, pigeons cooing.
+  if (extra.district === 'estate' && day && rainLevel < 0.3) {
+    if (t > next.estate) {
+      next.estate = t + 2 + Math.random() * 5;
+      for (let i = 0; i < 3; i++)
+        hiss(fx, 'bandpass', 1300 + Math.random() * 900, 6, t + i * 0.14, 0.02, 0.1 + Math.random() * 0.08, 0.03);
+    }
+    if (t > next.pigeon) {
+      next.pigeon = t + 4 + Math.random() * 8;
+      for (let i = 0; i < 2; i++) tone(fx, 'sine', 310, 250, t + i * 0.45, 0.05, 0.35, 0.05);
+    }
+  }
+  // A food centre at a meal time: bowls, spoons and the crowd.
+  const hk = extra.hawker ?? 0;
+  if (hk > 0 && t > next.clatter) {
+    next.clatter = t + (0.25 + Math.random() * 0.6) / (0.4 + hk);
+    if (Math.random() < 0.5) ting(fx, t);
+    hiss(fx, 'bandpass', 500 + Math.random() * 600, 3, t, 0.05, 0.3, 0.06 * hk);
+  }
+  // A jet overhead: a low roar.
+  const jet = extra.plane ?? 0;
+  if (jet > 0 && t > next.jet) {
+    next.jet = t + 0.5;
+    hiss(fx, 'lowpass', 260, 0.7, t, 0.3, 0.9, 0.25 * jet);
   }
   // Motorbikes pass on the roads nearby, fewer at night.
   if (t > next.bike) {
