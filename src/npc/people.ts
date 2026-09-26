@@ -1229,6 +1229,7 @@ export function whereNow(p: Person) {
 let talking: Person | null = null;
 let lastDay = -1;
 let lastNow = 0;
+const waiting: Person[] = [];
 /** The game minute the spots were last worked out for (plans change by the minute at most). */
 let spotKey = -1;
 /** Every frame: who is where; pose the ones near Aldi. */
@@ -1249,12 +1250,15 @@ export function updatePeople(dt: number) {
   const key = S.day * 1440 + Math.floor(S.time);
   const fresh = key !== spotKey;
   spotKey = key;
+  // Trips are planned one a frame (a route across town costs a few ms), in the order they came up.
+  const next = waiting.shift();
+  if (next && next.goal) startTrip(next, next.goal);
   for (const p of people) {
     if (fresh) {
       const k = keyNow(p);
       const g = spotOf(p, k);
       if (p.goal === undefined) p.at = g;
-      else if (g !== p.goal) startTrip(p, g);
+      else if (g !== p.goal && !waiting.includes(p)) waiting.push(p);
       p.goal = g;
       p.goalKey = k;
     }
@@ -1590,6 +1594,7 @@ export function loadPeople(d: ReturnType<typeof saveSocial> | undefined) {
     p.npc.mood = 60;
     p.goal = undefined;
     p.trip = null;
+    waiting.length = 0;
   }
   spotKey = -1;
   loadSocial(

@@ -543,6 +543,7 @@ export function drawPin(g: CanvasRenderingContext2D, x: number, z: number, px = 
   g.fill();
 }
 export const directionsDebug = {
+  journey,
   setPin,
   clearPin,
   candidates,
