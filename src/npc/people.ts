@@ -43,7 +43,18 @@ import {
 } from '../social/social';
 import { provider, PERSONAL } from '../dialogue/template';
 import { eventSpot } from '../game/events';
-import { lifePlan, lifeSpots, homeSpot, homeTown, makeTrip, stepTrip, type Spot, type Plan, type Trip } from './lives';
+import {
+  lifePlan,
+  lifeSpots,
+  homeSpot,
+  homeTown,
+  makeTrip,
+  stepTrip,
+  SEEN,
+  type Spot,
+  type Plan,
+  type Trip,
+} from './lives';
 import { deedLine } from '../game/incidents';
 import type { LineKind } from '../dialogue/types';
 import {
@@ -1268,7 +1279,12 @@ export function updatePeople(dt: number) {
     }
     const walking = !!p.trip;
     const s = p.at;
-    const near = !!s && !s.hidden && Math.hypot(s.x - player.x, s.z - player.z) < 70 && Math.abs(s.y - player.y) < 30;
+    // Travellers are drawn only where they stroll (npc/lives.ts SEEN), so nobody is seen hurrying past.
+    const near =
+      !!s &&
+      !s.hidden &&
+      Math.hypot(s.x - player.x, s.z - player.z) < (walking ? SEEN : 70) &&
+      Math.abs(s.y - player.y) < 30;
     if (!near) {
       if (p.shown) {
         crowd.hide(p.slot);
