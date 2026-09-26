@@ -138,7 +138,12 @@ export const ROADS: Road[] = [
     [795, 250],
     [808, 400],
     [880, 450],
-    [990, 510],
+    [956, 492],
+  ]),
+  // South of Lau Pa Sat: Raffles Place's streets out to the CTE.
+  R('Robinson Road', 'main', 9, [
+    [158, 550],
+    [224, 550],
   ]),
   R('Sentosa Gateway', 'main', 10, [
     [-60, 650],

@@ -386,4 +386,4 @@ export function updateTaxis(dt: number) {
   if (trip.phase === 'coming' || trip.phase === 'waiting')
     markTo(trip.kind === 'nab' ? `Nab · ${trip.plate}` : 'Taxi', [trip.x, 1.2, trip.z]);
 }
-export const taxiDebug = { trip };
+export const taxiDebug = { trip, destinations, STANDS };

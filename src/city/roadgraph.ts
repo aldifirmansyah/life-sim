@@ -53,8 +53,8 @@ function cross(ax: number, az: number, bx: number, bz: number, cx: number, cz: n
   // Allow a small overshoot so roads ending just short of another still join.
   const lp = Math.hypot(rx, rz),
     lq = Math.hypot(sx, sz);
-  const et = 3 / lp,
-    eu = 3 / lq;
+  const et = 4.5 / lp,
+    eu = 4.5 / lq;
   if (t < -et || t > 1 + et || u < -eu || u > 1 + eu) return null;
   return Math.max(0, Math.min(1, t));
 }
@@ -113,13 +113,13 @@ export function buildRoadGraph() {
       prev = cur;
     }
   });
-  // Roads drawn to end near another road join it: each dead end links to the nearest node within 60 m
-  // that isn't already its neighbour (a short connector).
+  // Ends that stop just short of another road (a few metres) join its nearest node. Longer gaps are
+  // bridged by drawn streets in the generator (gen.ts joinDeadEnds), so no edge leaves the tarmac.
   for (const n of nodes) {
     if (n.out.length !== 1) continue;
     let best: GNode | null = null,
-      bd = 60;
-    for (const m of nearNodes(n.x, n.z, 60)) {
+      bd = 12;
+    for (const m of nearNodes(n.x, n.z, 12)) {
       if (m === n || n.out.some(e => e.to === m.id) || m.out.some(e => e.to === n.id)) continue;
       // Not back along its own road: the connector should leave roughly away from the one edge it has.
       const o = nodes[n.out[0].to];

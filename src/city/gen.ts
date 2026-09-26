@@ -6,8 +6,8 @@
    instances only when the player comes near (stream.ts). Seeds come from the
    lot's position, so the city is the same every time and in any build order. */
 import { hash, rng, type Rng } from '../core/util';
-import { TOWNS, landAt, type Land, type Town, BOUNDS } from './geo';
-import { addRoad, allSegs, nearRoad, type Road } from './roads';
+import { TOWNS, landAt, segDist, type Land, type Town, BOUNDS } from './geo';
+import { addRoad, allSegs, nearRoad, segsNear, type Road } from './roads';
 import { nearTrack, EWL } from './mrtdata';
 import { sign } from '../render/signs';
 import { STYLE } from './facade';
@@ -217,13 +217,60 @@ function nearestTown(x: number, z: number) {
   return { t: best, d: bd };
 }
 const STREETLESS = new Set(['park', 'resort', 'kampung', 'airport', 'landmark']);
-/** Town streets: every third lot line through built-up towns, clipped to the town's circle. */
+/** The walk-in places' footprints [x0, x1, z0, z1]: town streets stop short of them. */
+function placeRects(): [number, number, number, number][] {
+  const r: [number, number, number, number][] = [];
+  const box = (o: { x: number; z: number; w: number; d: number }) =>
+    r.push([o.x - o.w / 2, o.x + o.w / 2, o.z - o.d / 2, o.z + o.d / 2]);
+  for (const o of [
+    CLEMENTI_HAWKER,
+    LAU_PA_SAT,
+    MOSQUE,
+    TEKKA,
+    TB_MARKET,
+    EMBASSY,
+    LAGOON,
+    ZOO,
+    CHECKPOINT,
+    DRIVE_CENTRE,
+  ])
+    box(o);
+  for (const o of HOME_SITES) box(o);
+  for (const o of [CHOPEE_HQ, CITY_OFFICE, BOAT_QUAY, HAJI_LANE, CT_MARKET, LUCKY, KATONG_ROW])
+    r.push([o.x0, o.x1, o.z0, o.z1]);
+  return r;
+}
+/** Town streets: every third lot line through built-up towns, clipped to the town's circle and cut where
+    they would run through a walk-in place (so the traffic on them never drives through one). */
 function townStreets() {
+  const rects = placeRects();
+  const M = 3.5 + 1.5; // half the street, and a kerb
+  const blocked = (x: number, z: number) =>
+    rects.some(([x0, x1, z0, z1]) => x > x0 - M && x < x1 + M && z > z0 - M && z < z1 + M);
   for (const t of TOWNS) {
     if (STREETLESS.has(t.kind)) continue;
-    const add = (pts: [number, number][]) => {
-      const r: Road = { name: `${t.name} street`, kind: 'street', w: 7, pts };
-      addRoad(r);
+    const add = ([[ax, az], [bx, bz]]: [number, number][]) => {
+      // The pieces of the line that stay clear of the places, 1 m at a time; short stubs are dropped.
+      const len = Math.hypot(bx - ax, bz - az);
+      let start = -1;
+      for (let d = 0; d <= Math.ceil(len) + 1; d++) {
+        const f = Math.min(1, d / len);
+        const free = d <= len && !blocked(ax + (bx - ax) * f, az + (bz - az) * f);
+        if (free && start < 0) start = d;
+        if (!free && start >= 0) {
+          const end = Math.min(d - 1, len);
+          if (end - start > 20) {
+            const f0 = start / len,
+              f1 = end / len;
+            const pts: [number, number][] = [
+              [ax + (bx - ax) * f0, az + (bz - az) * f0],
+              [ax + (bx - ax) * f1, az + (bz - az) * f1],
+            ];
+            addRoad({ name: `${t.name} street`, kind: 'street', w: 7, pts } as Road);
+          }
+          start = -1;
+        }
+      }
     };
     for (let ix = Math.ceil((t.x - t.r) / LOT); ix <= Math.floor((t.x + t.r) / LOT); ix++) {
       if (ix % 3) continue;
@@ -837,14 +884,176 @@ function landmarks() {
 
 /* ---------- build ---------- */
 
+/** Roads drawn to end short of the one they meet: each dead end gets a short street to the nearest road
+    within 60 m ahead of it (not through a walk-in place or water), drawn like any street, so buildings keep
+    clear of it and the traffic on the road graph never leaves the tarmac. */
+function joinDeadEnds() {
+  const rects = placeRects();
+  const roads = [...new Set(allSegs.map(s => s.road))];
+  const ends: [number, number, number, number, Road][] = [];
+  for (const r of roads) {
+    const n = r.pts.length;
+    if (n < 2) continue;
+    ends.push([r.pts[0][0], r.pts[0][1], r.pts[1][0], r.pts[1][1], r]);
+    ends.push([r.pts[n - 1][0], r.pts[n - 1][1], r.pts[n - 2][0], r.pts[n - 2][1], r]);
+  }
+  for (const [px, pz, qx, qz, own] of ends) {
+    // Already meets another road here?
+    if (segsNear(px, pz, 12).some(s => s.road !== own && segDist(px, pz, s.ax, s.az, s.bx, s.bz) < s.w / 2 + 3))
+      continue;
+    const dx = px - qx,
+      dz = pz - qz;
+    let best: [number, number] | null = null,
+      bd = 60;
+    for (const s of segsNear(px, pz, 60)) {
+      if (s.road === own) continue;
+      const vx = s.bx - s.ax,
+        vz = s.bz - s.az;
+      const l2 = vx * vx + vz * vz || 1;
+      const t = Math.max(0, Math.min(1, ((px - s.ax) * vx + (pz - s.az) * vz) / l2));
+      const cx = s.ax + vx * t,
+        cz = s.az + vz * t;
+      const d = Math.hypot(cx - px, cz - pz);
+      if (d >= bd || (cx - px) * dx + (cz - pz) * dz < 0) continue;
+      bd = d;
+      best = [cx, cz];
+    }
+    if (!best) continue;
+    const [cx, cz] = best;
+    let ok = true;
+    for (let f = 0; f <= 1 && ok; f += 2 / Math.max(2, bd)) {
+      const x = px + (cx - px) * f,
+        z = pz + (cz - pz) * f;
+      const land = landAt(x, z);
+      if (land === 'sea' || land === 'water') ok = false;
+      if (rects.some(([x0, x1, z0, z1]) => x > x0 - 5 && x < x1 + 5 && z > z0 - 5 && z < z1 + 5)) ok = false;
+      if (f > 0.1 && isReserved(x, z, 3.5)) ok = false;
+    }
+    if (ok)
+      addRoad({
+        name: own.kind === 'street' ? own.name : `${own.name} link`,
+        kind: 'street',
+        w: 7,
+        pts: [
+          [px, pz],
+          [cx, cz],
+        ],
+      });
+  }
+}
+
+/** After the streets: every piece of road that doesn't meet the rest (a street cut short by a place, a
+    road drawn to end near another) gets one drawn street to the nearest point of the main network that
+    it can reach in a straight line: over land, clear of the walk-in places and of the landmarks' walls. */
+function joinPieces() {
+  const rects = placeRects();
+  const clearAt = (x: number, z: number) => {
+    const land = landAt(x, z);
+    if (land === 'sea' || land === 'water') return false;
+    if (rects.some(([x0, x1, z0, z1]) => x > x0 - 4 && x < x1 + 4 && z > z0 - 4 && z < z1 + 4)) return false;
+    const [cx, cz] = chunkOf(x, z);
+    for (let i = cx - 1; i <= cx + 1; i++)
+      for (let j = cz - 1; j <= cz + 1; j++)
+        for (const c of getChunk(i, j)?.cols ?? []) {
+          if (c.y0 > 2) continue;
+          const dx = x - c.cx,
+            dz = z - c.cz;
+          const cs = Math.cos(c.ry),
+            sn = Math.sin(c.ry);
+          const lx = dx * cs - dz * sn,
+            lz = dx * sn + dz * cs;
+          if (Math.abs(lx) < c.hx + 3.5 && Math.abs(lz) < c.hz + 3.5) return false;
+        }
+    return true;
+  };
+  const lineClear = (ax: number, az: number, bx: number, bz: number) => {
+    const d = Math.hypot(bx - ax, bz - az);
+    for (let s = 4; s < d - 4; s += 1) if (!clearAt(ax + ((bx - ax) * s) / d, az + ((bz - az) * s) / d)) return false;
+    return true;
+  };
+  for (let round = 0; round < 40; round++) {
+    // Pieces: segments that cross or touch (within 3 m) are one piece.
+    const segs = allSegs;
+    const parent = segs.map((_, i) => i);
+    const find = (i: number): number => (parent[i] === i ? i : (parent[i] = find(parent[i])));
+    segs.forEach((a, i) => {
+      for (const b of segsNear((a.ax + a.bx) / 2, (a.az + a.bz) / 2, Math.hypot(a.bx - a.ax, a.bz - a.az) / 2 + 4)) {
+        const j = segs.indexOf(b);
+        if (j <= i || find(i) === find(j)) continue;
+        const touch =
+          Math.min(
+            segDist(a.ax, a.az, b.ax, b.az, b.bx, b.bz),
+            segDist(a.bx, a.bz, b.ax, b.az, b.bx, b.bz),
+            segDist(b.ax, b.az, a.ax, a.az, a.bx, a.bz),
+            segDist(b.bx, b.bz, a.ax, a.az, a.bx, a.bz),
+          ) < 3 || crosses(a, b);
+        if (touch) parent[find(i)] = find(j);
+      }
+    });
+    const len = new Map<number, number>();
+    segs.forEach((s, i) => len.set(find(i), (len.get(find(i)) ?? 0) + Math.hypot(s.bx - s.ax, s.bz - s.az)));
+    const main = [...len].sort((a, b) => b[1] - a[1])[0][0];
+    // The nearest reachable link from any other piece to the main one.
+    let best: [number, number, number, number] | null = null,
+      bd = 160;
+    segs.forEach((s, i) => {
+      if (find(i) === main) return;
+      const l = Math.hypot(s.bx - s.ax, s.bz - s.az);
+      for (let t = 0; t <= l; t += 6) {
+        const ax = s.ax + ((s.bx - s.ax) * t) / (l || 1),
+          az = s.az + ((s.bz - s.az) * t) / (l || 1);
+        for (const m of segsNear(ax, az, bd)) {
+          if (find(segs.indexOf(m)) !== main) continue;
+          const vx = m.bx - m.ax,
+            vz = m.bz - m.az;
+          const u = Math.max(0, Math.min(1, ((ax - m.ax) * vx + (az - m.az) * vz) / (vx * vx + vz * vz || 1)));
+          const bx = m.ax + vx * u,
+            bz = m.az + vz * u;
+          const d = Math.hypot(bx - ax, bz - az);
+          if (d < bd && lineClear(ax, az, bx, bz)) {
+            bd = d;
+            best = [ax, az, bx, bz];
+          }
+        }
+      }
+    });
+    const link = best as [number, number, number, number] | null;
+    if (!link) break;
+    const [ax, az, bx, bz] = link;
+    addRoad({
+      name: 'Link street',
+      kind: 'street',
+      w: 7,
+      pts: [
+        [ax, az],
+        [bx, bz],
+      ],
+    });
+  }
+}
+function crosses(p: { ax: number; az: number; bx: number; bz: number }, q: typeof p) {
+  const rx = p.bx - p.ax,
+    rz = p.bz - p.az,
+    sx = q.bx - q.ax,
+    sz = q.bz - q.az;
+  const den = rx * sz - rz * sx;
+  if (Math.abs(den) < 1e-9) return false;
+  const t = ((q.ax - p.ax) * sz - (q.az - p.az) * sx) / den,
+    u = ((q.ax - p.ax) * rz - (q.az - p.az) * rx) / den;
+  return t >= 0 && t <= 1 && u >= 0 && u <= 1;
+}
+
 let built = false;
 export function generateCity() {
   if (built) return;
   built = true;
-  townStreets();
+  // The landmarks first (they reserve their ground), then the streets that stop short of the places.
   airport();
   marinaBay();
   landmarks();
+  townStreets();
+  joinDeadEnds();
+  joinPieces();
   for (let ix = Math.floor(BOUNDS.x0 / LOT); ix < Math.ceil(BOUNDS.x1 / LOT); ix++)
     for (let iz = Math.floor(BOUNDS.z0 / LOT); iz < Math.ceil(BOUNDS.z1 / LOT); iz++) lot(ix, iz);
   // Roads: every segment, cut into pieces per chunk; expressways get a pale divider.
