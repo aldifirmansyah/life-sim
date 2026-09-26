@@ -9,6 +9,7 @@ import { register } from '../game/interact';
 import { openPanel, closePanel } from '../ui/panel';
 import { toast } from '../ui/hud';
 import { passTime } from '../core/time';
+import { addVendor } from '../npc/vendors';
 import { spend, sgd, addEnergy, addMood, addItem, owned } from '../game/stats';
 
 export interface Ware {
@@ -68,6 +69,8 @@ function buy(s: Shop, w: Ware) {
   else done();
 }
 
+const GOODS = ['#d7263d', '#f2c14e', '#2f6fb3', '#3f7d3a', '#e8a0b8', '#f4f1ea', '#8a4b2a', '#e07a1f'];
+
 /** A row of shopfronts or stalls along x, facing south (+z) or north (−z). */
 export function buildShopRow(
   id: string,
@@ -95,7 +98,31 @@ export function buildShopRow(
       front + (face > 0 ? 0.02 : -0.02),
       '#2b2622',
     );
-    const cz = front + face * 0.6;
+    // Shelves of goods on the shopfront, behind the shopkeeper.
+    for (const sy of [1.25, 1.95]) {
+      p.box(
+        x0 + 0.6,
+        x1 - 0.6,
+        sy - 0.04,
+        sy,
+        Math.min(front, front + face * 0.28),
+        Math.max(front, front + face * 0.28),
+        '#8a6a4a',
+      );
+      for (let k = 0, gx = x0 + 0.8; gx < x1 - 0.7; gx += 0.34, k++) {
+        const gh = 0.16 + ((k * 7) % 3) * 0.05;
+        p.box(
+          gx - 0.12,
+          gx + 0.12,
+          sy,
+          sy + gh,
+          Math.min(front + face * 0.05, front + face * 0.25),
+          Math.max(front + face * 0.05, front + face * 0.25),
+          GOODS[(k + i * 3) % GOODS.length],
+        );
+      }
+    }
+    const cz = front + face * 1.05;
     p.box(
       x0 + 0.6,
       x1 - 0.6,
@@ -106,6 +133,12 @@ export function buildShopRow(
       '#d8d2c4',
       { col: true },
     );
+    // A few things on the counter, and the shopkeeper behind it.
+    for (let k = 0; k < 3; k++) {
+      const gx = cx - 0.9 + k * 0.9;
+      p.box(gx - 0.15, gx + 0.15, 1, 1.12 + (k % 2) * 0.08, cz - 0.12, cz + 0.12, GOODS[(k * 2 + i) % GOODS.length]);
+    }
+    addVendor(cx + 0.6, front + face * 0.5, face > 0 ? 0 : Math.PI);
     p.box(
       x0 + 0.2,
       x1 - 0.2,
@@ -136,7 +169,7 @@ export function buildShopRow(
     register({
       x: cx,
       y: 1.2,
-      z: front + face * 0.9,
+      z: front + face * 1.5,
       reach: 2.8,
       size: 1,
       label: () => s.name,

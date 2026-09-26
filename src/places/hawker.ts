@@ -20,6 +20,7 @@ import { toast } from '../ui/hud';
 import { player } from '../core/player';
 import { S } from '../core/state';
 import { sfx } from '../audio/audio';
+import { addVendor } from '../npc/vendors';
 import { spend, sgd, addEnergy, addMood, addItem } from '../game/stats';
 
 export interface Dish {
@@ -69,6 +70,13 @@ const FOOD_COLS: [RegExp, string][] = [
   [/mee|noodle|kway|hokkien|bee hoon|pok|bakso/i, '#d9b25a'],
 ];
 const foodColour = (name: string) => FOOD_COLS.find(([r]) => r.test(name))?.[1] ?? '#c98a4a';
+const DRINK_COLS: [RegExp, string][] = [
+  [/kopi|teh|coffee|milo/i, '#7a4a2a'],
+  [/bandung|rose|bubble/i, '#e8a0b8'],
+  [/lime|lemon|sugar ?cane|calamansi/i, '#b9d86a'],
+  [/coconut|soya|barley/i, '#f1efe4'],
+];
+const drinkColour = (name: string) => DRINK_COLS.find(([r]) => r.test(name))?.[1] ?? '#e07a1f';
 /** A tray: the orange hawker tray, a plate, the food on it, a spoon. */
 function makeTray() {
   const g = new THREE.Group();
@@ -196,6 +204,33 @@ export function buildHawker(o: HawkerSpec) {
     p.box(sx - sw / 2 + 0.3, sx + sw / 2 - 0.3, 0, 1, z0 + 2.4, z0 + 3, '#d8d2c4', { col: true });
     p.box(sx - sw / 2 + 0.3, sx + sw / 2 - 0.3, 1, 1.05, z0 + 2.3, z0 + 3.1, '#a9a49a');
     p.box(sx - 1.2, sx - 0.2, 1.05, 1.5, z0 + 0.6, z0 + 1.4, '#9aa3a9'); // pots
+    // What's for sale, on the counter: a plate of each dish, cups for drinks, boxes for things to take away.
+    const shown = st.dishes.slice(0, 5);
+    shown.forEach((dish, k) => {
+      const wx = sx - sw / 2 + 0.6 + ((sw - 1.2) * (k + 0.5)) / shown.length,
+        wz = z0 + 2.75;
+      if (dish.drink) {
+        for (const dx of [-0.08, 0.08]) p.put(wx + dx, 1.12, wz, 0.1, 0.15, 0.1, drinkColour(dish.name), 0, p.cyl);
+      } else if (dish.gift) {
+        p.box(wx - 0.14, wx + 0.14, 1.05, 1.17, wz - 0.1, wz + 0.1, st.color);
+        p.box(wx - 0.1, wx + 0.1, 1.17, 1.26, wz - 0.07, wz + 0.07, '#f2e2b8');
+      } else {
+        p.put(wx, 1.065, wz, 0.3, 0.025, 0.3, '#f4f6f8', 0, p.cyl);
+        p.put(wx, 1.1, wz, 0.22, 0.06, 0.22, foodColour(dish.name), 0, p.cyl);
+      }
+    });
+    // Jars and bottles on a shelf on the back wall.
+    p.box(sx - sw / 2 + 0.4, sx + sw / 2 - 0.4, 1.55, 1.6, z0 + 0.2, z0 + 0.5, '#8a6a4a');
+    for (let k = 0, jx = sx - sw / 2 + 0.6; jx < sx + sw / 2 - 0.5; jx += 0.32, k++)
+      p.put(jx, 1.72, z0 + 0.35, 0.16, 0.24, 0.16, ['#b8342a', '#e8c07a', '#3f7d3a', '#f4f1ea'][k % 4], 0, p.cyl);
+    // Roast chickens and ducks hanging at the rice stalls.
+    if (/chicken|duck|roast/i.test(st.name + st.sub))
+      for (let k = 0; k < 3; k++) {
+        const hx = sx - 0.9 + k * 0.45;
+        p.box(hx - 0.01, hx + 0.01, 2.2, 2.6, z0 + 2.1, z0 + 2.12, '#6b7378');
+        p.put(hx, 2.0, z0 + 2.11, 0.26, 0.36, 0.2, '#b8642a', 0, p.cyl);
+      }
+    addVendor(sx + 0.5, z0 + 1.75, 0);
     p.box(sx - sw / 2 + 0.1, sx + sw / 2 - 0.1, 3, 3.6, z0 + 2.9, z0 + 3.1, st.color);
     sign(
       { text: st.name, sub: st.sub, w: sw - 0.6, h: 0.55, bg: st.color, fg: '#ffffff', border: '#ffffff', font: 'ui' },

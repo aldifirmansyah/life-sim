@@ -64,9 +64,11 @@ import {
   ZOO,
 } from '../places/sites';
 
-/** Slots in the shared crowd: named people first, then the passers-by (npc/crowds.ts). */
+/** Slots in the shared crowd: named people first, then the passers-by (npc/crowds.ts), then the
+    stallholders (npc/vendors.ts). */
 export const NAMED_SLOTS = 40;
-export const crowd = new Crowd(NAMED_SLOTS + 40);
+export const VENDOR_SLOTS = 24;
+export const crowd = new Crowd(NAMED_SLOTS + 40 + VENDOR_SLOTS);
 
 interface Spot {
   x: number;
@@ -231,8 +233,8 @@ function buildSpots() {
     ry: 0,
     where: 'Tekka Centre',
   });
-  add('c.tea', { x: CT_MARKET.x0 + 8.2, y: 0, z: CT_MARKET.z0 - 1.3, ry: -Math.PI / 2, where: 'Chinatown' });
-  add('h.batik', { x: HAJI_LANE.x0 + 6.8, y: 0, z: HAJI_LANE.z1 + 1.3, ry: -Math.PI / 2, where: 'Haji Lane' });
+  add('c.tea', { x: CT_MARKET.x0 + 5.1, y: 0, z: CT_MARKET.z0 - 0.5, ry: Math.PI, where: 'Chinatown' });
+  add('h.batik', { x: HAJI_LANE.x0 + 4.35, y: 0, z: HAJI_LANE.z1 + 0.5, ry: 0, where: 'Haji Lane' });
   const tb = TB_MARKET;
   // Event days: the embassy's courtyard, the lanterns at the void deck, the getai's chairs.
   for (let i = 0; i < 4; i++) {
@@ -247,7 +249,7 @@ function buildSpots() {
   }
   for (let i = 0; i < 2; i++)
     add(`g.seat.${i}`, { x: GETAI.x - 1.2 + i * 2.4, y: 0, z: GETAI.z, ry: Math.PI, sit: 0.45, where: 'The getai' });
-  add('e.kueh', { x: KATONG_ROW.x0 + 16.5, y: 0, z: KATONG_ROW.z0 - 1.3, ry: -Math.PI / 2, where: 'Katong' });
+  add('e.kueh', { x: KATONG_ROW.x0 + 14.1, y: 0, z: KATONG_ROW.z0 - 0.5, ry: Math.PI, where: 'Katong' });
   add('e.bikes', { x: BEACH.x + 2.8, y: 0, z: BEACH.z + 2.4, ry: 0, where: 'East Coast Park' });
   add('n.keeper', { x: ZOO.x - 15, y: 0, z: ZOO.z + 8, ry: Math.PI, where: 'Mandai Zoo' });
   add('tb.bakery', {

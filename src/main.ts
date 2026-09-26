@@ -27,6 +27,7 @@ import { initStream, updateStream, applyCityFog, liveChunks, pools } from './cit
 import { updateTrains, pickStop } from './city/trains';
 import { updateFares, buildCrossings } from './city/fares';
 import { updateMeal } from './places/hawker';
+import { updateVendors } from './npc/vendors';
 import { updateInteraction, interact } from './game/interact';
 import { startArrival, updateArrival, loadArrival } from './game/arrival';
 import { updateWork, openLaptop, loadWork } from './game/work';
@@ -177,6 +178,7 @@ function loop(now: number) {
     updatePeople(dt);
     lap('people');
     updateCrowds(dt);
+    updateVendors(dt);
     lap('crowds');
     updateTraffic(dt);
   }
@@ -351,6 +353,7 @@ if (import.meta.env.DEV) {
     import('./city/traffic'),
     import('./city/roadgraph'),
     import('./game/car'),
+    import('./npc/vendors'),
   ]).then(
     ([
       geo,
@@ -382,6 +385,7 @@ if (import.meta.env.DEV) {
       traffic,
       roadgraph,
       car,
+      vendors,
     ]) => {
       (window as unknown as Record<string, unknown>).__sg = {
         S,
@@ -415,6 +419,7 @@ if (import.meta.env.DEV) {
         traffic,
         roadgraph,
         car,
+        vendors,
         renderer,
         parts,
         ms: () => ({ upd: updMs, draw: drawMs }),

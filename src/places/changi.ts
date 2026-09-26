@@ -7,6 +7,7 @@
 import * as THREE from 'three';
 import { scene } from '../render/context';
 import { PropSet } from '../render/props';
+import { addVendor } from '../npc/vendors';
 import { sign } from '../render/signs';
 import { addRotCol } from '../core/collision';
 import { interiors } from '../interiors/interior';
@@ -78,6 +79,41 @@ function buildT3() {
   const { x: sx, z: sz } = SHOP;
   p.box(sx - 5, sx + 5, 0, 3.2, sz - 5, sz - 4.6, '#ffffff'); // back wall with shelves
   for (let k = 0; k < 3; k++) p.box(sx - 4.5, sx + 4.5, 0.6 + k * 0.8, 0.7 + k * 0.8, sz - 4.6, sz - 4, '#e07a1f');
+  // Goods on the shelves: snacks, drinks, phone cards.
+  const GOODS = ['#d7263d', '#f2c14e', '#2f6fb3', '#3f7d3a', '#f4f1ea', '#e8a0b8', '#8a4b2a'];
+  for (let k = 0; k < 3; k++)
+    for (let j = 0, gx = sx - 4.3; gx < sx + 4.3; gx += 0.36, j++) {
+      const top = 0.7 + k * 0.8,
+        gh = 0.18 + ((j * 5 + k) % 3) * 0.07;
+      if (k === 1 && j % 2) p.put(gx, top + 0.13, sz - 4.3, 0.12, 0.26, 0.12, GOODS[(j + k) % GOODS.length], 0, p.cyl);
+      else p.box(gx - 0.13, gx + 0.13, top, top + gh, sz - 4.5, sz - 4.15, GOODS[(j * 3 + k) % GOODS.length]);
+    }
+  // On the counter: a stand of SIM packs, a card reader, a tray of drinks.
+  p.box(sx - 2.4, sx - 1.2, 1.1, 1.5, sz - 0.6, sz - 0.4, '#1d2b36');
+  for (let j = 0; j < 4; j++)
+    p.box(
+      sx - 2.35 + j * 0.3,
+      sx - 2.15 + j * 0.3,
+      1.2,
+      1.42,
+      sz - 0.4,
+      sz - 0.37,
+      ['#d7263d', '#2f6fb3', '#f2c14e', '#3f7d3a'][j],
+    );
+  p.box(sx + 0.2, sx + 0.5, 1.1, 1.14, sz - 0.6, sz - 0.4, '#2b2622');
+  for (let j = 0; j < 4; j++)
+    p.put(
+      sx + 1.2 + j * 0.2,
+      1.18,
+      sz - 0.5,
+      0.1,
+      0.16,
+      0.1,
+      ['#e07a1f', '#b9d86a', '#7a4a2a', '#e8a0b8'][j],
+      0,
+      p.cyl,
+    );
+  addVendor(sx - 0.3, sz - 1.7, 0, { open: 0, close: 24 });
   p.box(sx - 3, sx + 3, 0, 1.1, sz - 1, sz, '#2f8a4e', { col: true }); // the counter
   p.box(sx - 5, sx + 5, 3.2, 3.9, sz - 5, sz + 0.5, '#2f8a4e');
   sign(
