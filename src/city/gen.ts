@@ -1043,6 +1043,336 @@ function crosses(p: { ax: number; az: number; bx: number; bz: number }, q: typeo
   return t >= 0 && t <= 1 && u >= 0 && u <= 1;
 }
 
+/* ---------- street furniture (v2 step 15) ---------- */
+
+export type FurnKind = 'vending' | 'atm' | 'bench' | 'news' | 'bikes' | 'fitness' | 'chess';
+/** Something to use on the street: where, which way its front faces (unit fx, fz), and the road's direction. */
+export interface Furn {
+  kind: FurnKind;
+  x: number;
+  z: number;
+  fx: number;
+  fz: number;
+}
+export const furniture: Furn[] = [];
+/** Overhead bridges: the middle of the deck and its direction across the road (for the checks and the map). */
+export const bridges: { x: number; z: number; nx: number; nz: number; w: number }[] = [];
+
+const FURN_MIX: Record<string, [FurnKind | null, number][]> = {
+  hdb: [
+    ['bench', 30],
+    ['vending', 18],
+    ['fitness', 10],
+    ['chess', 10],
+    ['bikes', 10],
+    ['atm', 5],
+    ['news', 5],
+    [null, 12],
+  ],
+  cbd: [
+    ['bench', 18],
+    ['vending', 16],
+    ['atm', 20],
+    ['news', 16],
+    ['bikes', 16],
+    [null, 14],
+  ],
+  mall: [
+    ['bench', 22],
+    ['vending', 16],
+    ['atm', 18],
+    ['news', 12],
+    ['bikes', 16],
+    [null, 16],
+  ],
+  other: [
+    ['bench', 30],
+    ['vending', 18],
+    ['bikes', 14],
+    ['news', 8],
+    ['atm', 8],
+    [null, 22],
+  ],
+};
+function pickKind(r: Rng, kind: string | undefined): FurnKind | null {
+  const mix = FURN_MIX[kind === 'lowhdb' || kind === 'mixed' ? 'hdb' : (kind ?? 'other')] ?? FURN_MIX.other;
+  let x = r.next() * mix.reduce((a, [, w]) => a + w, 0);
+  for (const [k, w] of mix) if ((x -= w) < 0) return k;
+  return null;
+}
+/** A collider-free spot (none of the chunks' colliders within m metres). */
+function freeAt(x: number, z: number, m: number) {
+  const [cx, cz] = chunkOf(x, z);
+  for (let i = cx - 1; i <= cx + 1; i++)
+    for (let j = cz - 1; j <= cz + 1; j++)
+      for (const c of getChunk(i, j)?.cols ?? []) {
+        if (c.y0 > 2) continue;
+        const dx = x - c.cx,
+          dz = z - c.cz;
+        const cs = Math.cos(c.ry),
+          sn = Math.sin(c.ry);
+        if (Math.abs(dx * cs - dz * sn) < c.hx + m && Math.abs(dx * sn + dz * cs) < c.hz + m) return false;
+      }
+  return true;
+}
+/** Street things every 45 m along the town roads (not the expressways), on the kerb, facing the road. */
+function streetThings() {
+  const segs = allSegs.filter(s => s.road.kind !== 'expressway');
+  segs.forEach((s, si) => {
+    const len = Math.hypot(s.bx - s.ax, s.bz - s.az);
+    if (len < 30) return;
+    const ux = (s.bx - s.ax) / len,
+      uz = (s.bz - s.az) / len;
+    const nx = -uz,
+      nz = ux;
+    for (let d = 16, k = 0; d < len - 12; d += 30, k++) {
+      const r = rng(hash('furn', si, k));
+      const mx = s.ax + ux * d,
+        mz = s.az + uz * d;
+      const t = townIn(mx, mz);
+      if (!t || ['park', 'resort', 'kampung', 'airport', 'industrial'].includes(t.kind)) continue;
+      // Not at a junction: no other road within 14 m of this point.
+      if (
+        segsNear(mx, mz, 16).some(
+          o => o !== s && o.road !== s.road && segDist(mx, mz, o.ax, o.az, o.bx, o.bz) < o.w / 2 + 12,
+        )
+      )
+        continue;
+      const kind = pickKind(r, t.kind as string);
+      if (!kind) continue;
+      const side = r.chance(0.5) ? 1 : -1;
+      const back = kind === 'fitness' || kind === 'chess' ? s.w / 2 + 4.2 : s.w / 2 + 0.75;
+      const x = mx + nx * side * back,
+        z = mz + nz * side * back;
+      const land = landAt(x, z);
+      if (land === 'sea' || land === 'water' || isReserved(x, z, 3) || nearTrack(x, z, 4)) continue;
+      const big = kind === 'fitness' || kind === 'chess';
+      if (!freeAt(x, z, big ? 1 : 0.2)) continue;
+      // The buildings (placed after) keep off the bigger ones.
+      if (big) reserve(x, z, 3.2);
+      // Not on another road.
+      if (segsNear(x, z, 12).some(o => o !== s && segDist(x, z, o.ax, o.az, o.bx, o.bz) < o.w / 2 + 1.2)) continue;
+      const fx = -nx * side,
+        fz = -nz * side;
+      furniture.push({ kind, x, z, fx, fz });
+      furnVisual(kind, x, z, fx, fz, r);
+    }
+  });
+}
+function furnVisual(kind: FurnKind, x: number, z: number, fx: number, fz: number, r: Rng) {
+  // Local frame: along the road (ax, az) and the front (fx, fz).
+  const ax = -fz,
+    az = fx;
+  const ry = Math.atan2(-az, ax); // local x along the road
+  const at = (a: number, f: number): [number, number] => [x + ax * a + fx * f, z + az * a + fz * f];
+  const bx = (a: number, f: number, y0: number, w: number, h: number, d: number, c: string, p: PoolName = 'solid') => {
+    const [px, pz] = at(a, f);
+    put({ p, x: px, y: y0 + h / 2, z: pz, sx: w, sy: h, sz: d, ry, c });
+  };
+  if (kind === 'vending') {
+    for (const [a, c] of [
+      [-0.55, r.pick(['#d7263d', '#2f6fb3'])],
+      [0.55, r.pick(['#3f7d3a', '#f2c14e', '#e07a1f'])],
+    ] as const) {
+      bx(a, 0, 0, 1, 1.9, 0.8, c);
+      bx(a, 0.41, 0.9, 0.7, 0.8, 0.02, '#e8f4f8', 'glass');
+    }
+    putCol(x, z, 1.1, 0.45, ry);
+  } else if (kind === 'atm') {
+    bx(0, 0, 0, 0.9, 1.8, 0.7, '#1d4f91');
+    bx(0, 0.36, 1.1, 0.5, 0.35, 0.02, '#9fd3e8', 'glass');
+    bx(0, 0.4, 0.95, 0.5, 0.06, 0.2, '#3a4046');
+    putCol(x, z, 0.5, 0.4, ry);
+  } else if (kind === 'news') {
+    bx(0, 0, 0, 1.6, 1.3, 0.9, '#3f7d3a');
+    bx(0, 0, 2.2, 2.0, 0.12, 1.3, '#2f5a2a');
+    for (const a of [-0.9, 0.9]) bx(a, -0.3, 0, 0.08, 2.2, 0.08, '#3a4046');
+    for (let k = 0; k < 4; k++)
+      bx(-0.6 + k * 0.4, 0.47, 0.9, 0.3, 0.4, 0.02, ['#f4f1ea', '#f2c14e', '#e8a0b8', '#9fd3c7'][k]);
+    putCol(x, z, 0.85, 0.5, ry);
+  } else if (kind === 'bench') {
+    bx(0, 0, 0.42, 1.8, 0.07, 0.45, '#8a6a4a');
+    bx(0, -0.24, 0.49, 1.8, 0.45, 0.06, '#8a6a4a');
+    for (const a of [-0.8, 0.8]) bx(a, 0, 0, 0.08, 0.42, 0.4, '#3a4046');
+    putCol(x, z, 0.95, 0.3, ry, -1e9, 0.5);
+  } else if (kind === 'bikes') {
+    bx(0, -0.35, 0, 3.2, 0.7, 0.08, '#8e969c');
+    for (let k = 0; k < 3; k++) {
+      const a = -1 + k,
+        c = r.pick(['#f2c14e', '#e07a1f', '#3fa7d6']);
+      for (const w of [-0.5, 0.5]) {
+        const [px, pz] = at(a, w);
+        put({
+          p: 'cyl',
+          x: px,
+          y: 0.34,
+          z: pz,
+          sx: 0.68,
+          sy: 0.05,
+          sz: 0.68,
+          ry: ry + Math.PI / 2,
+          rz: Math.PI / 2,
+          c: '#1d1f22',
+        });
+      }
+      bx(a, 0, 0.45, 0.06, 0.08, 1.0, c);
+      bx(a, 0.45, 0.62, 0.45, 0.05, 0.06, '#3a4046');
+      bx(a, -0.3, 0.72, 0.1, 0.06, 0.22, '#1d1f22');
+    }
+  } else if (kind === 'fitness') {
+    for (const a of [-1.2, 1.2]) bx(a, 0, 0, 0.12, 2.3, 0.12, '#f2c14e');
+    bx(0, 0, 2.2, 2.5, 0.08, 0.08, '#e07a1f');
+    bx(0, -1.6, 0, 1.8, 0.45, 0.5, '#2f6fb3');
+    bx(0, 1.4, 0, 0.12, 1.2, 0.12, '#f2c14e');
+    bx(0, 1.4, 1.2, 0.9, 0.08, 0.08, '#e07a1f');
+    bx(0, 0, 0, 5, 0.05, 4.5, '#c98a4a');
+  } else if (kind === 'chess') {
+    const [px, pz] = at(0, 0);
+    put({ p: 'cyl', x: px, y: 0.37, z: pz, sx: 1.1, sy: 0.74, sz: 1.1, ry: 0, c: '#b9b4aa' });
+    for (let k = 0; k < 4; k++) {
+      const a = (k * Math.PI) / 2;
+      put({
+        p: 'cyl',
+        x: px + Math.cos(a) * 1.0,
+        y: 0.22,
+        z: pz + Math.sin(a) * 1.0,
+        sx: 0.4,
+        sy: 0.44,
+        sz: 0.4,
+        ry: 0,
+        c: '#b9b4aa',
+      });
+    }
+    bx(0, 0, 0.745, 0.6, 0.01, 0.6, '#e8d9b8');
+    putCol(x, z, 0.55, 0.55, 0, -1e9, 0.75);
+  }
+}
+/** Overhead bridges across the busier roads in the towns: stairs up both sides, a covered deck at 5.6 m. */
+function overheadBridges() {
+  const H = 5.6,
+    L = 9,
+    SW = 2.2;
+  const segs = allSegs.filter(s => s.w >= 9);
+  segs.forEach((s, si) => {
+    const len = Math.hypot(s.bx - s.ax, s.bz - s.az);
+    if (len < 60) return;
+    const ux = (s.bx - s.ax) / len,
+      uz = (s.bz - s.az) / len;
+    const nx = -uz,
+      nz = ux;
+    const half = s.w / 2 + 3.6;
+    // The first good spot along the road: in a busy town, away from junctions and other bridges, stairs on land.
+    let mx = 0,
+      mz = 0,
+      found = false;
+    for (let d = 30; d < len - 30 && !found; d += 20) {
+      mx = s.ax + ux * d;
+      mz = s.az + uz * d;
+      const t = townIn(mx, mz);
+      if (!t || !['cbd', 'mall', 'hdb', 'mixed', 'shophouse'].includes(t.kind as string)) continue;
+      if (bridges.some(b => Math.hypot(b.x - mx, b.z - mz) < 220)) continue;
+      if (rng(hash('bridge', si, d)).next() < 0.3) continue;
+      if (segsNear(mx, mz, 30).some(o => o.road !== s.road && segDist(mx, mz, o.ax, o.az, o.bx, o.bz) < o.w / 2 + 16))
+        continue;
+      let ok = true;
+      for (const side of [-1, 1])
+        for (let e = -1.2; e <= L + 1.2 && ok; e += 2) {
+          const x = mx + nx * side * (s.w / 2 + 2.4) + ux * e,
+            z = mz + nz * side * (s.w / 2 + 2.4) + uz * e;
+          const land = landAt(x, z);
+          if (land === 'sea' || land === 'water' || isReserved(x, z, 2) || nearTrack(x, z, 4) || !freeAt(x, z, 1))
+            ok = false;
+          else if (segsNear(x, z, 10).some(o => o !== s && segDist(x, z, o.ax, o.az, o.bx, o.bz) < o.w / 2 + 1))
+            ok = false;
+        }
+      found = ok;
+    }
+    if (!found) return;
+    // The buildings (placed after) keep off the landings and stairs.
+    for (const side of [-1, 1])
+      for (let e = 0; e <= L + 1.2; e += 3)
+        reserve(mx + nx * side * (s.w / 2 + 2.4) + ux * e, mz + nz * side * (s.w / 2 + 2.4) + uz * e, 2.4);
+    bridges.push({ x: mx, z: mz, nx, nz, w: s.w });
+    const ryN = Math.atan2(-nz, nx),
+      ryU = Math.atan2(-uz, ux);
+    // The deck across the road (covering the landings), with a roof and railings.
+    put({ p: 'solid', x: mx, y: H - 0.2, z: mz, sx: half * 2, sy: 0.4, sz: 2.4, ry: ryN, c: '#c9c5bb' });
+    put({ p: 'solid', x: mx, y: H + 2.7, z: mz, sx: half * 2, sy: 0.12, sz: 2.8, ry: ryN, c: '#6d7a80' });
+    putFloor(mx, mz, half, 1.2, ryN, H);
+    // Railings: the full length on the far side; over the road only on the stairs' side (the landings open onto them).
+    for (const e of [-1.15, 1.15]) {
+      const ex = mx + ux * e,
+        ez = mz + uz * e;
+      const hl = e < 0 ? half : s.w / 2 + 1.2;
+      put({ p: 'solid', x: ex, y: H + 0.55, z: ez, sx: hl * 2, sy: 1.1, sz: 0.08, ry: ryN, c: '#8e969c' });
+      putCol(ex, ez, hl, 0.08, ryN, H - 0.5, H + 1.2);
+    }
+    for (const side of [-1, 1]) {
+      const lx = mx + nx * side * (s.w / 2 + 2.4),
+        lz = mz + nz * side * (s.w / 2 + 2.4);
+      // The outer end of the deck is closed; the stair leaves along the road.
+      put({
+        p: 'solid',
+        x: lx + nx * side * 1.2,
+        y: H + 0.55,
+        z: lz + nz * side * 1.2,
+        sx: 2.4,
+        sy: 1.1,
+        sz: 0.08,
+        ry: ryU,
+        c: '#8e969c',
+      });
+      putCol(lx + nx * side * 1.2, lz + nz * side * 1.2, 1.2, 0.08, ryU, H - 0.5, H + 1.2);
+      for (const e of [-1, 1])
+        put({
+          p: 'cyl',
+          x: lx + nx * side * 0.9 + ux * e * 0.9,
+          y: (H + 2.7) / 2,
+          z: lz + nz * side * 0.9 + uz * e * 0.9,
+          sx: 0.25,
+          sy: H + 2.7,
+          sz: 0.25,
+          ry: 0,
+          c: '#b9b4aa',
+        });
+      // The stair: from the landing (u = 1.2) down to the street (u = 1.2 + L).
+      const sx = lx + ux * (1.2 + L / 2),
+        sz = lz + uz * (1.2 + L / 2);
+      const slope = Math.atan2(H, L);
+      put({
+        p: 'solid',
+        x: sx,
+        y: H / 2 - 0.18,
+        z: sz,
+        sx: Math.hypot(L, H) + 0.3,
+        sy: 0.35,
+        sz: SW,
+        ry: ryU,
+        rz: -slope,
+        c: '#bdb8ae',
+      });
+      putFloor(sx, sz, L / 2, SW / 2, ryU, H, 0);
+      for (const e of [-1, 1]) {
+        const rx = sx + nx * e * (SW / 2 + 0.05),
+          rz = sz + nz * e * (SW / 2 + 0.05);
+        put({
+          p: 'solid',
+          x: rx,
+          y: H / 2 + 0.9,
+          z: rz,
+          sx: Math.hypot(L, H),
+          sy: 0.08,
+          sz: 0.08,
+          ry: ryU,
+          rz: -slope,
+          c: '#8e969c',
+        });
+        putCol(rx, rz, L / 2, 0.08, ryU, 0.6, H + 1.2);
+      }
+    }
+  });
+}
+
 let built = false;
 export function generateCity() {
   if (built) return;
@@ -1054,6 +1384,9 @@ export function generateCity() {
   townStreets();
   joinDeadEnds();
   joinPieces();
+  // Bridges and street things before the lots, so the buildings keep off them.
+  overheadBridges();
+  streetThings();
   for (let ix = Math.floor(BOUNDS.x0 / LOT); ix < Math.ceil(BOUNDS.x1 / LOT); ix++)
     for (let iz = Math.floor(BOUNDS.z0 / LOT); iz < Math.ceil(BOUNDS.z1 / LOT); iz++) lot(ix, iz);
   // Roads: every segment, cut into pieces per chunk; expressways get a pale divider.

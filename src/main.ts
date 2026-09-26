@@ -28,6 +28,7 @@ import { updateTrains, pickStop } from './city/trains';
 import { updateFares, buildCrossings } from './city/fares';
 import { updateMeal } from './places/hawker';
 import { updateVendors } from './npc/vendors';
+import { buildStreet, updateStreet, streetMenu } from './places/street';
 import { updateShutters, resnapShutters } from './places/shutters';
 import { updateInteraction, interact } from './game/interact';
 import { startArrival, updateArrival, loadArrival } from './game/arrival';
@@ -63,7 +64,7 @@ addEventListener('resize', resize);
 // E: aboard a bus, ring the bell; aboard a train, choose the stop; otherwise use what's in front.
 actions.interact = () => {
   if (player.ride) carMenu() || taxiMenu() || busMenu() || pickStop();
-  else interact();
+  else interact() || streetMenu();
 };
 // L: the work laptop.
 actions.laptop = () => openLaptop();
@@ -91,6 +92,7 @@ buildRoadGraph();
 buildTraffic();
 buildTaxis();
 buildCar();
+buildStreet();
 buildWeather();
 apps.push({ label: 'HomeLah', note: 'rooms for rent', run: homeApp });
 buildPeople();
@@ -192,6 +194,7 @@ function loop(now: number) {
   updateChangi(dt);
   updateCbd();
   updateMeal(dt);
+  updateStreet(dt);
   updateShutters(dt);
   updateNear(player.x, player.z);
   updateEvents(dt);

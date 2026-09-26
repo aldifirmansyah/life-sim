@@ -27,6 +27,8 @@ interface Vendor {
   px?: number;
   pz?: number;
   skip?: () => boolean;
+  /** How full (0..1) by the hour, for diners and players; the meal times by default. */
+  busy?: (h: number) => number;
   /** Open hours (game hours); outside them nobody is there. */
   open: number;
   close: number;
@@ -44,8 +46,17 @@ export function addVendor(x: number, z: number, ry: number, o: { y?: number; ope
   vendors.push({ x, z, ry, y: o.y ?? 0, open: o.open ?? 7, close: o.close ?? 23, slot: -1, id: vendors.length });
 }
 /** A stool at a hawker table: someone may eat here at meal times (a plate at (px, pz) on the table). */
-export function addDiner(x: number, z: number, ry: number, sit: number, px: number, pz: number, skip: () => boolean) {
-  vendors.push({ x, z, ry, y: 0, open: 7, close: 22, slot: -1, sit, px, pz, skip, id: vendors.length });
+export function addDiner(
+  x: number,
+  z: number,
+  ry: number,
+  sit: number,
+  px: number,
+  pz: number,
+  skip: () => boolean,
+  busy?: (h: number) => number,
+) {
+  vendors.push({ x, z, ry, y: 0, open: 7, close: 22, slot: -1, sit, px, pz, skip, busy, id: vendors.length });
 }
 /** How full the tables are at hour h (0..1). */
 function fill(h: number) {
@@ -103,7 +114,7 @@ export function updateVendors(dt: number) {
           h >= v.open &&
           h < v.close &&
           (v.sit === undefined ||
-            (!v.skip?.() && rng(hash('diner', v.id, S.day, Math.floor(h * 2))).next() < fill(h))) &&
+            (!v.skip?.() && rng(hash('diner', v.id, S.day, Math.floor(h * 2))).next() < (v.busy ?? fill)(h))) &&
           !people.some(p => p.at && Math.hypot(p.at.x - v.x, p.at.z - v.z) < 1.6),
       )
       .sort((a, b) => a.d - b.d)
@@ -127,7 +138,7 @@ export function updateVendors(dt: number) {
       slotOwner[s] = v;
       v.slot = s;
       crowd.setAppearance(BASE + s, lookFor(v.id));
-      if (v.sit !== undefined) {
+      if (v.sit !== undefined && !Number.isNaN(v.px)) {
         plates.setMatrixAt(s, _m.makeTranslation(v.px!, 0.8, v.pz!));
         plates.instanceMatrix.needsUpdate = true;
       }
